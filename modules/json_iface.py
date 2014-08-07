@@ -21,7 +21,7 @@ class JSONIface:
 		sock_fd.listen(8)
 
 		data = None
-		while data != b'{}':
+		while data != u'{}':
 
 			new_fd, clt = sock_fd.accept()
 			print('[!] Conection from {0}:{1}'.format(*clt))
@@ -29,7 +29,7 @@ class JSONIface:
 			data = new_fd.recv(4096).strip()
 
 			#try:
-			json_data = json.loads(data)
+			json_data = json.loads(data.decode('utf-8'))
 			#except:
 			#new_fd.send(b'{"error":1, "desc":"JSON format error"}')
 
