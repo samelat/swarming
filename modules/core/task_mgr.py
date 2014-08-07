@@ -1,5 +1,5 @@
 
 class TaskMgr:
 
-    def __init__(self):
-        pass
+    def __init__(self, core):
+        self._core = core

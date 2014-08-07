@@ -1,10 +1,10 @@
 
-from multiprocessing import Thread
+from modules.json_iface import JSONIface
 
-from task_mgr import TaskMgr
-from event_mgr import EventMgr
-from message_mgr import MessageMgr
-from dictionary_mgr import DictionaryMgr
+from modules.core.task_mgr import TaskMgr
+from modules.core.event_mgr import EventMgr
+from modules.core.message_mgr import MessageMgr
+from modules.core.dictionary_mgr import DictionaryMgr
 
 
 class Core:
@@ -13,20 +13,19 @@ class Core:
         self._task_mgr    = TaskMgr(self)
         self._message_mgr = MessageMgr(self)
 
-    '''
+        self._json_iface  = JSONIface(self)
 
-    '''
-    def _start_task_mgr(self):
-        pass
-
-    '''
-
-    '''
-    def _start_message_mgr(self):
-        pass
+    def dispatch(self, message):
+        self._message_mgr.push(message)
 
     '''
 
     '''
-    def start_core(self):
-        pass
+    def start(self):
+        # First we start core components
+        self._message_mgr.start()
+
+        self._json_iface.start()
+
+        print('[c] Waiting for the service...')
+        self._json_iface.process.join()
