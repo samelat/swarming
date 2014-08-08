@@ -1,4 +1,5 @@
 
+from modules.unit import Unit
 from modules.json_iface import JSONIface
 
 from modules.core.task_mgr import TaskMgr
@@ -7,7 +8,7 @@ from modules.core.message_mgr import MessageMgr
 from modules.core.dictionary_mgr import DictionaryMgr
 
 
-class Core:
+class Core(Unit):
 
     def __init__(self):
         self._task_mgr    = TaskMgr(self)
@@ -29,3 +30,6 @@ class Core:
 
         print('[c] Waiting for the service...')
         self._json_iface.process.join()
+
+        self._message_mgr.stop()
+        self._message_mgr._thread.join()
