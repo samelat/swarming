@@ -1,7 +1,7 @@
 
 from units.unit import Unit
-from units.core.task_mgr import TaskMgr
-from units.core.message_mgr import MessageMgr
+from units.modules.scheduler import Scheduler
+from units.modules.messenger import Messenger
 
 from units.http import HTTP
 from units.event_mgr import EventMgr
@@ -15,8 +15,8 @@ class Core(Unit):
 
     def __init__(self):
         super(Core, self).__init__()
-        self._task_mgr    = TaskMgr(self)
-        self._message_mgr = MessageMgr(self)
+        self._scheduler = Scheduler(self)
+        self._messenger = Messenger(self)
 
         ''' TODO: It is better if we take the list of
             modules to load from a config file or something
@@ -35,18 +35,20 @@ class Core(Unit):
         for unit in self.units.values():
             unit.halt()
         print('[i] Halting Message Manager...')
-        self._message_mgr.halt()
+        self._messenger.halt()
+        self._scheduler.halt()
 
     ''' ############################################
     '''
     def forward(self, message):
+        print('[i] Forwarding message to {0}'.format(message['dst']))
         if message['dst'] in self.units:
             self.units[message['dst']].dispatch(message)
         # TODO: We could generate a error here, informing that
         #       the dst module does not exist.
 
     def dispatch(self, message):
-        self._message_mgr.push(message)
+        self._messenger.push(message)
 
     ''' ############################################
     '''
@@ -54,9 +56,9 @@ class Core(Unit):
         
         self.sync_commands['halt'] = self._sync_halt
 
-        print('[i] Starting all standard modules...')
+        print('[i] Starting all standard units...')
         for unit in self.units.values():
             unit.start()
 
-        self._task_mgr.start()
-        self._message_mgr.start()
+        self._scheduler.start()
+        self._messenger.start()

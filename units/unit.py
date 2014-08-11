@@ -39,12 +39,13 @@ class Unit:
 
 		return True
 
-	''' 
+	''' ############################################
 	'''
 	def forward(self, message):
 		self.core.dispatch(message)
 
 	def digest(self, message):
+		print('[i] Digesting command {0}'.format(message['cmd']))
 		command = message['cmd']
 		if 'async' in message and not message['async']:
 			if command in self.sync_commands:

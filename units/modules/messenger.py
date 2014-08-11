@@ -6,27 +6,32 @@ from threading import Thread
 from units.unit import Unit
 
 
-class MessageMgr:
+class Messenger:
 
-    def __init__(self, core):
-        super(MessageMgr, self).__init__(core)
+    def __init__(self, owner):
+        self._owner = owner
         self._messages = Queue()
         self._thread = None
+
         self._halt = False
 
     ''' 
     '''
-    def handler(self):
+    def _handler(self):
         while not self._halt:
             message = self.pop()
-            print('[i] Message Manager - New message: {0}'.format(message))
-            if message['dst'] == self.core.name:
-                self.core.digest(message)
+            print('[i] ({0}) Message Manager - New message: {1}'.format(self._owner.name, message))
+            if message['dst'] == self._owner.name:
+                self._owner.digest(message)
             else:
-                self.core.forward(message)
+                self._owner.forward(message)
 
-    def start(self):
-        self.handler()
+    def start(self, launch=False):
+        if launch:
+            self._thread = Thread(target=self._handler)
+            self._thread.start()
+        else:
+            self._handler()
 
     def halt(self):
         self._halt = True
