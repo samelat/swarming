@@ -31,22 +31,31 @@ class Unit:
 	'''
 	def check_msg(self, message):
 
-		if not message.has_key('id'):
+		if not 'id' in message:
 			message['id'] = self.gen_token()
 
-		if not message.has_key('src'):
+		if not 'src' in message:
 			message['src'] = self.name
 
 		return True
 
-	''' TODO: Maybe I could improve this method
+	''' 
 	'''
-	def dispatch(self, message):
-		command = message['command']
+	def forward(self, message):
+		self.core.dispatch(message)
 
-		if message.has_key('async') and not message['async']:
+	def digest(self, message):
+		command = message['cmd']
+		if 'async' in message and not message['async']:
 			if command in self.sync_commands:
 				self.sync_commands[command](message)
 		else:
 			if command in self.async_commands:
 				self.async_commands[command](message)
+
+	def dispatch(self, message):
+		if message['dst'] == self.name:
+			self.digest(message)
+		else:
+			self.forward(message)
+		

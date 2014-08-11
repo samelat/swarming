@@ -11,6 +11,8 @@ from units.dictionary_mgr import DictionaryMgr
 
 class Core(Unit):
 
+    name = 'core'
+
     def __init__(self):
         super(Core, self).__init__()
         self._task_mgr    = TaskMgr(self)
@@ -20,29 +22,41 @@ class Core(Unit):
             modules to load from a config file or something
             like that (do not hardcode them).
         '''
-        self.modules = {}
-        self.modules[JSONIface.name] = JSONIface(self)
-        self.modules[HTTP.name] = HTTP(self)
+        self.units = {}
+        self.units[JSONIface.name] = JSONIface(self)
+        self.units[HTTP.name] = HTTP(self)
 
+    ''' ############################################
+        Core Unit Commands
+        ############################################
+    '''
     def _sync_halt(self, message):
-        print('[i] Waiting for the service...')
-        for module in self.modules.values():
-            module.halt()
-
+        print('[i] Halting units...')
+        for unit in self.units.values():
+            unit.halt()
+        print('[i] Halting Message Manager...')
         self._message_mgr.halt()
 
-    ''' 
+    ''' ############################################
     '''
+    def forward(self, message):
+        if message['dst'] in self.units:
+            self.units[message['dst']].dispatch(message)
+        # TODO: We could generate a error here, informing that
+        #       the dst module does not exist.
+
     def dispatch(self, message):
         self._message_mgr.push(message)
 
+    ''' ############################################
+    '''
     def start(self):
         
         self.sync_commands['halt'] = self._sync_halt
 
         print('[i] Starting all standard modules...')
-        for module in self.modules.values():
-            module.start()
+        for unit in self.units.values():
+            unit.start()
 
         self._task_mgr.start()
         self._message_mgr.start()

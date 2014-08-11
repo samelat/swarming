@@ -6,7 +6,7 @@ from threading import Thread
 from units.unit import Unit
 
 
-class MessageMgr(Unit):
+class MessageMgr:
 
     def __init__(self, core):
         super(MessageMgr, self).__init__(core)
@@ -20,11 +20,10 @@ class MessageMgr(Unit):
         while not self._halt:
             message = self.pop()
             print('[i] Message Manager - New message: {0}'.format(message))
-            msg_dst = message['dst']
-            if msg_dst == 'core':
-                super(Core, self.core).dispatch(message)
+            if message['dst'] == self.core.name:
+                self.core.digest(message)
             else:
-                self.core.modules[msg_dst].dispatch(message)
+                self.core.forward(message)
 
     def start(self):
         self.handler()
