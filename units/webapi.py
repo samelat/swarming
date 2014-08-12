@@ -8,14 +8,14 @@ from units.unit import Unit
 from units.modules.messenger import Messenger
 
 
-class JSONIface(Unit):
+class WebAPI(Unit):
 
-    name = 'jsoniface'
+    name = 'webapi'
 
     def __init__(self, core):
-        super(JSONIface, self).__init__(core)
+        super(WebAPI, self).__init__(core)
         self._process = None
-        self._messenger = None
+        self._messenger = Messenger(self)
 
         self._port = 4000
         self._addr = '127.0.0.1'
@@ -30,18 +30,18 @@ class JSONIface(Unit):
         sock_fd.setblocking(0)
 
         while not self._halt:
-            print('[!] New loop cicle - ({0})'.format(self._halt))
-            ready = select.select([sock_fd], [], [], 2)
+            #print('[webapi] New loop cicle - ({0})'.format(self._halt))
+            ready = select.select([sock_fd], [], [], 0.5)
             if ready[0]:
                 new_fd, clt = sock_fd.accept()
             else:
                 continue
 
-            print('[!] Conection from {0}:{1}'.format(*clt))
+            print('[webapi] Conection from {0}:{1}'.format(*clt))
 
             data = None
             new_fd.setblocking(0)
-            ready = select.select([new_fd], [], [], 2)
+            ready = select.select([new_fd], [], [], 0.5)
             if ready[0]:
                 data = new_fd.recv(4096)
             else:
@@ -59,9 +59,9 @@ class JSONIface(Unit):
                 Here we should control if the message have the
                 correct format.
             '''
-            print('[!] Unchecked message: {0}'.format(message))
+            print('[webapi] Unchecked message: {0}'.format(message))
             self.check_msg(message)
-            print('[!] Checked message: {0}'.format(message))
+            print('[webapi] Checked message: {0}'.format(message))
 
             self.dispatch(message)
 
@@ -70,28 +70,36 @@ class JSONIface(Unit):
 
             new_fd.close()
 
-            print('[!] Data received: ' + str(message))
+            print('[webapi] Data received: ' + str(message))
 
-        print('[i] WebAPI halted')
+        print('[webapi] Service halted')
 
         sock_fd.close()
+
+    def _launcher(self):
+        self.sync_commands['halt'] = self._sync_halt
+        self.async_commands['response'] = self._async_response
+        
+        self._messenger.start(True)
+        self._manager()
+
+    ''' ############################################
+    '''
+    def _sync_halt(self, message):
+        print('[webapi] Halting service ...')
+        self._halt = True
+
+    def _async_response(self, message):
+        print('[webapi] Response message: {0}'.format(message))
 
     ''' ############################################
     '''
     def dispatch(self, message):
         self._messenger.push(message)
 
-    def halt(self):
-        print('[!] Halting JSONIface ...')
-        self._halt = True
+    def wait(self):
         self._process.join()
-        print('[!] JSONIface halted')
-
-    def test(self):
-        self._messenger = Messenger(self)
-        self._messenger.start(True)
-        self._manager()
 
     def start(self):
-        self._process = Process(target=self.test)
+        self._process = Process(target=self._launcher)
         self._process.start()

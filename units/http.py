@@ -8,15 +8,19 @@ class HTTP(Unit):
 	def __init__(self, core):
 		super(HTTP, self).__init__(core)
 
-	''' Async Messages
+	''' ############################################
+		Async Messages
 	'''
 	def _async_bforce(self, message):
 		print('[i] Async Bforce Message - {0}'.format(message))
+		response = self.make_response(message)
+		self.dispatch(response)
 
 	def _async_spider(self, message):
 		print('[i] Async Spider Message - {0}'.format(message))
 
-	''' Sync Messages
+	''' ############################################
+		Sync Messages
 	'''
 	def _sync_bforce(self, message):
 		print('[i] Sync Bforce Message - {0}'.format(message))

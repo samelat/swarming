@@ -14,6 +14,9 @@ class Unit:
 	def halt(self):
 		pass
 
+	def wait(self):
+		pass
+
 	def make_msg(self, dst, cmd, params={}, response=True):
 		message = {'dst':dst,
 		           'cmd':cmd,
@@ -22,6 +25,14 @@ class Unit:
 		if response:
 			message['src'] = self.name
 		return message
+
+	def make_response(self, message):
+		response = message.copy()
+		response['dst'] = message['src']
+		response['src'] = message['dst']
+		response['cmd'] = 'response'
+
+		return response
 
 	def gen_token(self):
 		return random.getrandbits(32)
@@ -45,7 +56,7 @@ class Unit:
 		self.core.dispatch(message)
 
 	def digest(self, message):
-		print('[i] Digesting command {0}'.format(message['cmd']))
+		print('[{0}] Digesting command {1}'.format(self.name, message['cmd']))
 		command = message['cmd']
 		if 'async' in message and not message['async']:
 			if command in self.sync_commands:

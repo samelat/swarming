@@ -20,7 +20,7 @@ class Messenger:
     def _handler(self):
         while not self._halt:
             message = self.pop()
-            print('[i] ({0}) Message Manager - New message: {1}'.format(self._owner.name, message))
+            print('[{0}] Message Manager - New message: {1}'.format(self._owner.name, message))
             if message['dst'] == self._owner.name:
                 self._owner.digest(message)
             else:

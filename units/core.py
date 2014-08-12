@@ -5,7 +5,7 @@ from units.modules.messenger import Messenger
 
 from units.http import HTTP
 from units.event_mgr import EventMgr
-from units.json_iface import JSONIface
+from units.webapi import WebAPI
 from units.dictionary_mgr import DictionaryMgr
 
 
@@ -23,7 +23,7 @@ class Core(Unit):
             like that (do not hardcode them).
         '''
         self.units = {}
-        self.units[JSONIface.name] = JSONIface(self)
+        self.units[WebAPI.name] = WebAPI(self)
         self.units[HTTP.name] = HTTP(self)
 
     ''' ############################################
@@ -31,17 +31,21 @@ class Core(Unit):
         ############################################
     '''
     def _sync_halt(self, message):
-        print('[i] Halting units...')
-        for unit in self.units.values():
-            unit.halt()
-        print('[i] Halting Message Manager...')
+        print('[core] Broadcasting "halt" message...')
+        for unit_name, unit in self.units.items():
+            cmsg = message.copy()
+            cmsg['dst'] = unit_name
+            print('[core] Sending from "halt" message: {0}'.format(cmsg))
+            unit.dispatch(cmsg)
+            unit.wait()
+        print('[core] Halting Message Manager...')
         self._messenger.halt()
         self._scheduler.halt()
 
     ''' ############################################
     '''
     def forward(self, message):
-        print('[i] Forwarding message to {0}'.format(message['dst']))
+        print('[core] Forwarding message to {0}'.format(message['dst']))
         if message['dst'] in self.units:
             self.units[message['dst']].dispatch(message)
         # TODO: We could generate a error here, informing that
@@ -56,7 +60,7 @@ class Core(Unit):
         
         self.sync_commands['halt'] = self._sync_halt
 
-        print('[i] Starting all standard units...')
+        print('[core] Starting all standard units...')
         for unit in self.units.values():
             unit.start()
 
