@@ -2,8 +2,8 @@
 
 class Scheduler:
 
-    def __init__(self, owner):
-    	self._owner = owner
+    def __init__(self, core):
+    	self._core = core
 
     def halt(self):
     	pass

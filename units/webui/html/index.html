@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="http://getbootstrap.com/favicon.ico">
+
+        <title>Swarming User Interface</title>
+
+        <script src="js/jquery-2.1.1.js"></script>
+
+        <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="style/dashboard.css" rel="stylesheet">
+        <script src="bootstrap/js/bootstrap.min.js"></script>
+
+        <script src="js/subunits.js"></script>
+        <script src="js/messenger.js"></script>
+        <script src="js/webui.js"></script>        
+
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="">Bootstrap theme</a>
+                </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li class="active"><a href="">Home</a></li>
+                        <li><a href="">About</a></li>
+                        <li><a href="">Contact</a></li>
+                        <li class="dropdown">
+                            <a href="" class="dropdown-toggle" data-toggle="dropdown">Dropdown <span class="caret"></span></a>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><a href="">Action</a></li>
+                                <li><a href="">Another action</a></li>
+                                <li><a href="">Something else here</a></li>
+                                <li class="divider"></li>
+                                <li class="dropdown-header">Nav header</li>
+                                <li><a href="">Separated link</a></li>
+                                <li><a href="">One more separated link</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div><!--/.nav-collapse -->
+            </div>
+        </div>
+
+        <div class="container-fluid">
+            <div class="col-sm-3 col-md-2 sidebar">
+                <ul class="nav nav-sidebar">
+                    <li id="sunit_menu" class="active"><a href="javascript:sunit_menu()">Sub Units</a></li>
+                    <li id="dict_menu"><a href="javascript:dict_menu()">Dictionaries</a></li>
+                    <li><a href="">Network</a></li>
+                    <li><a href="">Devices</a></li>
+                </ul>
+            </div>
+
+            <div class="col-sm-2 col-sm-offset-2 col-md-6 col-md-offset-2 main">
+                <h2 class="sub-header">Sub Units</h2>
+                <button type="button" class="btn btn-primary" data-toggle="collapse" data-target="#add_subunit_form">
+                   Add SubUnit
+                </button>
+
+                <div id="add_subunit_form" class="collapse in">
+                    <form class="form-horizontal" role="form">
+                        <div class="form-group">
+                            <label for="protocol_form_input" class="col-lg-2 control-label input-sm">Protocol</label>
+                            <div class="col-lg-2">
+                                <input name="protocol" id="protocol_form_input" type="text" class="form-control input-sm" placeholder="Protocol">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="command_form_input" class="col-lg-2 control-label input-sm">Command</label>
+                            <div class="col-lg-2">
+                                <input name="command" id="command_form_input" type="text" class="form-control input-sm" placeholder="Command">
+                            </div>
+                        </div>
+                        <div class="form-group form-vertical">
+                            <label for="ip_form_input" class="col-lg-2 control-label input-sm">Hostname</label>
+                            <div class="col-lg-2">
+                                <input name="hostname" id="protocol_form_input" type="text" class="form-control input-sm" placeholder="Hostname">
+                            </div>
+                        </div>
+                        <div class="form-group form-vertical">
+                            <label for="ip_form_input" class="col-lg-2 control-label input-sm">Port</label>
+                            <div class="col-lg-2">
+                                <input name="port" id="protocol_form_input" type="text" class="form-control input-sm" placeholder="Port">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="ejemplo_email_3" class="col-lg-2 control-label input-sm">Path</label>
+                            <div class="col-lg-2">
+                                <input name="path" id="protocol_form_input" type="text" class="form-control input-sm" placeholder="Path">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-lg-offset-2 col-lg-4">
+                                <button type="button" class="btn btn-xs btn-default" onclick="subunits_handler.send_new_subunit()">Add</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th class="col-md-1">protocol</th>
+                            <th class="col-md-1">command</th>
+                            <th class="col-md-1">ip:port</th>
+                            <th class="col-md-1">path</th>
+                            <th class="col-md-1">state</th>
+                            <th class="col-md-1"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="subunits_list">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>

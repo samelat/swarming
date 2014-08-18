@@ -1,5 +1,7 @@
 
-from units.unit import Unit
+from units.modules import tools
+from units.modules.unit import Unit
+
 
 class HTTP(Unit):
 
@@ -9,29 +11,19 @@ class HTTP(Unit):
 		super(HTTP, self).__init__(core)
 
 	''' ############################################
-		Async Messages
+		Command handlers
 	'''
-	def _async_bforce(self, message):
-		print('[i] Async Bforce Message - {0}'.format(message))
-		response = self.make_response(message)
+	def _bforce(self, message):
+		print('[i] Sync Bforce Message - {0}'.format(message))
+		response = tools.make_response(message)
 		self.dispatch(response)
 
-	def _async_spider(self, message):
-		print('[i] Async Spider Message - {0}'.format(message))
-
-	''' ############################################
-		Sync Messages
-	'''
-	def _sync_bforce(self, message):
-		print('[i] Sync Bforce Message - {0}'.format(message))
-
-	def _sync_spider(self, message):
+	def _spider(self, message):
 		print('[i] Sync Spider Message - {0}'.format(message))
+		response = tools.make_response(message)
+		self.dispatch(response)
 
 	# I HAVE TO improve this
 	def start(self):
-		self.sync_commands['bforce'] = self._sync_bforce
-		self.async_commands['bforce'] = self._async_bforce
-
-		self.sync_commands['spider'] = self._sync_spider
-		self.async_commands['spider'] = self._async_spider
+		self.add_cmd_handler('bforce', self._bforce)
+		self.add_cmd_handler('spider', self._spider)
