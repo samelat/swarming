@@ -11,19 +11,23 @@ function SubUnits () {
         Events that interact with the messenger.
     */
     this.send_new_subunit = function() {
-        var params = {};
+        var subunit = {};
         var message = {};
 
         var fields = $("#add_subunit_form input");
         jQuery.each(fields, function(i, field) {
-            params[field.name] = field.value;
+            subunit[field.name] = field.value;
         });
 
-        message['dst'] = 'knowledge';
+        message['dst'] = 'brain';
         message['cmd'] = 'add_subunit';
-        message['params'] = params;
+        message['params'] = {};
+        message['params']['subunit'] = subunit;
+        message['params']['context'] = '';
         
-        messenger.request(message);
+        messenger.request(message, function(response) {
+            alert('RESPONSE!!!!');
+        });
     }
 
     /*

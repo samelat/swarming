@@ -16,7 +16,8 @@ class DBMgr:
 
     def add(self, instance):
         self._session.add(instance)
-        self._session.commit()
+        self._session.flush()
+        self._session.refresh(instance)
 
 
 ''' 
@@ -24,13 +25,13 @@ class DBMgr:
 '''
 class SubUnit(ORMBase):
 
-    params = ['command', 'protocol', 'ip', 'port', 'path']
+    params = ['command', 'protocol', 'hostname', 'port', 'path']
 
     __tablename__ = 'subunit'
     sunit_id = Column(Integer, primary_key=True)
     command = Column(String)
     protocol = Column(String)
-    ip = Column(String)
+    hostname = Column(String)
     port = Column(Integer)
     path = Column(String)
     context = Column(String)

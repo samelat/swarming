@@ -2,6 +2,8 @@
 
 subunits_handler = new SubUnits();
 messenger = new Messenger();
+console.log(messenger.responses.keys());
+messenger.start();
 
 function sunit_menu() {
     $('#sunit_menu').attr('class', 'active');

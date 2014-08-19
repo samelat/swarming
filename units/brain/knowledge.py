@@ -17,11 +17,14 @@ class Knowledge:
         #params = tools.restrict(message, SubUnit.params)
         subunit = message['params']['subunit']
         context = message['params']['context']
-        self._db_mgr.add(SubUnit(**subunit))
+        sunit = SubUnit(**subunit)
+        self._db_mgr.add(sunit)
 
-        # response = tools.make_response(message)
-        # self.dispatch(response)
-        # print('[brain] Sync add_target Message - {0}'.format(message))
+        response = tools.make_response(message)
+        response['params']['subunit']['sunit_id'] = sunit.sunit_id
+
+        self._brain.dispatch(response)
+        print('[knowledge] responding - {0}'.format(response))
 
     def start(self):
         self._db_mgr.start()

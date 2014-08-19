@@ -27,11 +27,11 @@ class WebUI(Unit):
     ''' ############################################
     '''
     def halt(self, message):
-        print('[webapi] Halting service ...')
+        print('[webui] Halting service ...')
         self._halt = True
 
     def response(self, message):
-        print('[webapi] Response message: {0}'.format(message))
+        print('[webui] Response message: {0}'.format(message))
 
     ''' ############################################
     '''

@@ -9,6 +9,8 @@ class Unit:
         self._commands  = {'halt':self.halt,
                            'response':self.response}
 
+        self.responses = {}
+
     # Start all the things the unit needs
     def start(self):
         pass
@@ -19,6 +21,7 @@ class Unit:
 
     def add_cmd_handler(self, command, handler):
         self._commands[command] = handler
+
     ''' ############################################
         These are default handlers for the basic commands
     '''
@@ -26,7 +29,9 @@ class Unit:
         pass
 
     def response(self, message):
-        pass
+        channel_id = message['id']
+        if channel_id in self.responses:
+            self.responses[channel_id] = message
 
     ''' ############################################
     '''
