@@ -18,6 +18,7 @@ class APIService:
 
     def start(self):
         cherrypy.config.update("units/webui/server.conf")
+        cherrypy.config.update({ "environment": "embedded" })
 
         conf = {
             '/':{
@@ -43,6 +44,7 @@ class APIService:
         message['id'] = channel_id
         message['src'] = self._webui.name
 
+        self._webui.register_resp(channel_id)
         self._webui.dispatch(message)
 
         return {'error':'success', 'id':channel_id}
@@ -52,11 +54,8 @@ class APIService:
     @cherrypy.tools.json_out()
     def response(self):
         data = cherrypy.request.json
-        responses = {}
-        print("RESPONSE: {0}".format(data))
-        return {}
-        for channel_id in data['channel_ids']:
-            if channel_id in self._webui.responses:
-                responses[channel_id] = self._webui.responses[channel_id]
-                self._webui.responses[channel_id] = None
-        return {'error':'success', 'responses':responses}
+        print('/RESPONSE {0}'.format(data))
+        responses = self._webui.get_responses(data['channels'])
+
+        print("RESPONSES: {0}".format(responses))
+        return {'error':'success', 'responses':responses, 'channels':list(responses.keys())}

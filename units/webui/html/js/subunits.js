@@ -26,7 +26,9 @@ function SubUnits () {
         message['params']['context'] = '';
         
         messenger.request(message, function(response) {
-            alert('RESPONSE!!!!');
+            var sunit = response['params']['subunit'];
+            subunits_handler.subunits[sunit.sunit_id] = sunit;
+            subunits_handler.add_subunit_row(sunit.sunit_id);
         });
     }
 

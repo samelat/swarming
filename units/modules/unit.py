@@ -1,4 +1,6 @@
 
+from threading import Lock
+
 from units.modules import tools
 
 
@@ -9,7 +11,8 @@ class Unit:
         self._commands  = {'halt':self.halt,
                            'response':self.response}
 
-        self.responses = {}
+        self._responses = {}
+        self._resp_lock = Lock()
 
     # Start all the things the unit needs
     def start(self):
@@ -22,6 +25,24 @@ class Unit:
     def add_cmd_handler(self, command, handler):
         self._commands[command] = handler
 
+    def get_responses(self, channels):
+        responses = {}
+
+        self._resp_lock.acquire()
+
+        for channel in channels:
+            if (channel in self._responses) and (self._responses[channel] != None):
+                responses[channel] = self._responses[channel]
+                self._responses[channel] = None
+        self._resp_lock.release()
+        return responses
+
+    def register_resp(self, channel):
+        self._resp_lock.acquire()
+        self._responses[channel] = None
+        self._resp_lock.release()
+
+
     ''' ############################################
         These are default handlers for the basic commands
     '''
@@ -29,9 +50,11 @@ class Unit:
         pass
 
     def response(self, message):
+        self._resp_lock.acquire()
         channel_id = message['id']
-        if channel_id in self.responses:
-            self.responses[channel_id] = message
+        if channel_id in self._responses:
+            self._responses[channel_id] = message
+        self._resp_lock.release()
 
     ''' ############################################
     '''

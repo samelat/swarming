@@ -30,9 +30,6 @@ class WebUI(Unit):
         print('[webui] Halting service ...')
         self._halt = True
 
-    def response(self, message):
-        print('[webui] Response message: {0}'.format(message))
-
     ''' ############################################
     '''
     def dispatch(self, message):

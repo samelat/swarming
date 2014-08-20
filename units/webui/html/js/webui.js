@@ -2,7 +2,8 @@
 
 subunits_handler = new SubUnits();
 messenger = new Messenger();
-console.log(messenger.responses.keys());
+//var aaa = {'a':1};
+//console.log(Object.keys(aaa));
 messenger.start();
 
 function sunit_menu() {

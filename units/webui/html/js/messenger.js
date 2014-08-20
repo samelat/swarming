@@ -2,10 +2,11 @@
 
 function Messenger () {
 
-    this.responses = {};
+    this.callbacks = {};
+    this.keys = [];
 
     this.start = function(){
-        window.setInterval(this.response, 1000);
+        window.setInterval(this.response, 5000);
     };
 
     /* ########################################
@@ -22,11 +23,13 @@ function Messenger () {
                 alert("error");
             },*/
             success: function(response) {
-                alert("success");
-                alert(JSON.stringify(response))
+                console.log("success");
+                console.log(response);
 
-                messenger.responses[response['id']] = callback;
+                messenger.callbacks[response['id']] = callback;
+                messenger.keys.push(response['id']);
 
+                console.log(response['id']);
                 //for(var i in data){
                 //    alert(data[i]);
                 //}
@@ -35,25 +38,31 @@ function Messenger () {
     };
 
     this.response = function() {
-        alert(this.responses.keys());
+        //console.log(Object.keys(messenger.responses));
         $.ajax({
             type: "POST",
             url: '/response',
-            data: JSON.stringify({'channel_ids':1}),
+            data: JSON.stringify({'channels': messenger.keys}),
             contentType: 'application/json',
             dataType: 'json',
             /*error: function() {
                 alert("error");
             },*/
             success: function(response) {
-                //alert("responses success");
-                alert(JSON.stringify(response))
+                console.log("response success");
+                console.log(JSON.stringify(response));
 
-                for(var index in response['responses']){
-                    alert(JSON.stringify(response['responses'][index]));
-                }
+                $.each(response['channels'], function(index, channel){
+                    messenger.keys.splice(index, 1);
+                });
+
+                $.each(response['channels'], function(index, channel){
+                    console.log('FROM RESPONSE!!!');
+                    console.log(channel);
+                    console.log(response['responses'][channel]);
+                    messenger.callbacks[channel](response['responses'][channel]);
+                });
             }
         });
-
     }
 }
