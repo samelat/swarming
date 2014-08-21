@@ -18,17 +18,18 @@ class Brain(Unit):
         self._knowledge = Knowledge(self)
 
     ''' ############################################
-        Command Handlers
-    '''
-    def halt(self, message):
-        self._messenger.halt()
-
-    ''' ############################################
 
     '''
     def start(self):
-        self.add_cmd_handler('add_subunit', self._knowledge.add_subunit)
+        self.add_cmd_handler('add_sunits', self._knowledge.add_sunits)
+        self.add_cmd_handler('get_sunits', self._knowledge.get_sunits)
         self._messenger.start(True)
 
     def dispatch(self, message):
         self._messenger.push(message)
+
+    ''' ############################################
+        Command Handlers
+    '''
+    def halt(self, message):
+        self._messenger.halt()

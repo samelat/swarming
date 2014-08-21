@@ -1,6 +1,6 @@
 
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Float
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -20,12 +20,9 @@ class DBMgr:
         self._session.refresh(instance)
 
 
-''' 
-    ORM Classes
+''' ORM Classes
 '''
 class SubUnit(ORMBase):
-
-    params = ['command', 'protocol', 'hostname', 'port', 'path']
 
     __tablename__ = 'subunit'
     sunit_id = Column(Integer, primary_key=True)
@@ -35,4 +32,5 @@ class SubUnit(ORMBase):
     port = Column(Integer)
     path = Column(String)
     context = Column(String)
+    timestamp = Column(Integer)
 

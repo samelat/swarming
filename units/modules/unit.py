@@ -50,6 +50,7 @@ class Unit:
         pass
 
     def response(self, message):
+        print('[{0}] Response: {1}'.format(self.name, message))
         self._resp_lock.acquire()
         channel_id = message['id']
         if channel_id in self._responses:

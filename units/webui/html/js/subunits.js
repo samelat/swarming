@@ -20,15 +20,15 @@ function SubUnits () {
         });
 
         message['dst'] = 'brain';
-        message['cmd'] = 'add_subunit';
+        message['cmd'] = 'add_sunits';
         message['params'] = {};
         message['params']['subunit'] = subunit;
         message['params']['context'] = '';
         
         messenger.request(message, function(response) {
-            var sunit = response['params']['subunit'];
-            subunits_handler.subunits[sunit.sunit_id] = sunit;
-            subunits_handler.add_subunit_row(sunit.sunit_id);
+            //var sunit = response['params']['subunit'];
+            //subunits_handler.subunits[sunit.sunit_id] = sunit;
+            //subunits_handler.add_subunit_row(sunit.sunit_id);
         });
     }
 

@@ -10,9 +10,11 @@ def new_msg(dst, cmd, params={}):
     return message
 
 def make_response(message):
-    response = message.copy()
+    response = {}
+    response['id']  = message['id']
     response['src'] = message['dst']
     response['cmd'] = 'response'
+    response['params'] = {}
 
     if 'src' in message:
         response['dst'] = message['src']
