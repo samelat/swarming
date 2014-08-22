@@ -24,18 +24,30 @@ class Knowledge:
         print('[knowledge] add_sunits Message - {0}'.format(message))
 
         #params = tools.restrict(message, SubUnit.params)
-        subunit = message['params']['subunit']
+        sunit = message['params']['sunit']
         context = message['params']['context']
         sunit = SubUnit(**subunit)
         sunit.timestamp = self.timestamp()
 
         self._db_mgr.add(sunit)
 
-        response = tools.make_response(message)
-        response['params']['sunit_id'] = sunit.sunit_id
-
-        self._brain.dispatch(response)
-        print('[knowledge] responding - {0}'.format(response))
+        return {'sunit_id':sunit.sunit_id}
 
     def get_sunits(self, message):
         print('[knowledge] get_sunits Message - {0}'.format(message))
+        params = message['params']
+
+        timestamp = 0
+        if 'timestamp' in params:
+            timestamp = params['timestamp']
+
+        sunits = []
+        for sunit, inst in self._db_mgr.session.query(SubUnit).join(Instance).\
+                                                filter(SubUnit.timestamp > timestamp).\
+                                                all():
+            sunit = {}
+            sunit['']
+
+            sunits.append(sunit)
+
+        return {'timestamp':timestamp, 'sunits':sunits}

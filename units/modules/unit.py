@@ -66,7 +66,12 @@ class Unit:
         print('[{0}] Digesting command {1}'.format(self.name, message['cmd']))
         command = message['cmd']
         if command in self._commands:
-            self._commands[command](message)
+            params = self._commands[command](message)
+            response = tools.make_response(message)
+            if response:
+                response['params'].update(params)
+                print('[knowledge] responding - {0}'.format(response))
+                self.dispatch(response)
 
     def dispatch(self, message):
         if message['dst'] == self.name:

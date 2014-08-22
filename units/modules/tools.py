@@ -16,8 +16,10 @@ def make_response(message):
     response['cmd'] = 'response'
     response['params'] = {}
 
-    if 'src' in message:
-        response['dst'] = message['src']
+    if not 'src' in message:
+        return None
+    
+    response['dst'] = message['src']
 
     return response
 
