@@ -20,12 +20,19 @@ class DBMgr:
         self.session.flush()
         self.session.refresh(instance)
 
+    def jsonify(self, row):
+        json_row = {}
+        values = vars(row)
+        for field in row._fields:
+            json_row[field] = values[field]
+        return json_row
+
 
 ''' ORM Classes
 '''
 class SubUnit(ORMBase):
 
-    fields = ['sunit_id', 'command', 'protocol', 'hostname', 'port', 'path']
+    _fields = ['sunit_id', 'command', 'protocol', 'hostname', 'port', 'path', 'context', 'state']
     __tablename__ = 'subunit'
     sunit_id = Column(Integer, primary_key=True)
     command = Column(String)
@@ -34,11 +41,11 @@ class SubUnit(ORMBase):
     port = Column(Integer)
     path = Column(String)
     context = Column(String)
+    state = Column(String)
     timestamp = Column(Integer)
 
 class Instance(ORMBase):
     __tablename__ = 'instance'
     inst_id  = Column(Integer, primary_key=True)
     sunit_id = Column(Integer, ForeignKey('subunit.sunit_id'))
-    state = Column(String)
 

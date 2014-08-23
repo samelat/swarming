@@ -39,23 +39,27 @@ class APIService:
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     def request(self):
-        channel_id = tools.gen_token()
+        channel = tools.gen_token()
         message = cherrypy.request.json
-        message['id'] = channel_id
+        message['channel'] = channel
         message['src'] = self._webui.name
 
-        self._webui.register_resp(channel_id)
+        self._webui.register_resp(channel)
         self._webui.dispatch(message)
 
-        return {'error':'success', 'id':channel_id}
+        return {'error':'success', 'channel':channel}
 
     @cherrypy.expose
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     def response(self):
         data = cherrypy.request.json
-        print('/RESPONSE {0}'.format(data))
-        responses = self._webui.get_responses(data['channels'])
+        print('RESPONSE {0}'.format(data))
+        _responses = self._webui.get_responses(data['channels'])
+
+        responses = {}
+        for channel in _responses:
+            responses[channel] = _responses[channel]['params']
 
         print("RESPONSES: {0}".format(responses))
-        return {'error':'success', 'responses':responses, 'channels':list(responses.keys())}
+        return {'error':'success', 'responses':responses, 'channels':list(_responses.keys())}

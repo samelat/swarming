@@ -52,9 +52,9 @@ class Unit:
     def response(self, message):
         print('[{0}] Response: {1}'.format(self.name, message))
         self._resp_lock.acquire()
-        channel_id = message['id']
-        if channel_id in self._responses:
-            self._responses[channel_id] = message
+        channel = message['channel']
+        if channel in self._responses:
+            self._responses[channel] = message
         self._resp_lock.release()
 
     ''' ############################################

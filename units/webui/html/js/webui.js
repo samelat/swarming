@@ -1,10 +1,10 @@
 
 
-subunits_handler = new SubUnits();
+subunits  = new SubUnits();
+
 messenger = new Messenger();
-//var aaa = {'a':1};
-//console.log(Object.keys(aaa));
 messenger.start();
+messenger.update = subunits.update;
 
 function sunit_menu() {
     $('#sunit_menu').attr('class', 'active');

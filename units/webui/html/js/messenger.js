@@ -5,34 +5,39 @@ function Messenger () {
     this.callbacks = {};
     this.keys = [];
 
+    this.update = function(){};
+
     this.start = function(){
-        window.setInterval(this.response, 5000);
+        window.setInterval(this.poll, 10000);
     };
 
     /* ########################################
      * 
      */
+    this.poll = function() {
+        console.log('poll');
+        messenger.response();
+        messenger.update();
+    };
+
     this.request = function(message, callback) {
+        console.log('Request Message: ' + JSON.stringify(message));
         $.ajax({
             type: "POST",
             url: '/request',
             data: JSON.stringify(message),
             contentType: 'application/json',
             dataType: 'json',
-            /*error: function() {
-                alert("error");
-            },*/
+            error: function() {
+                console.log('request error');
+            },
             success: function(response) {
-                console.log("success");
-                console.log(response);
+                console.log('request success: ' + JSON.stringify(response));
 
-                messenger.callbacks[response['id']] = callback;
-                messenger.keys.push(response['id']);
+                messenger.callbacks[response['channel']] = callback;
+                messenger.keys.push(response['channel']);
 
-                console.log(response['id']);
-                //for(var i in data){
-                //    alert(data[i]);
-                //}
+                console.log('response channel: ' + response['channel']);
             }
         });
     };
@@ -45,22 +50,21 @@ function Messenger () {
             data: JSON.stringify({'channels': messenger.keys}),
             contentType: 'application/json',
             dataType: 'json',
-            /*error: function() {
-                alert("error");
-            },*/
+            async: false,
+            error: function() {
+                console.log("response error");
+            },
             success: function(response) {
-                console.log("response success");
-                console.log(JSON.stringify(response));
-
-                $.each(response['channels'], function(index, channel){
-                    messenger.keys.splice(index, 1);
+                console.log('response success: ' + JSON.stringify(response));
+                console.log('before messenger.keys: ' + JSON.stringify(messenger.keys));
+                messenger.keys = messenger.keys.filter(function(c){
+                    return response['channels'].indexOf(c) < 0;
                 });
-
-                $.each(response['channels'], function(index, channel){
-                    console.log('FROM RESPONSE!!!');
-                    console.log(channel);
-                    console.log(response['responses'][channel]);
-                    messenger.callbacks[channel](response['responses'][channel]);
+                console.log('after messenger.keys: ' + JSON.stringify(messenger.keys));
+                
+                $.each(response['responses'], function(channel, _response){
+                    console.log('calling callback for channel ' + channel);
+                    messenger.callbacks[channel](_response);
                 });
             }
         });

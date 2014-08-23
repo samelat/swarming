@@ -20,15 +20,16 @@ class Knowledge:
 
     ''' ############################################
     '''
-    def add_sunits(self, message):
-        print('[knowledge] add_sunits Message - {0}'.format(message))
+    def add_sunit(self, message):
+        print('[knowledge] add_sunit Message - {0}'.format(message))
 
         #params = tools.restrict(message, SubUnit.params)
-        sunit = message['params']['sunit']
-        context = message['params']['context']
-        sunit = SubUnit(**subunit)
-        sunit.timestamp = self.timestamp()
+        _sunit = message['params']['sunit']
+        _context = message['params']['context']
 
+        sunit = SubUnit(**_sunit)
+        sunit.timestamp = self.timestamp()
+        sunit.state = 'stopped'
         self._db_mgr.add(sunit)
 
         return {'sunit_id':sunit.sunit_id}
@@ -42,12 +43,13 @@ class Knowledge:
             timestamp = params['timestamp']
 
         sunits = []
-        for sunit, inst in self._db_mgr.session.query(SubUnit).join(Instance).\
-                                                filter(SubUnit.timestamp > timestamp).\
-                                                all():
-            sunit = {}
-            sunit['']
+        for sunit in self._db_mgr.session.query(SubUnit).\
+                                          filter(SubUnit.timestamp > timestamp).\
+                                          all():
+            json_sunit = self._db_mgr.jsonify(sunit)
+            sunits.append(json_sunit)
 
-            sunits.append(sunit)
+        if sunits:
+            timestamp = self.timestamp()
 
         return {'timestamp':timestamp, 'sunits':sunits}

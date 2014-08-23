@@ -10,14 +10,15 @@ def new_msg(dst, cmd, params={}):
     return message
 
 def make_response(message):
+    if (message['cmd'] == 'response') or\
+       (not 'src' in message):
+        return None
+
     response = {}
-    response['id']  = message['id']
+    response['channel']  = message['channel']
     response['src'] = message['dst']
     response['cmd'] = 'response'
     response['params'] = {}
-
-    if not 'src' in message:
-        return None
     
     response['dst'] = message['src']
 
