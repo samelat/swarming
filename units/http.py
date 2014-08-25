@@ -10,20 +10,17 @@ class HTTP(Unit):
 	def __init__(self, core):
 		super(HTTP, self).__init__(core)
 
+	def start(self):
+		self.add_cmd_handler('bforce', self.bforce)
+		self.add_cmd_handler('spider', self.spider)
+
 	''' ############################################
 		Command handlers
 	'''
-	def _bforce(self, message):
+	def bforce(self, message):
 		print('[i] Sync Bforce Message - {0}'.format(message))
-		response = tools.make_response(message)
-		self.dispatch(response)
+		return {'status':'success'}
 
-	def _spider(self, message):
+	def spider(self, message):
 		print('[i] Sync Spider Message - {0}'.format(message))
-		response = tools.make_response(message)
-		self.dispatch(response)
-
-	# I HAVE TO improve this
-	def start(self):
-		self.add_cmd_handler('bforce', self._bforce)
-		self.add_cmd_handler('spider', self._spider)
+		return {'status':'success'}

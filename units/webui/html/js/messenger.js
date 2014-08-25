@@ -15,7 +15,7 @@ function Messenger () {
      * 
      */
     this.poll = function() {
-        console.log('poll');
+        console.log('################ <poll> ################');
         messenger.response();
     };
 

@@ -34,6 +34,7 @@ function SubUnits () {
             subunits.timestamp = response.timestamp;
             //sunit_ids = [1337];
             subunits.refresh_sunit_rows(sunit_ids);
+            console.log('################ </poll> ################');
         });
     };
 
@@ -66,10 +67,9 @@ function SubUnits () {
     */
     this.refresh_sunit_rows = function(sunit_ids) {
 
-        console.log('############################################');
         console.log('sunit to update: ' + sunit_ids);
         console.log(JSON.stringify(subunits.sunits));
-        console.log('############################################');
+        
         $.each(sunit_ids, function(index, sunit_id) {
             var sunit = subunits.sunits[sunit_id];
             var sunit_html = '<td>' + sunit.protocol + '</td>\
