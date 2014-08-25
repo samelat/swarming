@@ -17,7 +17,6 @@ function Messenger () {
     this.poll = function() {
         console.log('poll');
         messenger.response();
-        messenger.update();
     };
 
     this.request = function(message, callback) {
@@ -50,7 +49,6 @@ function Messenger () {
             data: JSON.stringify({'channels': messenger.keys}),
             contentType: 'application/json',
             dataType: 'json',
-            async: false,
             error: function() {
                 console.log("response error");
             },
@@ -66,6 +64,8 @@ function Messenger () {
                     console.log('calling callback for channel ' + channel);
                     messenger.callbacks[channel](_response);
                 });
+
+                messenger.update();
             }
         });
     }

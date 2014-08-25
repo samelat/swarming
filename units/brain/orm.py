@@ -12,7 +12,6 @@ class DBMgr:
         self._engine = create_engine('sqlite:///context.db', echo=True)
         ORMBase.metadata.create_all(self._engine)
         Session.configure(bind=self._engine)
-
         self.session = Session()
 
     def add(self, instance):
