@@ -21,7 +21,7 @@ class WebUI(Unit):
     ''' ############################################
     '''
     def _launcher(self):
-        self._messenger.start(True)
+        self._messenger.start()
         self._api_service.start()
 
     ''' ############################################

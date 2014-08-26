@@ -36,10 +36,10 @@ class Core(Unit):
         for unit in self.units.values():
             unit.start()
 
-        self._scheduler.start()
-        self._messenger.start()
+        self.add_cmd_handler('schedule', self._scheduler.schedule)
 
-        self.add_cmd_handler('schedule', self.schedule)
+        self._messenger.start()
+        self._scheduler.start()
 
     ''' ############################################
     '''
@@ -68,7 +68,4 @@ class Core(Unit):
         print('[core] Halting Message Manager...')
         self._messenger.halt()
         self._scheduler.halt()
-
-    def schedule(self, message):
-        print('[core] Scheduling: {0}'.format(message))
         

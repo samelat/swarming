@@ -18,20 +18,19 @@ class Messenger:
     ''' 
     '''
     def _handler(self):
-        while not self._halt:
+        while True:
             message = self.pop()
+            if not message:
+                break
             print('[{0}] Message Manager - New message: {1}'.format(self._owner.name, message))
             if message['dst'] == self._owner.name:
                 self._owner.digest(message)
             else:
                 self._owner.forward(message)
 
-    def start(self, launch=False):
-        if launch:
-            self._thread = Thread(target=self._handler)
-            self._thread.start()
-        else:
-            self._handler()
+    def start(self):
+        self._thread = Thread(target=self._handler)
+        self._thread.start()
 
     def halt(self):
         self._halt = True
@@ -41,11 +40,9 @@ class Messenger:
 
     def pop(self):
         message = None
-        while not message:
+        while not (message or self._halt):
             try:
                 message = self._messages.get(timeout=1)
             except queue.Empty:
-                if self._halt:
-                    break
                 continue
         return message
