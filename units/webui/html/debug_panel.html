@@ -1,0 +1,25 @@
+<div id="debug_panel" class="container-fluid main">
+    <div class="col-md-6 col-md-offset-2">
+        <form class="form-horizontal">
+            <div class="control-group">
+                <label class="control-label" for="inputEmail">Request Message</label>
+                <div class="controls">
+                    <textarea id="request_area" class="form-control">{"dst":["http", 0], "cmd":"bforce", "params":{"var":"value"}}</textarea>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <button type="button" class="btn btn-default btn-sm" onclick="debug.send_request_message()">Send</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="inputPassword">Response Message</label>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <p id="response_area">{'algo': 'que se yo'}</p>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

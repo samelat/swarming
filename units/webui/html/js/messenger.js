@@ -9,11 +9,15 @@ function Messenger () {
     this.update = function(){};
 
     this.start = function(){
-        messenger.interval_id = window.setInterval(this.poll, 10000);
+        if(messenger.interval_id == 0)
+            messenger.interval_id = window.setInterval(this.poll, 10000);
     };
 
     this.stop = function() {
-        clearInterval(messenger.interval_id);
+        if(messenger.interval_id != 0) {
+            clearInterval(messenger.interval_id);
+            messenger.interval_id = 0;
+        }
     };
 
     /* ########################################
@@ -73,5 +77,5 @@ function Messenger () {
                 messenger.update();
             }
         });
-    }
+    };
 }

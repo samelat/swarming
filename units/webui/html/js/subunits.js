@@ -9,7 +9,8 @@ function SubUnits () {
     this.timestamp = 0;
 
     this.start = function() {
-        
+        messenger.update = subunits.update;
+        messenger.start();
     };
 
     /*
@@ -63,7 +64,7 @@ function SubUnits () {
             //subunits_handler.subunits[sunit.sunit_id] = sunit;
             //subunits_handler.add_subunit_row(sunit.sunit_id);
         });
-    }
+    };
 
     /*
         Here we are going to put all the function to
