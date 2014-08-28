@@ -6,6 +6,8 @@ from units.modules import tools
 
 class Unit:
 
+    _tid = 0
+
     def __init__(self, core=None):
         self.core = core
         self._commands  = {'halt':self.halt,
@@ -13,6 +15,9 @@ class Unit:
 
         self._responses = {}
         self._resp_lock = Lock()
+
+    def name(self):
+        return (self._name, self._tid)
 
     # Start all the things the unit needs
     def start(self):
@@ -50,7 +55,7 @@ class Unit:
         pass
 
     def response(self, message):
-        print('[{0}] Response: {1}'.format(self.name, message))
+        print('[{0}] Response: {1}'.format(self.name(), message))
         self._resp_lock.acquire()
         channel = message['channel']
         if channel in self._responses:
@@ -63,7 +68,7 @@ class Unit:
         self.core.dispatch(message)
 
     def digest(self, message):
-        print('[{0}] Digesting command {1}'.format(self.name, message['cmd']))
+        print('[{0}] Digesting command {1}'.format(self.name(), message['cmd']))
         command = message['cmd']
         if command in self._commands:
             params = self._commands[command](message)
@@ -74,7 +79,7 @@ class Unit:
                 self.dispatch(response)
 
     def dispatch(self, message):
-        if message['dst'] == self.name:
+        if message['dst'] == self.name():
             self.digest(message)
         else:
             self.forward(message)

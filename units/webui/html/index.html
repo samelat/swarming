@@ -19,26 +19,18 @@
 
         <script src="js/subunits.js"></script>
         <script src="js/messenger.js"></script>
+        <script src="js/main_menu.js"></script>
         <script src="js/webui.js"></script>
     </head>
 
     <body>
         <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
             <div class="container">
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="">Bootstrap theme</a>
-                </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
-                        <li class="active"><a href="">Home</a></li>
+                        <li class="active"><a href="javascript:main_menu.select_manager()">Managment</a></li>
+                        <li><a href="javascript:main_menu.select_debug()">Debug</a></li>
                         <li><a href="">About</a></li>
-                        <li><a href="">Contact</a></li>
                         <li class="dropdown">
                             <a href="" class="dropdown-toggle" data-toggle="dropdown">Dropdown<span class="caret"></span></a>
                             <ul class="dropdown-menu" role="menu">
@@ -56,7 +48,12 @@
             </div>
         </div>
 
-        <div class="container-fluid">
+        <div id="manager" class="container-fluid" hidden="true">
+            <ul class="nav nav-pills">
+                <li class="active"><a href="javascript:sunit_menu()">Sub Units<span class="badge">1</span></a></li>
+                <li><a href="">Dictionaries<span class="badge">3</span></a></li>
+            </ul>
+            <!--
             <div class="col-sm-3 col-md-2 sidebar">
                 <ul class="nav nav-sidebar">
                     <li id="sunit_menu" class="active"><a href="javascript:sunit_menu()">Sub Units</a></li>
@@ -64,84 +61,90 @@
                     <li><a href="">Network</a></li>
                     <li><a href="">Devices</a></li>
                 </ul>
-            </div>
+            </div> -->
 
-            <div class="col-sm-2 col-sm-offset-2 col-md-6 col-md-offset-2 main">
-                <h2 class="sub-header">Sub Units</h2>
-                <button type="button" class="btn btn-primary" data-toggle="collapse" data-target="#add_subunit_form">
-                   Add SubUnit
-                </button>
+            <!-- Sub Unit Panel -->
+            <div id="subunit">
+                <div class="col-sm-2 col-sm-offset-2 col-md-6 col-md-offset-2 main">
+                    <h2 class="sub-header">Sub Units</h2>
+                    <button type="button" class="btn btn-primary" data-toggle="collapse" data-target="#add_subunit_form">
+                       Add SubUnit
+                    </button>
 
-                <div id="add_subunit_form" class="collapse in">
-                    <form class="form-horizontal" role="form">
-                        <div class="form-group">
-                            <label for="protocol_form_input" class="col-lg-2 control-label input-sm">Protocol</label>
-                            <div class="col-lg-2">
-                                <input name="protocol" id="protocol_form_input" type="text" class="form-control input-sm" placeholder="Protocol">
+                    <div id="add_subunit_form" class="collapse in">
+                        <form class="form-horizontal" role="form">
+                            <div class="form-group">
+                                <label for="protocol_form_input" class="col-lg-2 control-label input-sm">Protocol</label>
+                                <div class="col-lg-2">
+                                    <input name="protocol" id="protocol_form_input" type="text" class="form-control input-sm" placeholder="Protocol">
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="command_form_input" class="col-lg-2 control-label input-sm">Command</label>
-                            <div class="col-lg-2">
-                                <input name="command" id="command_form_input" type="text" class="form-control input-sm" placeholder="Command">
+                            <div class="form-group">
+                                <label for="command_form_input" class="col-lg-2 control-label input-sm">Command</label>
+                                <div class="col-lg-2">
+                                    <input name="command" id="command_form_input" type="text" class="form-control input-sm" placeholder="Command">
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group form-vertical">
-                            <label for="hostname_form_input" class="col-lg-2 control-label input-sm">Hostname</label>
-                            <div class="col-lg-2">
-                                <input name="hostname" id="hostname_form_input" type="text" class="form-control input-sm" placeholder="Hostname">
+                            <div class="form-group form-vertical">
+                                <label for="hostname_form_input" class="col-lg-2 control-label input-sm">Hostname</label>
+                                <div class="col-lg-2">
+                                    <input name="hostname" id="hostname_form_input" type="text" class="form-control input-sm" placeholder="Hostname">
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group form-vertical">
-                            <label for="port_form_input" class="col-lg-2 control-label input-sm">Port</label>
-                            <div class="col-lg-2">
-                                <input name="port" id="port_form_input" type="text" class="form-control input-sm" placeholder="Port">
+                            <div class="form-group form-vertical">
+                                <label for="port_form_input" class="col-lg-2 control-label input-sm">Port</label>
+                                <div class="col-lg-2">
+                                    <input name="port" id="port_form_input" type="text" class="form-control input-sm" placeholder="Port">
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="path_form_input" class="col-lg-2 control-label input-sm">Path</label>
-                            <div class="col-lg-2">
-                                <input name="path" id="path_form_input" type="text" class="form-control input-sm" placeholder="Path">
+                            <div class="form-group">
+                                <label for="path_form_input" class="col-lg-2 control-label input-sm">Path</label>
+                                <div class="col-lg-2">
+                                    <input name="path" id="path_form_input" type="text" class="form-control input-sm" placeholder="Path">
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="col-lg-offset-2 col-lg-4">
-                                <button type="button" class="btn btn-xs btn-default" onclick="subunits.send_new_subunit()">Add</button>
+                            <div class="form-group">
+                                <div class="col-lg-offset-2 col-lg-4">
+                                    <button type="button" class="btn btn-xs btn-default" onclick="subunits.send_new_subunit()">Add</button>
+                                </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
+
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th class="col-md-1">protocol</th>
+                                <th class="col-md-1">command</th>
+                                <th class="col-md-1">hostname:port</th>
+                                <th class="col-md-1">path</th>
+                                <th class="col-md-1">state</th>
+                                <th class="col-md-1"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="sunits_list">
+                            <tr id="sunit_1337">
+                                <td> http </td>
+                                <td> bforce </td>
+                                <td> 192.168.2.10:1000 </td>
+                                <td> index.asp </td>
+                                <td> stopped </td>
+                                <td>
+                                    <button type="button" class="btn btn-default btn-xs" onclick="remove_subunit()">
+                                        <span class="glyphicon glyphicon-remove"></span>
+                                    </button>
+                                    <button type="button" class="btn btn-default btn-xs" onclick="refresh_subunit()">
+                                        <span class="glyphicon glyphicon-refresh"></span>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th class="col-md-1">protocol</th>
-                            <th class="col-md-1">command</th>
-                            <th class="col-md-1">hostname:port</th>
-                            <th class="col-md-1">path</th>
-                            <th class="col-md-1">state</th>
-                            <th class="col-md-1"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="sunits_list">
-                        <tr id="sunit_1337">
-                            <td> http </td>
-                            <td> bforce </td>
-                            <td> 192.168.2.10:1000 </td>
-                            <td> index.asp </td>
-                            <td> stopped </td>
-                            <td>
-                                <button type="button" class="btn btn-default btn-xs" onclick="remove_subunit()">
-                                    <span class="glyphicon glyphicon-remove"></span>
-                                </button>
-                                <button type="button" class="btn btn-default btn-xs" onclick="refresh_subunit()">
-                                    <span class="glyphicon glyphicon-refresh"></span>
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            </div> <!-- End SubUnit -->
+        </div>
+        <div id="debug">
+            <h1>SHELL</h1>
         </div>
     </body>
 </html>

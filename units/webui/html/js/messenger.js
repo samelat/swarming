@@ -4,11 +4,16 @@ function Messenger () {
 
     this.callbacks = {};
     this.keys = [];
+    this.interval_id = 0;
 
     this.update = function(){};
 
     this.start = function(){
-        window.setInterval(this.poll, 10000);
+        messenger.interval_id = window.setInterval(this.poll, 10000);
+    };
+
+    this.stop = function() {
+        clearInterval(messenger.interval_id);
     };
 
     /* ########################################

@@ -10,7 +10,7 @@ from units.webui.api_service import APIService
 
 class WebUI(Unit):
 
-    name = 'webui'
+    _name = 'webui'
 
     def __init__(self, core):
         super(WebUI, self).__init__(core)
@@ -39,5 +39,6 @@ class WebUI(Unit):
         self._process.join()
 
     def start(self):
+        print('[webui] Staring')
         self._process = Process(target=self._launcher)
         self._process.start()

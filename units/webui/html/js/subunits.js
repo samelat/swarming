@@ -8,13 +8,17 @@ function SubUnits () {
                          'state':'running'}};
     this.timestamp = 0;
 
+    this.start = function() {
+        
+    };
+
     /*
         Events that interact with the messenger.
     */
     this.update = function() {
         var message = {};
 
-        message.dst = 'brain';
+        message.dst = ['brain', 0];
         message.cmd = 'get_sunits';
         message.params = {};
         message.params.timestamp = subunits.timestamp;
@@ -47,7 +51,7 @@ function SubUnits () {
             sunit[field.name] = field.value;
         });
 
-        message.dst = 'brain';
+        message.dst = ['brain', 0];
         message.cmd = 'add_sunit';
         message.params = {};
         message.params.sunit = sunit;

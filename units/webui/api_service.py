@@ -18,7 +18,7 @@ class APIService:
 
     def start(self):
         cherrypy.config.update("units/webui/server.conf")
-        cherrypy.config.update({ "environment": "embedded" })
+        #cherrypy.config.update({ "environment": "embedded" })
 
         conf = {
             '/':{
@@ -42,7 +42,8 @@ class APIService:
         channel = tools.gen_token()
         message = cherrypy.request.json
         message['channel'] = channel
-        message['src'] = self._webui.name
+        message['dst'] = tuple(message['dst'])
+        message['src'] = self._webui.name()
 
         self._webui.register_resp(channel)
         self._webui.dispatch(message)

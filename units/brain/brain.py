@@ -10,7 +10,7 @@ from units.brain.knowledge import Knowledge
 
 class Brain(Unit):
 
-    name = 'brain'
+    _name = 'brain'
 
     def __init__(self, core):
         super(Brain, self).__init__(core)
@@ -21,6 +21,7 @@ class Brain(Unit):
 
     '''
     def start(self):
+        print('[brain] Staring')
         self.add_cmd_handler('add_sunit' , self._knowledge.add_sunit)
         self.add_cmd_handler('get_sunits', self._knowledge.get_sunits)
         self._messenger.start()

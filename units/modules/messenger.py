@@ -22,8 +22,8 @@ class Messenger:
             message = self.pop()
             if not message:
                 break
-            print('[{0}] Message Manager - New message: {1}'.format(self._owner.name, message))
-            if message['dst'] == self._owner.name:
+            print('[{0}] Message Manager - New message: {1}'.format(self._owner.name(), message))
+            if message['dst'] == self._owner.name():
                 self._owner.digest(message)
             else:
                 self._owner.forward(message)
