@@ -1,19 +1,39 @@
 <div id="debug_panel" class="container-fluid main">
-    <div class="col-md-6 col-md-offset-2">
+    <div class="col-md-7 col-md-offset-2">
+        <div class="btn-group">
+            <div class="btn-group">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Brain <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a href='javascript:debug.set_request_area({"dst":["http", 0], "cmd":"bforce", "params":{"var":"value"}})'>add_sunit</a></li>
+                    <li><a href='javascript:debug.set_request_area()'>get_sunits</a></li>
+                </ul>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    HTTP <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a href="#">bforce</a></li>
+                    <li><a href="#">spider</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="btn-group">
+            <button type="button" class="btn btn-default" style="background-color: #81F79F" onclick="debug.send_request_message()">
+                <span class="glyphicon glyphicon-cloud-upload"></span> Send
+            </button>
+        </div>
         <form class="form-horizontal">
             <div class="control-group">
-                <label class="control-label" for="inputEmail">Request Message</label>
+                <label class="control-label" for="request_area">Request Message</label>
                 <div class="controls">
                     <textarea id="request_area" class="form-control">{"dst":["http", 0], "cmd":"bforce", "params":{"var":"value"}}</textarea>
                 </div>
             </div>
             <div class="control-group">
-                <div class="controls">
-                    <button type="button" class="btn btn-default btn-sm" onclick="debug.send_request_message()">Send</button>
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label" for="inputPassword">Response Message</label>
+                <label class="control-label" for="response_area">Response Message</label>
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <p id="response_area">{'algo': 'que se yo'}</p>

@@ -13,13 +13,35 @@
                         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                         <h4 class="modal-title" id="dialog_title">Add New SubUnit</h4>
                     </div>
-                    <div class="modal-body">
-                        <form class="form-inline">
-                            <input type="text" class="input-small" placeholder="Protocol">
-                            <input type="text" class="input-small" placeholder="Hostname">
-                            <input type="text" class="input-small" placeholder="Port">
-                            <input type="text" class="input-small" placeholder="Command">
-                            <input type="text" class="input-small" placeholder="Path">
+                    <div class="modal-body row">
+                        <form class="form-horizontal" role="form">
+                            <div class="form-group">
+                                <label for="protocol_input" class="col-sm-2 control-label">Protocol</label>
+                                <div class="col-sm-2">
+                                    <input type="email" class="form-control" id="protocol_input" placeholder="Protocol">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="host_input" class="col-sm-2 control-label">Host</label>
+                                <div class="col-sm-6">
+                                    <input type="text" class="form-control" id="host_input" placeholder="Hostname">
+                                </div>
+                                <div class="col-sm-2">
+                                    <input type="text" class="form-control" placeholder="Port">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="command_input">Command</label>
+                                <div class="col-sm-3">
+                                    <input id="command_input" type="text" class="form-control" placeholder="Command">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="path_input">Path</label>
+                                <div class="col-sm-6">
+                                    <input id="path_input" type="text" class="form-control" placeholder="Path">
+                                </div>
+                            </div>
                         </form>
                     </div>
                     <div class="modal-footer">

@@ -22,4 +22,8 @@ function Debug () {
     this.update = function() {
 
     };
+
+    this.set_request_area = function(value) {
+        $('#request_area').val(JSON.stringify(value));
+    };
 }
