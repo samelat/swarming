@@ -10,7 +10,7 @@ from units.webui.api_service import APIService
 
 class WebUI(Unit):
 
-    _name = 'webui'
+    uname = 'webui'
 
     def __init__(self, core):
         super(WebUI, self).__init__(core)
@@ -28,7 +28,7 @@ class WebUI(Unit):
     '''
     def halt(self, message):
         print('[webui] Halting service ...')
-        self._halt = True
+        self.halt = True
 
     ''' ############################################
     '''

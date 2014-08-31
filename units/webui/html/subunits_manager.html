@@ -3,10 +3,10 @@
         <h2 class="sub-header">Sub Units</h2>
 
         <!-- Add SubUnit Dialog -->
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#add_subunit_dialog">
            Add SubUnit
         </button>
-        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="dialog_title" aria-hidden="true">
+        <div class="modal fade" id="add_subunit_dialog" tabindex="-1" role="dialog" aria-labelledby="dialog_title" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -14,39 +14,39 @@
                         <h4 class="modal-title" id="dialog_title">Add New SubUnit</h4>
                     </div>
                     <div class="modal-body row">
-                        <form class="form-horizontal" role="form">
+                        <form id="add_subunit_form" class="form-horizontal" role="form">
                             <div class="form-group">
                                 <label for="protocol_input" class="col-sm-2 control-label">Protocol</label>
                                 <div class="col-sm-2">
-                                    <input type="email" class="form-control" id="protocol_input" placeholder="Protocol">
+                                    <input type="text" class="form-control" id="protocol_input" placeholder="Protocol" name="protocol">
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="host_input" class="col-sm-2 control-label">Host</label>
                                 <div class="col-sm-6">
-                                    <input type="text" class="form-control" id="host_input" placeholder="Hostname">
+                                    <input type="text" class="form-control" id="host_input" placeholder="Hostname" name="hostname">
                                 </div>
                                 <div class="col-sm-2">
-                                    <input type="text" class="form-control" placeholder="Port">
+                                    <input type="text" class="form-control" placeholder="Port" name="port">
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label class="col-sm-2 control-label" for="command_input">Command</label>
                                 <div class="col-sm-3">
-                                    <input id="command_input" type="text" class="form-control" placeholder="Command">
+                                    <input id="command_input" type="text" class="form-control" placeholder="Command" name="command">
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label class="col-sm-2 control-label" for="path_input">Path</label>
                                 <div class="col-sm-6">
-                                    <input id="path_input" type="text" class="form-control" placeholder="Path">
+                                    <input id="path_input" type="text" class="form-control" placeholder="Path" name="path">
                                 </div>
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary">Add</button>
+                        <button type="button" class="btn btn-primary" onclick="subunits.send_new_subunit()">Add</button>
                     </div>
                 </div>
             </div>

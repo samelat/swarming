@@ -15,6 +15,7 @@ class DBMgr:
         self.session = Session()
 
     def add(self, instance):
+        print('[DBMgr] Estamos agregando una subunit: {0}'.format(instance))
         self.session.add(instance)
         self.session.flush()
         self.session.refresh(instance)
@@ -25,6 +26,10 @@ class DBMgr:
         for field in row._fields:
             json_row[field] = values[field]
         return json_row
+
+    def halt(self):
+        self.session.commit()
+        self.session.close()
 
 
 ''' ORM Classes

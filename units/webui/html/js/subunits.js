@@ -64,6 +64,8 @@ function SubUnits () {
             //subunits_handler.subunits[sunit.sunit_id] = sunit;
             //subunits_handler.add_subunit_row(sunit.sunit_id);
         });
+
+        $('#add_subunit_dialog').modal('hide');
     };
 
     /*

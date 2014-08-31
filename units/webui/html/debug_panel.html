@@ -6,8 +6,8 @@
                     Brain <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" role="menu">
-                    <li><a href='javascript:debug.set_request_area({"dst":["http", 0], "cmd":"bforce", "params":{"var":"value"}})'>add_sunit</a></li>
-                    <li><a href='javascript:debug.set_request_area()'>get_sunits</a></li>
+                    <li><a href='javascript:debug.set_request_area({"dst": ["brain", 0], "params": {"context": {}, "sunit": {"protocol": "ftp", "port": 23, "hostname": "192.168.2.1", "command": "bforce", "path": ""}}, "cmd": "add_sunit"})'>add_sunit</a></li>
+                    <li><a href='javascript:debug.set_request_area({"dst": ["brain", 0], "params": {"timestamp": 0}, "cmd": "get_sunits"})'>get_sunits</a></li>
                 </ul>
             </div>
             <div class="btn-group">
@@ -15,8 +15,16 @@
                     HTTP <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" role="menu">
-                    <li><a href="#">bforce</a></li>
-                    <li><a href="#">spider</a></li>
+                    <li><a href='javascript:debug.set_request_area({"dst":["http", 0], "cmd":"bforce", "params":{"var":"value"}})'>bforce</a></li>
+                    <li><a href='javascript:debug.set_request_area({"dst":["http", 0], "cmd":"spider", "params":{"var":"value"}})'>spider</a></li>
+                </ul>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Core <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a href='javascript:debug.set_request_area({"dst":["core", 0], "cmd":"schedule", "params":{"var":"value"}})'>schedule</a></li>
                 </ul>
             </div>
         </div>
@@ -29,14 +37,14 @@
             <div class="control-group">
                 <label class="control-label" for="request_area">Request Message</label>
                 <div class="controls">
-                    <textarea id="request_area" class="form-control">{"dst":["http", 0], "cmd":"bforce", "params":{"var":"value"}}</textarea>
+                    <textarea id="request_area" class="form-control"></textarea>
                 </div>
             </div>
             <div class="control-group">
                 <label class="control-label" for="response_area">Response Message</label>
                 <div class="panel panel-default">
                     <div class="panel-body">
-                        <p id="response_area">{'algo': 'que se yo'}</p>
+                        <p id="response_area"></p>
                     </div>
                 </div>
             </div>

@@ -1,26 +1,56 @@
 
+from Threading import Queue, Condition
+
+from units.core.task import Task
+
 
 class Scheduler:
 
     def __init__(self, core):
         self._core = core
 
-        ''' TODO: It is better if we take the list of
-            modules to load from a config file or something
-            like that (do not hardcode them).
-        '''
+        self._messages = Queue()
         self._units = {}
         self._tasks = {1,2,3,4}
+        self._tlock = Condition()
+
+    ''' 
+    '''
+    def _handler(self):
+        while not self.halt:
+            try:
+                message = self._messages.get(timeout=1)
+            except queue.Empty:
+                continue
+
+            self._tlock.acquire()
+            while not (len(self._tasks) or self.halt):
+                self._tlock.wait(timeout=1)
+
+            if self.halt:
+                self._tlock.release()
+                break
+
+            task_id = self._tasks.pop()
+            self._tlock.release()
+
+            # We change the message dest to redirect it to his new unit
+            uname, _  = message['dst']
+            message['dst'] = (uname, task_id)
+
+            unit_zero = self._tasks[uname][0]
+            self._tasks[uname][task_id] = Task(self._core, unit_zero, task_id)
+            self._tasks[uname][task_id].start()
+
+            self._tasks[uname][task_id].dispatch(message)
+
 
     def start(self):
         print('[core] Starting all standard units...')
         for uname in self._units:
             for tid in self._units[uname]:
                 self._units[uname][tid].start()
-            #map(lambda u: u.start(), self._units[uname].values())
-        print('[core] done')
-        while True:
-            continue
+        self._handler()
 
     def halt(self):
         print('[core] Broadcasting "halt" message...')
@@ -58,5 +88,13 @@ class Scheduler:
     ''' ############################################
         Commands
     '''
+    '''
     def schedule(self, message):
         print('[core] Scheduling: {0}'.format(message))
+        self._messages.put(message['param']['message'])
+        return {'state':'scheduled'}
+    '''
+
+    def wait_sunit(self, message):
+        print('[core] Waiting for task {0}'.format(message))
+        return {'state':'done'}

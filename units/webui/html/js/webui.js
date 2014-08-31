@@ -10,5 +10,5 @@ main_menu = new MainMenu();
 debug = new Debug();
 management_menu = new ManagementMenu();
 
-//$().ready(main_menu.show_debug_panel);
-$().ready(main_menu.show_management_panel);
+$().ready(main_menu.show_debug_panel);
+//$().ready(main_menu.show_management_panel);

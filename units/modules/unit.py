@@ -6,7 +6,7 @@ from units.modules import tools
 
 class Unit:
 
-    _tid = 0
+    tid = 0
 
     def __init__(self, core=None):
         self.core = core
@@ -15,20 +15,26 @@ class Unit:
 
         self._responses = {}
         self._resp_lock = Lock()
+        self._resp_handlers = {}
+
+        self.halt = False
 
     def name(self):
-        return (self._name, self._tid)
+        return (self.uname, self.tid)
 
     # Start all the things the unit needs
     def start(self):
         pass
 
-    # Wait until the until finish
+    # Wait until the unit finish
     def wait(self):
         pass
 
     def add_cmd_handler(self, command, handler):
         self._commands[command] = handler
+
+    def add_resp_handler(self, channel, handler):
+        self._resp_handlers[channel] = handler
 
     def get_responses(self, channels):
         responses = {}
@@ -52,15 +58,19 @@ class Unit:
         These are default handlers for the basic commands
     '''
     def halt(self, message):
-        pass
+        self.halt = True
 
     def response(self, message):
         print('[{0}] Response: {1}'.format(self.name(), message))
-        self._resp_lock.acquire()
         channel = message['channel']
-        if channel in self._responses:
-            self._responses[channel] = message
-        self._resp_lock.release()
+
+        if channel in self._resp_handlers:
+            self._resp_handlers(message)
+        else:
+            self._resp_lock.acquire()
+            if channel in self._responses:
+                self._responses[channel] = message
+            self._resp_lock.release()
 
     ''' ############################################
     '''
