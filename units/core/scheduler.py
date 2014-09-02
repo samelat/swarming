@@ -1,5 +1,6 @@
 
-from Threading import Queue, Condition
+import queue
+from threading import Condition
 
 from units.core.task import Task
 
@@ -8,8 +9,9 @@ class Scheduler:
 
     def __init__(self, core):
         self._core = core
+        self._halt = False
 
-        self._messages = Queue()
+        self._to_schedule = queue.Queue()
         self._units = {}
         self._tasks = {1,2,3,4}
         self._tlock = Condition()
@@ -17,32 +19,35 @@ class Scheduler:
     ''' 
     '''
     def _handler(self):
-        while not self.halt:
+        while not self._halt:
             try:
-                message = self._messages.get(timeout=1)
+                message = self._to_schedule.get(timeout=1)
             except queue.Empty:
                 continue
 
             self._tlock.acquire()
-            while not (len(self._tasks) or self.halt):
+            while not (len(self._tasks) or self._halt):
                 self._tlock.wait(timeout=1)
 
-            if self.halt:
+            if self._halt:
                 self._tlock.release()
                 break
 
             task_id = self._tasks.pop()
             self._tlock.release()
 
-            # We change the message dest to redirect it to his new unit
+            print('[scheduler] Message {0} - Task ID: {1}'.format(message, task_id))
+
+            # We change the message dest to redirect it to a new unit
             uname, _  = message['dst']
             message['dst'] = (uname, task_id)
 
-            unit_zero = self._tasks[uname][0]
-            self._tasks[uname][task_id] = Task(self._core, unit_zero, task_id)
-            self._tasks[uname][task_id].start()
+            unit_zero = self._units[uname][0]
+            self._units[uname][task_id] = Task(self._core, unit_zero, task_id)
+            self._units[uname][task_id].start()
 
-            self._tasks[uname][task_id].dispatch(message)
+            self._units[uname][task_id].dispatch(message)
+        print('[scheduler] stopped')
 
 
     def start(self):
@@ -88,12 +93,10 @@ class Scheduler:
     ''' ############################################
         Commands
     '''
-    '''
     def schedule(self, message):
         print('[core] Scheduling: {0}'.format(message))
-        self._messages.put(message['param']['message'])
-        return {'state':'scheduled'}
-    '''
+        self._to_schedule.put(message['params']['message'])
+        return {'state':'done'}
 
     def wait_sunit(self, message):
         print('[core] Waiting for task {0}'.format(message))
