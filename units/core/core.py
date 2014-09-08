@@ -31,7 +31,7 @@ class Core(Unit):
     ''' ############################################
     '''
     def start(self):
-        # self.add_cmd_handler('schedule', self._scheduler.schedule)
+        self.add_cmd_handler('schedule', self._scheduler.schedule)
 
         self._messenger.start()
         self._scheduler.start()

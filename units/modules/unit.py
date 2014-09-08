@@ -85,7 +85,7 @@ class Unit:
             response = tools.make_response(message)
             if response:
                 response['params'].update(params)
-                print('[knowledge] responding - {0}'.format(response))
+                print('[{0}] responding - {1}'.format(self.name(), response))
                 self.dispatch(response)
 
     def dispatch(self, message):

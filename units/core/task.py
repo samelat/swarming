@@ -1,7 +1,8 @@
 
-from threading import Queue
+import queue
 from multiprocessing import Process
 
+from units.modules.unit import Unit
 from units.modules.messenger import Messenger
 
 
@@ -12,15 +13,14 @@ class Task(Unit):
     def __init__(self, core, unit, task_id):
         super(Task, self).__init__(core)
         self._messenger = Messenger(self)
-        self._sync_msgs = Queue()
+        self._sync_msgs = queue.Queue()
 
         self._unit = unit
         self._process = None
         self.tid = task_id
 
-
     def _handler(self):
-        while not self._halt:
+        while not self.halt:
             try:
                 message = self._sync_msgs.get(timeout=1)
             except queue.Empty:
@@ -28,6 +28,7 @@ class Task(Unit):
             self._unit.dispatch(message)
 
     def _launcher(self):
+        print('[{0}] starting ...'.format(self.name()))
         self._unit.tid = self.tid
         self._messenger.start()
         self._handler()

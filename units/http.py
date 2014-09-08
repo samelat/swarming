@@ -24,7 +24,7 @@ class HTTP(Unit):
 		print('[i] Sync Bforce Message - {0}'.format(message))
 		for c in range(1, 7):
 			print('[http] Waiting cicle {0}'.format(c))
-			time.sleep(c*10)
+			time.sleep(10)
 		return {'status':'done'}
 
 	def spider(self, message):
