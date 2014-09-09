@@ -6,7 +6,7 @@ from units.modules import tools
 
 class Unit:
 
-    tid = 0
+    tid = '0'
 
     def __init__(self, core=None):
         self.core = core
@@ -19,8 +19,8 @@ class Unit:
 
         self.halt = False
 
-    def name(self):
-        return (self.uname, self.tid)
+    def unit_id(self):
+        return '{0}:{1}'.format(self.uname, self.tid)
 
     # Start all the things the unit needs
     def start(self):
@@ -61,7 +61,7 @@ class Unit:
         self.halt = True
 
     def response(self, message):
-        print('[{0}] Response: {1}'.format(self.name(), message))
+        print('[{0}] Response: {1}'.format(self.unit_id(), message))
         channel = message['channel']
 
         if channel in self._resp_handlers:
@@ -78,18 +78,18 @@ class Unit:
         self.core.dispatch(message)
 
     def digest(self, message):
-        print('[{0}] Digesting command {1}'.format(self.name(), message['cmd']))
+        print('[{0}] Digesting command {1}'.format(self.unit_id(), message['cmd']))
         command = message['cmd']
         if command in self._commands:
             params = self._commands[command](message)
             response = tools.make_response(message)
             if response:
                 response['params'].update(params)
-                print('[{0}] responding - {1}'.format(self.name(), response))
+                print('[{0}] responding - {1}'.format(self.unit_id(), response))
                 self.dispatch(response)
 
     def dispatch(self, message):
-        if message['dst'] == self.name():
+        if message['dst'] == self.unit_id():
             self.digest(message)
         else:
             self.forward(message)

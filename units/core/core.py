@@ -12,7 +12,7 @@ from units.core.event_mgr import EventMgr
 
 class Core(Unit):
 
-    uname = 'core'
+    name = 'core'
 
     def __init__(self):
         super(Core, self).__init__()
@@ -24,9 +24,9 @@ class Core(Unit):
             modules to load from a config file or something
             like that (do not hardcode them).
         '''
-        self._scheduler.add_unit(WebUI(self))
-        self._scheduler.add_unit(HTTP(self))
-        self._scheduler.add_unit(Brain(self))
+        self._scheduler.add_zero_unit(WebUI(self))
+        self._scheduler.add_zero_unit(HTTP(self))
+        self._scheduler.add_zero_unit(Brain(self))
 
     ''' ############################################
     '''

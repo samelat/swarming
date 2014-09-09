@@ -13,7 +13,7 @@ class Scheduler:
 
         self._to_schedule = queue.Queue()
         self._units = {}
-        self._tasks = {1,2,3,4}
+        self._tasks = {'1','2','3','4'}
         self._tlock = Condition()
 
     ''' 
@@ -39,10 +39,10 @@ class Scheduler:
             print('[scheduler] Message {0} - Task ID: {1}'.format(message, task_id))
 
             # We change the message dest to redirect it to a new unit
-            uname, _  = message['dst']
-            message['dst'] = (uname, task_id)
+            uname, _  = message['dst'].split(':')
+            message['dst'] = '{0}:{1}'.format(uname, task_id)
 
-            unit_zero = self._units[uname][0]
+            unit_zero = self._units[uname]['0']
             self._units[uname][task_id] = Task(self._core, unit_zero, task_id)
             self._units[uname][task_id].start()
 
@@ -68,20 +68,16 @@ class Scheduler:
             unit.wait()
         '''
     
-    def add_unit(self, unit):
+    def add_zero_unit(self, unit):
         # Unit name, Task ID
-        uname, tid = unit.name()
 
-        if uname not in self._units:
-            self._units[uname] = {0:unit}
-        else:
-            tid = self._tasks.pop()
-            self._units[uname][tid] = unit
+        if unit.name not in self._units:
+            self._units[unit.name] = {'0':unit}
 
-        return (uname, tid)
+        return '{0}:0'.format(unit.name)
 
     def forward(self, message):
-        uname, tid = message['dst']
+        uname, tid = message['dst'].split(':')
         try:
             self._units[uname][tid].dispatch(message)
         except:

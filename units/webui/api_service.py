@@ -42,8 +42,7 @@ class APIService:
         channel = tools.gen_token()
         message = cherrypy.request.json
         message['channel'] = channel
-        message['dst'] = tuple(message['dst'])
-        message['src'] = self._webui.name()
+        message['src'] = self._webui.unit_id()
 
         self._webui.register_resp(channel)
         self._webui.dispatch(message)

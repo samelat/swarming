@@ -7,7 +7,7 @@ from units.modules.unit import Unit
 
 class HTTP(Unit):
 
-	uname = 'http'
+	name = 'http'
 
 	def __init__(self, core):
 		super(HTTP, self).__init__(core)
