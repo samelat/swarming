@@ -10,7 +10,7 @@ from units.brain.knowledge import Knowledge
 
 class Brain(Unit):
 
-    uname = 'brain'
+    name = 'brain'
 
     def __init__(self, core):
         super(Brain, self).__init__(core)

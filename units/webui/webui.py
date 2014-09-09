@@ -10,7 +10,7 @@ from units.webui.api_service import APIService
 
 class WebUI(Unit):
 
-    uname = 'webui'
+    name = 'webui'
 
     def __init__(self, core):
         super(WebUI, self).__init__(core)

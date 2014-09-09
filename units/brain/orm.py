@@ -34,22 +34,38 @@ class DBMgr:
 
 ''' ORM Classes
 '''
-class SubUnit(ORMBase):
+class Unit(ORMBase):
+    __tablename__ = 'unit'
+    unit_id = Column(Integer, primary_key=True)
+    task = Column(Integer)
+    state = Column(String)
+    timestamp = Column(Integer)
 
-    _fields = ['sunit_id', 'command', 'protocol', 'hostname', 'port', 'path', 'context', 'state']
-    __tablename__ = 'subunit'
-    sunit_id = Column(Integer, primary_key=True)
+class Activity(ORMBase):
+    __tablename__ = 'activity'
+    activity_id = Column(Integer, primary_key=True)
+    unit_id = Column(Integer, ForeignKey('unit.unit_id'))
+    resource_id = Column(Integer, ForeignKey('resource.resource_id'))
     command = Column(String)
+    method = Column(String)
+
+class Resource(ORMBase):
+    _fields = ['resource_id', 'protocol', 'hostname', 'port', 'path']
+    __tablename__ = 'resource'
+    resource_id = Column(Integer, primary_key=True)
+    method = Column(String)
     protocol = Column(String)
     hostname = Column(String)
     port = Column(Integer)
     path = Column(String)
-    context = Column(String)
-    state = Column(String)
+    params = Column(String)
+    attrs = Column(String)
     timestamp = Column(Integer)
 
+'''
 class Instance(ORMBase):
     __tablename__ = 'instance'
     inst_id  = Column(Integer, primary_key=True)
     sunit_id = Column(Integer, ForeignKey('subunit.sunit_id'))
+'''
 

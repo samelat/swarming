@@ -28,7 +28,7 @@ class Task(Unit):
             self._unit.dispatch(message)
 
     def _launcher(self):
-        print('[{0}] starting ...'.format(self.name()))
+        print('[{0}] starting ...'.format(self.unit_id()))
         self._unit.tid = self.tid
         self._messenger.start()
         self._handler()
@@ -38,7 +38,7 @@ class Task(Unit):
         self._process.start()
 
     def forward(self, message):
-        if message['dst'] == self._unit.name():
+        if message['dst'] == self._unit.unit_id():
             if ('async' in message) and not message['async']:
                 self._sync_msgs.push(message)
             else:
