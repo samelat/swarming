@@ -23,8 +23,8 @@ class Messenger:
                 message = self._messages.get(timeout=1)
             except queue.Empty:
                 continue
-            print('[{0}] Message Manager - New message: {1}'.format(self._owner.name(), message))
-            if message['dst'] == self._owner.name():
+            print('[{0}] Message Manager - New message: {1}'.format(self._owner.unit_id(), message))
+            if message['dst'] == self._owner.unit_id():
                 self._owner.digest(message)
             else:
                 self._owner.forward(message)

@@ -8,7 +8,7 @@ from units.modules.messenger import Messenger
 
 class Task(Unit):
 
-    uname = 'task'
+    name = 'task'
 
     def __init__(self, core, unit, task_id):
         super(Task, self).__init__(core)

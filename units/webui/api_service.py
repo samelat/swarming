@@ -18,7 +18,7 @@ class APIService:
 
     def start(self):
         cherrypy.config.update("units/webui/server.conf")
-        cherrypy.config.update({ "environment": "embedded" })
+        #cherrypy.config.update({ "environment": "embedded" })
 
         conf = {
             '/':{
