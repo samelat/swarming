@@ -19,8 +19,8 @@ function SubUnits () {
     this.update = function() {
         var message = {};
 
-        message.dst = ['brain', 0];
-        message.cmd = 'get_sunits';
+        message.dst = 'brain:0';
+        message.cmd = 'get_resources';
         message.params = {};
         message.params.timestamp = subunits.timestamp;
         
@@ -52,8 +52,8 @@ function SubUnits () {
             sunit[field.name] = field.value;
         });
 
-        message.dst = ['brain', 0];
-        message.cmd = 'add_sunit';
+        message.dst = 'brain:0';
+        message.cmd = 'add_resource';
         message.params = {};
         message.params.sunit = sunit;
         message.params.context = {};
