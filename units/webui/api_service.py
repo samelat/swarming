@@ -12,6 +12,7 @@ class APIService:
         self._webui = webui
         # cherrypy fix
         servers.wait_for_occupied_port = self.__fake_wait_for_occupied_port
+        self._lost_responses = {}
 
     def __fake_wait_for_occupied_port(self, host, port):
         return
@@ -47,6 +48,8 @@ class APIService:
         self._webui.register_resp(channel)
         self._webui.dispatch(message)
 
+        self._lost_responses[channel] = 0
+
         return {'error':'success', 'channel':channel}
 
     @cherrypy.expose
@@ -59,7 +62,22 @@ class APIService:
 
         responses = {}
         for channel in _responses:
-            responses[channel] = _responses[channel]['params']
+            try:
+                responses[channel] = _responses[channel]['params']
+                del(self._lost_responses[channel])
+            except KeyError:
+                print('[ERROR] Response Channel {0} does not exits'.format(channel))
 
-        print("RESPONSES: {0}".format(responses))
+        # With this we ensure that the ignored responses will be deleted
+        to_remove = []
+        for channel, count in self._lost_responses:
+            if count > 3:
+                del(self._lost_responses[channel])
+                to_remove.append(channel)
+            else:
+                self._lost_responses[channel] += 1
+        self._webui.get_responses(to_remove)
+        print('[webui] Deleting old responses: {0}'.format(to_remove))
+
+        print('RESPONSES: {0}'.format(responses))
         return {'error':'success', 'responses':responses, 'channels':list(_responses.keys())}
