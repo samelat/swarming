@@ -2,6 +2,13 @@
 
 function Messenger () {
 
+    this.templates = {
+        'brain':{'add':{"table_name":"", "values":{}},
+                 'get':{"table_name":"", "values":{}}},
+        'core' :{'schedule':{}},
+        'http' :{'digest':{}}
+    };
+
     this.callbacks = {};
     this.keys = [];
     this.interval_id = 0;
@@ -78,4 +85,6 @@ function Messenger () {
             }
         });
     };
-}
+};
+
+var messenger = new Messenger();

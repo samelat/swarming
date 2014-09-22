@@ -11,6 +11,7 @@ class Knowledge:
     def __init__(self, brain):
         self._brain = brain
         self._db_mgr = DBMgr()
+        self._table_classes = self._db_mgr.get_table_classes()
 
     def start(self):
         self._db_mgr.start()
@@ -20,36 +21,36 @@ class Knowledge:
 
     ''' ############################################
     '''
-    def add_sunit(self, message):
-        print('[knowledge] add_sunit Message - {0}'.format(message))
+    def add(self, params):
+        print('[knowledge] "add" message - {0}'.format(params))
 
-        #params = tools.restrict(message, SubUnit.params)
-        _sunit = message['params']['sunit']
-        _context = message['params']['context']
+        table_class = self._table_classes[params['table_name']]
 
-        sunit = SubUnit(**_sunit)
-        sunit.timestamp = self.timestamp()
-        sunit.state = 'stopped'
-        self._db_mgr.add(sunit)
+        row = table_class()
+        row.from_json(params['values'])
+        row.timestamp = self.timestamp()
+        self._db_mgr.add(row)
 
-        return {'sunit_id':sunit.sunit_id}
+        return {'id':row.id}
 
-    def get_sunits(self, message):
-        print('[knowledge] get_sunits Message - {0}'.format(message))
-        params = message['params']
+
+    def get(self, params):
+        print('[knowledge] "get" message - {0}'.format(params))
 
         timestamp = 0
         if 'timestamp' in params:
             timestamp = params['timestamp']
 
-        sunits = []
-        for sunit in self._db_mgr.session.query(SubUnit).\
-                                          filter(SubUnit.timestamp > timestamp).\
-                                          all():
-            json_sunit = self._db_mgr.jsonify(sunit)
-            sunits.append(json_sunit)
+        table_class = self._tables_classes[params['table_name']]
+        json_rows = []
+        for row in self._db_mgr.session.query(table_class).\
+                                           filter(table_class.timestamp > timestamp).\
+                                           all():
+            json_row = self._db_mgr.jsonify(row)
+            json_rows.append(json_row)
 
-        if sunits:
+        if json_rows:
             timestamp = self.timestamp()
 
-        return {'timestamp':timestamp, 'sunits':sunits}
+        return {'timestamp':timestamp, 'rows':json_rows}
+

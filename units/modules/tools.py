@@ -5,7 +5,6 @@ import random
 def new_msg(dst, cmd, params={}):
     message = {'dst':dst,
                'cmd':cmd,
-               'id' :gen_token(),
                'params' : params.copy()}
     return message
 

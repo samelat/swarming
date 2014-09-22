@@ -6,6 +6,7 @@ from units.modules import tools
 
 class Unit:
 
+    is_border_unit = False
     tid = '0'
 
     def __init__(self, core=None):
@@ -57,7 +58,7 @@ class Unit:
     ''' ############################################
         These are default handlers for the basic commands
     '''
-    def halt(self, message):
+    def halt(self, params):
         self.halt = True
 
     def response(self, message):
@@ -81,11 +82,11 @@ class Unit:
         print('[{0}] Digesting command {1}'.format(self.unit_id(), message['cmd']))
         command = message['cmd']
         if command in self._commands:
-            params = self._commands[command](message)
-            response = tools.make_response(message)
-            if response:
-                response['params'].update(params)
-                print('[{0}] responding - {1}'.format(self.unit_id(), response))
+            response = self._commands[command](message['params'])
+            resp_msg = tools.make_response(message)
+            if resp_msg:
+                resp_msg['params'].update(response)
+                print('[{0}] responding - {1}'.format(self.unit_id(), resp_msg))
                 self.dispatch(response)
 
     def dispatch(self, message):

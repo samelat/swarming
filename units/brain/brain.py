@@ -22,8 +22,8 @@ class Brain(Unit):
     '''
     def start(self):
         print('[brain] Staring')
-        self.add_cmd_handler('add_sunit' , self._knowledge.add_sunit)
-        self.add_cmd_handler('get_sunits', self._knowledge.get_sunits)
+        self.add_cmd_handler('get', self._knowledge.get)
+        self.add_cmd_handler('add', self._knowledge.add)
         self._messenger.start()
 
     def dispatch(self, message):
@@ -32,5 +32,5 @@ class Brain(Unit):
     ''' ############################################
         Command Handlers
     '''
-    def halt(self, message):
+    def halt(self, params):
         self._messenger.halt()

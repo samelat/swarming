@@ -43,13 +43,16 @@ class Core(Unit):
         self._scheduler.forward(message)
 
     def dispatch(self, message):
-        self._messenger.push(message)
+        if ('async' in message) and (message['async'] != False):
+            return super(Core, self).dispatch(message)
+        else:
+            self._messenger.push(message)
 
     ''' ############################################
         Core Unit Commands
         ############################################
     '''
-    def halt(self, message):
+    def halt(self, params):
         print('[core] Halting Message Manager...')
         self._messenger.halt()
         self._scheduler.halt()

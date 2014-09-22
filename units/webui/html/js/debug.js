@@ -1,5 +1,4 @@
 
-
 function Debug () {
 
     this.send_request_message = function() {
@@ -10,20 +9,16 @@ function Debug () {
         console.log(message);
         
         messenger.request(message, function(response) {
-            $('#response_area').text(JSON.stringify(response));
+            $('.response-panel').text(JSON.stringify(response));
         });
     };
 
-    this.start = function() {
-        messenger.update = debug.update;
-        messenger.start();
-    };
-
-    this.update = function() {
-
-    };
-
-    this.set_request_area = function(value) {
-        $('#request_area').val(JSON.stringify(value));
+    this.set_request_area = function(unit, command) {
+        var message = {"dst":unit,
+                       "cmd":command,
+                       "params":messenger.templates[unit][command]}
+        $('#request-area').val(JSON.stringify(message));
     };
 }
+
+var debug = new Debug();

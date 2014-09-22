@@ -74,7 +74,13 @@ class Scheduler:
         if unit.name not in self._units:
             self._units[unit.name] = {'0':unit}
 
-        return '{0}:0'.format(unit.name)
+        if unit.is_border_unit:
+            message = {'dst':'brain:0',
+                       'cmd':'add',
+                       'params':{'table_name':'border_unit',
+                                 'values':{'name':unit.name,
+                                           'protocols':unit.protocols}}}
+            self._core.dispatch(message)
 
     def forward(self, message):
         uname, tid = message['dst'].split(':')
@@ -89,11 +95,11 @@ class Scheduler:
     ''' ############################################
         Commands
     '''
-    def schedule(self, message):
-        print('[core] Scheduling: {0}'.format(message))
-        self._to_schedule.put(message['params']['message'])
+    def schedule(self, params):
+        print('[core] Scheduling: {0}'.format(params))
+        self._to_schedule.put(params['message'])
         return {'state':'done'}
 
-    def wait_sunit(self, message):
-        print('[core] Waiting for task {0}'.format(message))
+    def wait_sunit(self, params):
+        print('[core] Waiting for task {0}'.format(params))
         return {'state':'done'}
