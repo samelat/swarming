@@ -32,5 +32,5 @@ class Brain(Unit):
     ''' ############################################
         Command Handlers
     '''
-    def halt(self, params):
+    def halt(self, message):
         self._messenger.halt()

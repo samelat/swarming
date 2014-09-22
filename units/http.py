@@ -22,7 +22,7 @@ class HTTP(Unit):
 	''' ############################################
 		Command handlers
 	'''
-	def digest(self, params):
+	def digest(self, message):
 		print('[i] Sync Digest Message - {0}'.format(message))
 		for c in range(1, 7):
 			print('[http] Waiting cicle {0}'.format(c))

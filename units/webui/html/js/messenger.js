@@ -27,6 +27,12 @@ function Messenger () {
         }
     };
 
+    this.get_message_template = function(unit, command){
+        return {"dst":unit + ':0',
+                "cmd":command,
+                "params":messenger.templates[unit][command]};
+    };
+
     /* ########################################
      * 
      */
@@ -35,7 +41,7 @@ function Messenger () {
         messenger.response();
     };
 
-    this.request = function(message, callback) {
+    this.request = function(message, callbacks) {
         console.log('Request Message: ' + JSON.stringify(message));
         $.ajax({
             type: "POST",
@@ -46,13 +52,18 @@ function Messenger () {
             error: function() {
                 console.log('request error');
             },
-            success: function(response) {
-                console.log('request success: ' + JSON.stringify(response));
+            success: function(result) {
+                console.log('request result: ' + JSON.stringify(result));
 
-                messenger.callbacks[response['channel']] = callback;
-                messenger.keys.push(response['channel']);
+                if('response' in callbacks) {
+                    messenger.callbacks[result['channel']] = callbacks.response;
+                    messenger.keys.push(result['channel']);
+                }
 
-                console.log('response channel: ' + response['channel']);
+                if('success' in callbacks)
+                    callbacks.success(result);
+
+                console.log('response channel: ' + result['channel']);
             }
         });
     };

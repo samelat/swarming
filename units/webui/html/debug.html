@@ -292,16 +292,14 @@
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
-                            <form role="form">
-                                <div class="form-group">
-                                    <textarea id="request-area" class="form-control" rows="5"></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-default" style="background-color: #81F79F" onclick="">
-                                    <span class="glyphicon glyphicon-cloud-upload"></span> Dispatch
-                                </button>
-                            </form>
+                                <textarea id="request-area" class="form-control" rows="5"></textarea>
                         </div>
                         <!-- .panel-body -->
+                        <div class="panel-footer">
+                            <button class="btn btn-default" style="background-color: #81F79F" onclick="debug.send_request_message()">
+                                <span class="glyphicon glyphicon-cloud-upload"></span> Dispatch
+                            </button>
+                        </div>
                     </div>
                     <!-- /.panel -->
                 </div>
@@ -309,15 +307,15 @@
                 <div class="col-lg-6">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            Response Message
+                            Result/Response Messages
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
-                            <div class="form-group">
-                                <textarea class="form-control" rows="5" readonly></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-default" style="background-color: #81F79F" onclick="">
-                                <span class="glyphicon glyphicon-cloud-download"></span> Refresh
+                            <textarea id="response-area" class="form-control" rows="5" readonly></textarea>
+                        </div>
+                        <div class="panel-footer">
+                            <button class="btn btn-default" style="background-color: #81F79F" onclick="messenger.response()">
+                                <span class="glyphicon glyphicon-cloud-download"></span> Get Responses
                             </button>
                         </div>
                         <!-- .panel-body -->

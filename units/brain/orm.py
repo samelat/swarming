@@ -1,4 +1,5 @@
 
+import json
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
@@ -29,13 +30,6 @@ class DBMgr:
         self.session.flush()
         self.session.refresh(row)
 
-    def jsonify(self, row):
-        json_row = {}
-        values = vars(row)
-        for field in row._fields:
-            json_row[field] = values[field]
-        return json_row
-
     def halt(self):
         self.session.commit()
         self.session.close()
@@ -56,10 +50,15 @@ class BorderUnit(ORMBase):
     timestamp = Column(Integer)
     protocols = relationship('Protocol')
 
-    def from_json(self, values):
+    def from_json(self, values, session):
         self.name = values['name']
         for protocol in values['protocols']:
             self.protocols.append(Protocol(name=protocol))
+
+    def to_json(self):
+        return {'name':self.name,
+                'protocols':[proto.name for proto in self.protocols]}
+
 
 class Service(ORMBase):
     __tablename__ = 'service'
@@ -68,6 +67,18 @@ class Service(ORMBase):
     hostname = Column(String)
     port = Column(Integer)
     timestamp = Column(Integer)
+
+    def from_json(self, values, session):
+        self.protocol = values['protocol']
+        self.hostname = values['hostname']
+        self.port = values['port']
+
+    def to_json(self):
+        return {'id':self.id,
+                'protocol':self.protocol,
+                'hostname':self.hostname,
+                'port':self.port}
+
 
 class Login(ORMBase):
     __tablename__ = 'login'
@@ -80,6 +91,22 @@ class Login(ORMBase):
     timestamp = Column(Integer)
     service = relationship('Service', backref='logins')
     dependence = relationship('Login')
+
+    def from_json(self, values, session):
+        self.path = values['path']
+        self.params = json.dumps(values['params'])
+        self.attrs = json.dumps(values['attrs'])
+        if 'id' in values['service']:
+            self.service = session.query(Service).\
+                                   filter(Service.id == values['service']['id']).\
+                                   all()[0]
+        else:
+            self.service.from_json(values['service'])
+
+    def to_json(self):
+        return {'protocol':self.protocol,
+                'hostname':self.hostname,
+                'port':self.port}
 
 class Dictionary(ORMBase):
     __tablename__ = 'dictionary'

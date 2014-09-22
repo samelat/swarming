@@ -21,32 +21,34 @@ class Knowledge:
 
     ''' ############################################
     '''
-    def add(self, params):
+    def add(self, message):
+        params = message['params']
         print('[knowledge] "add" message - {0}'.format(params))
 
         table_class = self._table_classes[params['table_name']]
 
         row = table_class()
-        row.from_json(params['values'])
+        row.from_json(params['values'], self._db_mgr.session)
         row.timestamp = self.timestamp()
         self._db_mgr.add(row)
 
         return {'id':row.id}
 
 
-    def get(self, params):
+    def get(self, message):
+        params = message['params']
         print('[knowledge] "get" message - {0}'.format(params))
 
         timestamp = 0
         if 'timestamp' in params:
             timestamp = params['timestamp']
 
-        table_class = self._tables_classes[params['table_name']]
+        table_class = self._table_classes[params['table_name']]
         json_rows = []
         for row in self._db_mgr.session.query(table_class).\
                                            filter(table_class.timestamp > timestamp).\
                                            all():
-            json_row = self._db_mgr.jsonify(row)
+            json_row = row.to_json()
             json_rows.append(json_row)
 
         if json_rows:

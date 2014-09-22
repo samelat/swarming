@@ -58,11 +58,11 @@ class Unit:
     ''' ############################################
         These are default handlers for the basic commands
     '''
-    def halt(self, params):
+    def halt(self, message):
         self.halt = True
 
     def response(self, message):
-        print('[{0}] Response: {1}'.format(self.unit_id(), message))
+        print('[{0}] Response received: {1}'.format(self.unit_id(), message))
         channel = message['channel']
 
         if channel in self._resp_handlers:
@@ -82,11 +82,11 @@ class Unit:
         print('[{0}] Digesting command {1}'.format(self.unit_id(), message['cmd']))
         command = message['cmd']
         if command in self._commands:
-            response = self._commands[command](message['params'])
-            resp_msg = tools.make_response(message)
-            if resp_msg:
-                resp_msg['params'].update(response)
-                print('[{0}] responding - {1}'.format(self.unit_id(), resp_msg))
+            result = self._commands[command](message)
+            response = tools.make_response(message)
+            if response:
+                response['params'].update(result)
+                print('[{0}] response message- {1}'.format(self.unit_id(), response))
                 self.dispatch(response)
 
     def dispatch(self, message):
