@@ -64,6 +64,7 @@ class APIService:
         print('RESPONSE {0}'.format(data))
         _responses = self._webui.get_responses(data['channels'])
 
+        print('_responses {0}'.format(_responses))
         responses = {}
         for channel in _responses:
             try:

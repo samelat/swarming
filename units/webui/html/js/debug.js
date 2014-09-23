@@ -23,6 +23,6 @@ function Debug () {
         var message = messenger.get_message_template(unit, command);
         $('#request-area').val(JSON.stringify(message));
     };
-}
+};
 
 var debug = new Debug();

@@ -4,7 +4,7 @@ function Messenger () {
 
     this.templates = {
         'brain':{'add':{"table_name":"", "values":{}},
-                 'get':{"table_name":"", "values":{}}},
+                 'get':{"table_name":null}},
         'core' :{'schedule':{}},
         'http' :{'digest':{}}
     };
@@ -28,7 +28,7 @@ function Messenger () {
     };
 
     this.get_message_template = function(unit, command){
-        return {"dst":unit + ':0',
+        return {"dst":unit + ":0",
                 "cmd":command,
                 "params":messenger.templates[unit][command]};
     };

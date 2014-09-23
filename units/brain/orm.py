@@ -91,8 +91,8 @@ class Login(ORMBase):
     service_id = Column(Integer, ForeignKey('service.id'))
     dependence_id = Column(Integer, ForeignKey('login.id'))
     path = Column(String)
-    attrs = Column(String)
     params = Column(String)
+    attrs = Column(String)
     timestamp = Column(Integer)
     service = relationship('Service', backref='logins')
     dependence = relationship('Login')
@@ -111,8 +111,8 @@ class Login(ORMBase):
 
     def to_json(self):
         return {'path':self.path,
-                'attrs':json.loads(self.attrs),
                 'params':json.loads(self.params),
+                'attrs':json.loads(self.attrs),
                 'service':self.service.to_json()}
 
 class Dictionary(ORMBase):

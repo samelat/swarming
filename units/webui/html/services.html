@@ -242,23 +242,19 @@
                         <!-- /.panel-heading -->
                         <div class="panel-body">
                             <div class="table-responsive">
-                                <table class="table table-striped table-bordered table-hover" id="dataTables-logins">
+                                <table class="table table-striped table-bordered table-hover" id="login-table">
                                     <thead>
                                         <tr>
-                                            <th>Login URI</th>
-                                            <th>Browser</th>
-                                            <th>Platform(s)</th>
-                                            <th>Engine version</th>
-                                            <th>CSS grade</th>
+                                            <th>Login</th>
+                                            <th>Attributes</th>
+                                            <th>Border Unit</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr class="odd gradeX">
-                                            <td>http://127.0.0.1:8080/index.php</td>
-                                            <td>Internet Explorer 4.0</td>
-                                            <td>Win 95+</td>
-                                            <td class="center">4</td>
-                                            <td class="center">X</td>
+                                            <td>mysql://127.0.0.1:3306</td>
+                                            <td>{"database":"joomla"}</td>
+                                            <td>MySQL</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -282,23 +278,19 @@
                         <!-- /.panel-heading -->
                         <div class="panel-body">
                             <div class="table-responsive">
-                                <table class="table table-striped table-bordered table-hover" id="dataTables-services">
+                                <table class="table table-striped table-bordered table-hover" id="resource-table">
                                     <thead>
                                         <tr>
-                                            <th>Resource URI</th>
-                                            <th>Browser</th>
-                                            <th>Platform(s)</th>
-                                            <th>Engine version</th>
-                                            <th>CSS grade</th>
+                                            <th>Resource</th>
+                                            <th>Attributes</th>
+                                            <th>Border Unit</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr class="odd gradeX">
                                             <td>http://127.0.0.1:8080/index.php</td>
-                                            <td>Internet Explorer 4.0</td>
-                                            <td>Win 95+</td>
-                                            <td class="center">4</td>
-                                            <td class="center">X</td>
+                                            <td>{"method":"post", "username":"uname", "password":"passwd"}</td>
+                                            <td>HTTP</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -319,10 +311,10 @@
     <!-- /#wrapper -->
 
     <!-- jQuery Version 1.11.0 -->
-    <script src="js/jquery-2.1.1.js"></script>
+    <script src="js/lib/jquery-2.1.1.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
-    <script src="js/bootstrap.min.js"></script>
+    <script src="js/lib/bootstrap.min.js"></script>
 
     <!-- Metis Menu Plugin JavaScript -->
     <script src="js/plugins/metisMenu/metisMenu.min.js"></script>
@@ -332,15 +324,19 @@
     <script src="js/plugins/dataTables/dataTables.bootstrap.js"></script>
 
     <!-- Custom Theme JavaScript -->
-    <script src="js/sb-admin-2.js"></script>
+    <script src="js/lib/sb-admin-2.js"></script>
 
     <!-- Page-Level Demo Scripts - Tables - Use for reference -->
     <script>
     $(document).ready(function() {
-        $('#dataTables-logins').dataTable();
-        $('#dataTables-services').dataTable();
+        $('#login-table').dataTable();
+        $('#resource-table').dataTable();
     });
     </script>
+
+    <!-- Swarming JavaScript -->
+    <script src="js/messenger.js"></script>
+    <script src="js/services.js"></script>
 
 </body>
 
