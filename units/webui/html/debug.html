@@ -30,7 +30,10 @@
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
     <style>
-        textarea { resize:vertical; }
+        textarea {
+            resize: vertical;
+            font-family: Monospace;
+        }
     </style>
 
 </head>
@@ -174,7 +177,7 @@
                         </li>
                         <li class="divider"></li>
                         <li>
-                            <a class="text-center" href="#">
+                            <a class="text-center" href="/tasks.html">
                                 <strong>See All Tasks</strong>
                                 <i class="fa fa-angle-right"></i>
                             </a>
@@ -292,7 +295,7 @@
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
-                                <textarea id="request-area" class="form-control" rows="5"></textarea>
+                                <textarea id="request-area" class="form-control" rows="15"></textarea>
                         </div>
                         <!-- .panel-body -->
                         <div class="panel-footer">
@@ -311,7 +314,7 @@
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
-                            <textarea id="response-area" class="form-control" rows="5" readonly></textarea>
+                            <textarea id="response-area" class="form-control" rows="15" readonly></textarea>
                         </div>
                         <div class="panel-footer">
                             <button class="btn btn-default" style="background-color: #81F79F" onclick="messenger.response()">

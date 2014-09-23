@@ -43,6 +43,7 @@ class Protocol(ORMBase):
     bunit_id = Column(Integer, ForeignKey('border_unit.id'))
     name = Column(String)
 
+
 class BorderUnit(ORMBase):
     __tablename__ = 'border_unit'
     id = Column(Integer, primary_key=True)
@@ -63,19 +64,23 @@ class BorderUnit(ORMBase):
 class Service(ORMBase):
     __tablename__ = 'service'
     id = Column(Integer, primary_key=True)
-    protocol = Column(String)
+    proto_id = Column(Integer, ForeignKey('protocol.id'))
     hostname = Column(String)
     port = Column(Integer)
-    timestamp = Column(Integer)
+    protocol = relationship('Protocol')
 
     def from_json(self, values, session):
-        self.protocol = values['protocol']
+        query = session.query(Protocol).filter_by(name=values['protocol'])
+        if query.count():
+            self.protocol = query.one()
+        else:
+            self.protocol = Protocol(name = values['protocol'])
         self.hostname = values['hostname']
         self.port = values['port']
 
     def to_json(self):
         return {'id':self.id,
-                'protocol':self.protocol,
+                'protocol':self.protocol.name,
                 'hostname':self.hostname,
                 'port':self.port}
 
@@ -86,8 +91,8 @@ class Login(ORMBase):
     service_id = Column(Integer, ForeignKey('service.id'))
     dependence_id = Column(Integer, ForeignKey('login.id'))
     path = Column(String)
-    params = Column(String)
     attrs = Column(String)
+    params = Column(String)
     timestamp = Column(Integer)
     service = relationship('Service', backref='logins')
     dependence = relationship('Login')
@@ -96,17 +101,19 @@ class Login(ORMBase):
         self.path = values['path']
         self.params = json.dumps(values['params'])
         self.attrs = json.dumps(values['attrs'])
-        if 'id' in values['service']:
+        service = values['service']
+        if 'id' in service:
             self.service = session.query(Service).\
-                                   filter(Service.id == values['service']['id']).\
-                                   all()[0]
+                                   filter_by(id=service['id']).one()
         else:
-            self.service.from_json(values['service'])
+            self.service = Service()
+            self.service.from_json(values['service'], session)
 
     def to_json(self):
-        return {'protocol':self.protocol,
-                'hostname':self.hostname,
-                'port':self.port}
+        return {'path':self.path,
+                'attrs':json.loads(self.attrs),
+                'params':json.loads(self.params),
+                'service':self.service.to_json()}
 
 class Dictionary(ORMBase):
     __tablename__ = 'dictionary'

@@ -19,19 +19,23 @@ class APIService:
 
     def start(self):
         cherrypy.config.update("units/webui/server.conf")
-        cherrypy.config.update({ "environment": "embedded" })
+        #cherrypy.config.update({ "environment": "embedded" })
 
         conf = {
             '/':{
                 'tools.staticdir.root': os.path.abspath(os.getcwd()),
                 'tools.staticdir.on': True,
-                'tools.staticdir.dir': './units/webui/html'
+                'tools.staticdir.dir': 'units/webui/html'
             }
         }
         cherrypy.quickstart(self, '/', conf)
 
     ''' ############################################
     '''
+    @cherrypy.expose
+    def default(self, *args,**kwargs):
+        raise cherrypy.HTTPRedirect("/index.html")
+
     @cherrypy.expose
     def halt(self):
         cherrypy.engine.exit()
