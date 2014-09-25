@@ -13,9 +13,22 @@ function Services () {
                 console.log("RESPONSE: " + JSON.stringify(response));
                 var table_body = $('#login-table tbody').val(JSON.stringify(response));
                 $.each(response.rows, function(index, obj){
+                    var uri = obj.service.protocol + '://' +
+                              obj.service.hostname + ':' +
+                              obj.service.port + '/' +
+                              obj.path
+                    var pairs = [];
+                    $.each(obj.params, function(key, value){
+                        pairs.push(key + '=' + value);
+                    });
+
+                    var params = pairs.join('&');
+                    if(params)
+                        uri += '?' + params
+
                     var html_row = '<tr class="odd gradeX">' +
-                                        '<td>' + JSON.stringify(obj) + '</td>' +
-                                        '<td>' + 'otra cosa' + '</td>' +
+                                        '<td>' + uri + '</td>' +
+                                        '<td>' + JSON.stringify(obj.attrs) + '</td>' +
                                         '<td>' + 'algo mas' + '</td>' +
                                     '</tr>';
                     table_body.append(html_row);
