@@ -327,56 +327,33 @@
             <div class="modal-content">
                 <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                <h4 class="modal-title" id="legajoLabel">Nuevo Legajo</h4>
+                <h4 class="modal-title" id="legajoLabel">New Resource</h4>
                 </div>
                 <div class="modal-body">
                     <form class="form-horizontal" role="form">
-                        <div class="service">
-                            <label>Service Information</label>
-                            <div class="form-group form-group-sm">
-                                <div class="col-sm-5">
-                                    <input type="text" name="direccion" class="form-control" placeholder="Direccion" onchange="clear_direccion_id()">
-                                </div>
-                                <div class="col-sm-4">
-                                    <input type="text" name="localidad" class="form-control" placeholder="Localidad" onchange="clear_direccion_id()">
-                                </div>
-                            </div>
-                            <div class="form-group form-group-sm">
-                                <div class="col-sm-4">
-                                    <input type="text" name="provincia" class="form-control" placeholder="Provincia" onchange="clear_direccion_id()">
-                                </div>
-                                <div class="col-sm-4">
-                                    <input type="text" name="pais" class="form-control" placeholder="Pais" onchange="clear_direccion_id()">
-                                </div>
+                        <label>Service URI</label>
+                        <div class="form-group form-group-sm">
+                            <div class="col-sm-5">
+                                <input type="text" name="hostname" class="form-control" placeholder="URI">
                             </div>
                         </div>
                         <div class="resource">
                             <label>Login Information</label>
                             <div class="form-group form-group-sm">
                                 <div class="col-sm-5">
-                                    <input type="text" name="nombre" class="form-control" placeholder="Nombre">
+                                    <input type="text" name="path" class="form-control" placeholder="Path">
                                 </div>
                                 <div class="col-sm-4">
-                                    <input type="text" name="apellido" class="form-control" placeholder="Apellido">
-                                </div>
-                            </div>
-                            <div class="form-group form-group-sm">
-                                <div class="col-sm-4">
-                                    <input type="text" name="dni" class="form-control" placeholder="DNI">
+                                    <input type="text" name="params" class="form-control" placeholder="Parameters">
                                 </div>
                             </div>
                             <div class="form-group form-group-sm">
                                 <div class="col-sm-4">
-                                    <label>Fecha de Nacimiento</label>
-                                    <input type="date" name="fecha_nacimiento" class="form-control" placeholder="Fecha de Nacimiento">
+                                    <input type="text" name="attrs" class="form-control" placeholder="Attributes">
                                 </div>
                             </div>
                         </div>
                     </form>
-                    <!-- Button trigger modal -->
-                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#buscarDireccion">
-                        Service
-                    </button>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
