@@ -45,8 +45,10 @@ class Protocol(ORMBase):
 
     @staticmethod
     def from_json(values, session):
-
-
+        rows = session.query(Protocol).filter_by(name=values).all()
+        if rows:
+            return rows[0]
+        return Protocol(values['protocol'])
 
 class BorderUnit(ORMBase):
     __tablename__ = 'border_unit'
@@ -61,13 +63,15 @@ class BorderUnit(ORMBase):
         if not rows:
             row = BorderUnit(name=values['name'])
             for protocol in values['protocols']:
-                row.protocols.append(Protocol.from_json(protocol))
-            rows = [row]
+                row.protocols.append(Protocol.from_json(protocol, session))
+            return row
+        
         return rows[0]
 
     def to_json(self):
-        return {'name':self.name,
-                'protocols':[proto.name for proto in self.protocols]}
+        return {'id':self.id,
+                'name':self.name,
+                'protocols':[proto.to_json() for proto in self.protocols]}
 
 
 class Service(ORMBase):
@@ -82,16 +86,18 @@ class Service(ORMBase):
     def from_json(values, session):
         rows = session.query(Service).filter_by(name=values['protocol'],
                                                 hostname=values['hostname'],
+                                                port=values['port']
                                                 ).all()
         if not rows:
             row = Service(values['hostname'], values['port'])
-            row.protocol = Protocol.from_json(values['protocol'])
+            row.protocol = Protocol.from_json(values['protocol'], session)
+            return row
 
-        return 
+        return rows[0]
 
     def to_json(self):
         return {'id':self.id,
-                'protocol':self.protocol.name,
+                'protocol':self.protocol.to_json(),
                 'hostname':self.hostname,
                 'port':self.port}
 
@@ -110,19 +116,21 @@ class Login(ORMBase):
 
     @staticmethod
     def from_json(values, session):
-        self.path = values['path']
-        self.params = json.dumps(values['params'])
-        self.attrs = json.dumps(values['attrs'])
-        service = values['service']
-        if 'id' in service:
+        if 'id' in values:
             self.service = session.query(Service).\
                                    filter_by(id=service['id']).one()
         else:
             self.service = Service()
             self.service.from_json(values['service'], session)
 
+        self.path = values['path']
+        self.params = json.dumps(values['params'])
+        self.attrs = json.dumps(values['attrs'])
+        service = values['service']
+
     def to_json(self):
-        return {'path':self.path,
+        return {'id':self.id,
+                'path':self.path,
                 'params':json.loads(self.params),
                 'attrs':json.loads(self.attrs),
                 'service':self.service.to_json()}
