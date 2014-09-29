@@ -27,8 +27,7 @@ class Knowledge:
 
         table_class = self._table_classes[params['table_name']]
 
-        row = table_class()
-        row.from_json(params['values'], self._db_mgr.session)
+        row = table_class.from_json(params['values'], self._db_mgr.session)
         row.timestamp = self.timestamp()
         self._db_mgr.add(row)
 

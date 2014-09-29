@@ -250,23 +250,16 @@
                                 <table class="table table-striped table-bordered table-hover" id="login-table">
                                     <thead>
                                         <tr>
-                                            <th>Login URI</th>
+                                            <th>Protocol</th>
+                                            <th>Hostname</th>
+                                            <th>Port</th>
+                                            <th>Path</th>
+                                            <th>Parameters</th>
                                             <th>Attributes</th>
-                                            <th>Border Unit</th>
                                             <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr class="odd gradeX">
-                                            <td>mysql://127.0.0.1:3306</td>
-                                            <td>{"database":"joomla"}</td>
-                                            <td>MySQL</td>
-                                            <td>
-                                                <a href="javascript:alert('remove login')">
-                                                    <i class="fa fa-times fa-fw"></i>
-                                                </a>
-                                            </td>
-                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -331,13 +324,23 @@
                 </div>
                 <div class="modal-body">
                     <form class="form-horizontal" role="form">
-                        <label>Service URI</label>
-                        <div class="form-group form-group-sm">
-                            <div class="col-sm-5">
-                                <input type="text" name="hostname" class="form-control" placeholder="URI">
+                        <label>Service</label>
+                        <div class="service">
+                            <div class="form-group form-group-sm">
+                                <div class="col-sm-2">
+                                    <input type="text" name="protocol" class="form-control" placeholder="Protocol">
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <div class="col-sm-5">
+                                    <input type="text" name="hostname" class="form-control" placeholder="Hostname">
+                                </div>
+                                <div class="col-sm-2">
+                                    <input type="text" name="port" class="form-control" placeholder="Port">
+                                </div>
                             </div>
                         </div>
-                        <div class="resource">
+                        <div class="login">
                             <label>Login Information</label>
                             <div class="form-group form-group-sm">
                                 <div class="col-sm-5">
@@ -357,13 +360,13 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary btn-sm" onclick="add_resource()">Agregar</button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="services.add_login()">Agregar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- jQuery Version 1.11.0 -->
+    <!-- jQuery -->
     <script src="js/lib/jquery-2.1.1.js"></script>
 
     <!-- Bootstrap Core JavaScript -->

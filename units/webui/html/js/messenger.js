@@ -55,13 +55,16 @@ function Messenger () {
             success: function(result) {
                 console.log('request result: ' + JSON.stringify(result));
 
+                console.log("CALLBACKS!!!: " + callbacks);
                 if('response' in callbacks) {
+                    console.log("No deberia estar aca :S");
                     messenger.callbacks[result['channel']] = callbacks.response;
                     messenger.keys.push(result['channel']);
                 }
+                /*
 
                 if('success' in callbacks)
-                    callbacks.success(result);
+                    callbacks.success(result);*/
 
                 console.log('response channel: ' + result['channel']);
             }
@@ -99,3 +102,4 @@ function Messenger () {
 };
 
 var messenger = new Messenger();
+

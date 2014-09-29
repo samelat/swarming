@@ -43,6 +43,10 @@ class Protocol(ORMBase):
     bunit_id = Column(Integer, ForeignKey('border_unit.id'))
     name = Column(String)
 
+    @staticmethod
+    def from_json(values, session):
+
+
 
 class BorderUnit(ORMBase):
     __tablename__ = 'border_unit'
@@ -51,10 +55,15 @@ class BorderUnit(ORMBase):
     timestamp = Column(Integer)
     protocols = relationship('Protocol')
 
-    def from_json(self, values, session):
-        self.name = values['name']
-        for protocol in values['protocols']:
-            self.protocols.append(Protocol(name=protocol))
+    @staticmethod
+    def from_json(values, session):
+        rows = session.query(BorderUnit).filter_by(name=values['name']).all()
+        if not rows:
+            row = BorderUnit(name=values['name'])
+            for protocol in values['protocols']:
+                row.protocols.append(Protocol.from_json(protocol))
+            rows = [row]
+        return rows[0]
 
     def to_json(self):
         return {'name':self.name,
@@ -69,14 +78,16 @@ class Service(ORMBase):
     port = Column(Integer)
     protocol = relationship('Protocol')
 
-    def from_json(self, values, session):
-        query = session.query(Protocol).filter_by(name=values['protocol'])
-        if query.count():
-            self.protocol = query.one()
-        else:
-            self.protocol = Protocol(name = values['protocol'])
-        self.hostname = values['hostname']
-        self.port = values['port']
+    @staticmethod
+    def from_json(values, session):
+        rows = session.query(Service).filter_by(name=values['protocol'],
+                                                hostname=values['hostname'],
+                                                ).all()
+        if not rows:
+            row = Service(values['hostname'], values['port'])
+            row.protocol = Protocol.from_json(values['protocol'])
+
+        return 
 
     def to_json(self):
         return {'id':self.id,
@@ -97,7 +108,8 @@ class Login(ORMBase):
     service = relationship('Service', backref='logins')
     dependence = relationship('Login')
 
-    def from_json(self, values, session):
+    @staticmethod
+    def from_json(values, session):
         self.path = values['path']
         self.params = json.dumps(values['params'])
         self.attrs = json.dumps(values['attrs'])
