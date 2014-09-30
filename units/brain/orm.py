@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 Session = sessionmaker()
-ORMBase = declarative_base()
+Base = declarative_base()
 
 class DBMgr:
     def __init__(self):
@@ -37,6 +37,9 @@ class DBMgr:
 
 ''' ORM Classes
 '''
+class ORMBase(Base):
+    pass
+
 class Protocol(ORMBase):
     __tablename__ = 'protocol'
     id = Column(Integer, primary_key=True)
@@ -115,18 +118,22 @@ class Login(ORMBase):
     dependence = relationship('Login')
 
     @staticmethod
-    def from_json(values, session):
+    def from_json(values, mgr):
         if 'id' in values:
-            self.service = session.query(Service).\
-                                   filter_by(id=service['id']).one()
+            row = mgr.session.query(Login).\
+                              filter_by(id=service['id']).\
+                              one()
+            row.update(values)
         else:
-            self.service = Service()
+            rows = mgr.session.query(Login).\
+                               filter(Login.path=values['path'],
+                                      Session.).\
+                               all()
+            if rows:
+                row = rows[0]
+            else:
+                row = Login()
             self.service.from_json(values['service'], session)
-
-        self.path = values['path']
-        self.params = json.dumps(values['params'])
-        self.attrs = json.dumps(values['attrs'])
-        service = values['service']
 
     def to_json(self):
         return {'id':self.id,

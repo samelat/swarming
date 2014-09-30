@@ -21,15 +21,15 @@ class Knowledge:
 
     ''' ############################################
     '''
-    def add(self, message):
+    def set(self, message):
         params = message['params']
         print('[knowledge] "add" message - {0}'.format(params))
 
-        table_class = self._table_classes[params['table_name']]
+        table_class = self._table_classes[params['table']]
 
-        row = table_class.from_json(params['values'], self._db_mgr.session)
-        row.timestamp = self.timestamp()
-        self._db_mgr.add(row)
+        row = table_class.from_json(params['values'], self._db_mgr)
+        #row.timestamp = self.timestamp()
+        #self._db_mgr.add(row)
 
         return {'id':row.id}
 
