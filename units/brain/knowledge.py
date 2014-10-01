@@ -13,7 +13,6 @@ class Knowledge:
     def __init__(self, brain):
         self._brain = brain
         self._db_mgr = DBMgr()
-        self._table_classes = self._db_mgr.get_table_classes()
 
     def start(self):
         self._db_mgr.start()
@@ -27,7 +26,7 @@ class Knowledge:
         params = message['params']
         print('[knowledge] "add" message - {0}'.format(params))
 
-        table_class = self._table_classes[params['table']]
+        table_class = self._db_mgr.tables[params['table']]
 
         try:
             row = table_class.from_json(params['values'], self._db_mgr.session)
@@ -37,6 +36,7 @@ class Knowledge:
             row_id = -1
         #row.timestamp = self.timestamp()
         #self._db_mgr.add(row)
+        self._db_mgr.session.commit()
 
         return {'id':row_id}
 
@@ -49,7 +49,7 @@ class Knowledge:
         if 'timestamp' in params:
             timestamp = params['timestamp']
 
-        table_class = self._table_classes[params['table_name']]
+        table_class = self._table_classes[params['table']]
         json_rows = []
         for row in self._db_mgr.session.query(table_class).\
                                            filter(table_class.timestamp > timestamp).\

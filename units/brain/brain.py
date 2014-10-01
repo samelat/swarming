@@ -23,7 +23,7 @@ class Brain(Unit):
     def start(self):
         print('[brain] Staring')
         self.add_cmd_handler('get', self._knowledge.get)
-        self.add_cmd_handler('add', self._knowledge.add)
+        self.add_cmd_handler('set', self._knowledge.set)
         self._messenger.start()
 
     def dispatch(self, message):
