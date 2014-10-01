@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 Session = sessionmaker()
-Base = declarative_base()
+ORMBase = declarative_base()
 
 class DBMgr:
     def __init__(self):
@@ -37,9 +37,6 @@ class DBMgr:
 
 ''' ORM Classes
 '''
-class ORMBase(Base):
-    pass
-
 class Protocol(ORMBase):
     __tablename__ = 'protocol'
     id = Column(Integer, primary_key=True)
@@ -58,7 +55,7 @@ class BorderUnit(ORMBase):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     timestamp = Column(Integer)
-    protocols = relationship('Protocol')
+    protocols = relationship('Protocol', backref='bunit')
 
     @staticmethod
     def from_json(values, session):
@@ -87,10 +84,9 @@ class Service(ORMBase):
 
     @staticmethod
     def from_json(values, session):
-        rows = session.query(Service).filter_by(name=values['protocol'],
-                                                hostname=values['hostname'],
-                                                port=values['port']
-                                                ).all()
+        rows = mgr.session.query(Service).filter(Protocol.name==values['protocol'],
+                                             hostname==values['hostname'],
+                                             port==values['port']).all()
         if not rows:
             row = Service(values['hostname'], values['port'])
             row.protocol = Protocol.from_json(values['protocol'], session)
@@ -107,6 +103,7 @@ class Service(ORMBase):
 
 class Login(ORMBase):
     __tablename__ = 'login'
+
     id = Column(Integer, primary_key=True)
     service_id = Column(Integer, ForeignKey('service.id'))
     dependence_id = Column(Integer, ForeignKey('login.id'))
@@ -118,22 +115,31 @@ class Login(ORMBase):
     dependence = relationship('Login')
 
     @staticmethod
-    def from_json(values, mgr):
+    def from_json(values, session):
+
+        if 'service' in values:
+            service = Service.from_json(values['service'], mgr)
+
         if 'id' in values:
-            row = mgr.session.query(Login).\
-                              filter_by(id=service['id']).\
-                              one()
-            row.update(values)
-        else:
-            rows = mgr.session.query(Login).\
-                               filter(Login.path=values['path'],
-                                      Session.).\
-                               all()
-            if rows:
-                row = rows[0]
-            else:
-                row = Login()
-            self.service.from_json(values['service'], session)
+            row = session.query(Login).\
+                          filter_by(id=values['id']).\
+                          first()
+        else:            
+            row = session.query(Login).\
+                          filter(Login.path==values['path'],
+                                 Service.id==service.id).\
+                          first()
+            if row:
+                return row
+            row = Login()
+            row.service = service
+            session.add(row)
+
+        row.__dict__.update()
+
+        session.flush()
+
+        return row
 
     def to_json(self):
         return {'id':self.id,
@@ -141,6 +147,7 @@ class Login(ORMBase):
                 'params':json.loads(self.params),
                 'attrs':json.loads(self.attrs),
                 'service':self.service.to_json()}
+
 
 class Dictionary(ORMBase):
     __tablename__ = 'dictionary'

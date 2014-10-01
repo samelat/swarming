@@ -1,4 +1,6 @@
 
+import traceback
+
 import time
 import json
 
@@ -27,11 +29,16 @@ class Knowledge:
 
         table_class = self._table_classes[params['table']]
 
-        row = table_class.from_json(params['values'], self._db_mgr)
+        try:
+            row = table_class.from_json(params['values'], self._db_mgr.session)
+            row_id = row.id
+        except:
+            traceback.print_exc()
+            row_id = -1
         #row.timestamp = self.timestamp()
         #self._db_mgr.add(row)
 
-        return {'id':row.id}
+        return {'id':row_id}
 
 
     def get(self, message):
