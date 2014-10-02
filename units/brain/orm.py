@@ -8,7 +8,7 @@ from sqlalchemy.ext.declarative import declarative_base
 Session = sessionmaker()
 ORMBase = declarative_base()
 
-class DBMgr:
+class ORM:
     def __init__(self):
         self._engine = create_engine('sqlite:///context.db', echo=True)
         ORMBase.metadata.create_all(self._engine)
@@ -18,40 +18,52 @@ class DBMgr:
                         LoginTask, Resource, ResourceTask, Dictionary]
         self.tables = dict([(c.__tablename__, c) for c in self.classes])
 
-    def halt(self):
-        self.session.commit()
-        self.session.close()
+    def set(self, table, values):
+        try:
+            row = self.from_json(tables, values)
+            row_id = row.id
+            self.session.commit()
+        except:
+            traceback.print_exc()
+            row_id = -1
+        #row.timestamp = self.timestamp()
+        #self._db_mgr.add(row)
+        return row_id
 
-    def row_from_json(self, table, values):
-        # First, we resolve the dependences
-        attributes = {}
-        depending = {}
-
-        table_class = self.tables['table']
-
-        for key in tables_class.depending:
-            if key in values:
-                depending[key] = Protocol.from_json(values['protocol'], session)
+    def from_json(table, values):
+        table_class = self.tables[table]
+        to_set, conditions = table_class.get_dependencies(values, self)
 
         if 'id' in values:
-            row = session.query(tables_class).\
+            row = session.query(table_class).\
                           filter_by(id=values['id']).\
                           first()
-        else:            
-            query = session.query(tables_class).\
-                          filter_by(name=values['name']).\
+        else:
+            row_attrs = dict([(attr, values[attr]) for attr in table_class.attributes
+                                                   if  attr in values])
+            row = session.query(table_class).\
+                          filter_by(**row_attrs).\
+                          filter(*conditions).\
                           first()
             if row:
                 return row
-            row = Protocol()
+            to_set.update(row_attrs)
+            row = table_class()
             session.add(row)
 
-        if 'name' in values:
-            row.name = values['name']
+        for key, value in to_set.items():
+            setattr(row, key, value)
 
         session.flush()
 
         return row
+
+    def get(self, table):
+        pass
+
+    def halt(self):
+        self.session.commit()
+        self.session.close()
 
 
 ''' ORM Classes
@@ -60,30 +72,36 @@ class Protocol(ORMBase):
     __tablename__ = 'protocol'
 
     attributes = ['name']
-    depending  = ['border_unit']
 
     id = Column(Integer, primary_key=True)
     bunit_id = Column(Integer, ForeignKey('border_unit.id'))
     name = Column(String)
 
     @staticmethod
+    def get_dependencies(values, mgr):
+        return ({}, [])
+
+    @staticmethod
     def from_json(values, session):
-        print('[Protocol]')
+        to_set = Protocol.get_dependencies(values, mgr)        
+
         if 'id' in values:
             row = session.query(Protocol).\
                           filter_by(id=values['id']).\
                           first()
-        else:            
+        else:
+            conditions = dict([(attr, values[attr]) for attr in Protocol.attributes if attr in values])
             row = session.query(Protocol).\
-                          filter_by(name=values['name']).\
+                          filter_by(**conditions).\
                           first()
             if row:
                 return row
+            to_set.update(conditions)
             row = Protocol()
             session.add(row)
 
-        if 'name' in values:
-            row.name = values['name']
+        for key, value in to_set.items():
+            setattr(row, key, value)
 
         session.flush()
 
@@ -92,8 +110,7 @@ class Protocol(ORMBase):
 class BorderUnit(ORMBase):
     __tablename__ = 'border_unit'
 
-    attributes = []
-    depending  = []
+    attributes = ['name']
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -101,15 +118,37 @@ class BorderUnit(ORMBase):
     protocols = relationship('Protocol', backref='bunit')
 
     @staticmethod
+    def get_dependencies(values, mgr):
+        to_set = {}
+        if 'protocols' in values:
+            to_set['protocols'] = [Protocol.from_json(value, session) for value in values['protocols']]
+        return (to_set, [])
+
+    @staticmethod
     def from_json(values, session):
-        rows = session.query(BorderUnit).filter_by(name=values['name']).all()
-        if not rows:
-            row = BorderUnit(name=values['name'])
-            for protocol in values['protocols']:
-                row.protocols.append(Protocol.from_json(protocol, session))
-            return row
-        
-        return rows[0]
+        to_set = BorderUnit.get_dependencies(values, session)        
+
+        if 'id' in values:
+            row = session.query(BorderUnit).\
+                          filter_by(id=values['id']).\
+                          first()
+        else:
+            conditions = dict([(attr, values[attr]) for attr in BorderUnit.attributes if attr in values])
+            row = session.query(BorderUnit).\
+                          filter_by(**conditions).\
+                          first()
+            if row:
+                return row
+            to_set.update(conditions)
+            row = BorderUnit()
+            session.add(row)
+
+        for key, value in to_set.items():
+            setattr(row, key, value)
+
+        session.flush()
+
+        return row
 
     def to_json(self):
         return {'id':self.id,
@@ -121,13 +160,18 @@ class Service(ORMBase):
     __tablename__ = 'service'
 
     attributes = []
-    depending  = []
 
     id = Column(Integer, primary_key=True)
     protocol_id = Column(Integer, ForeignKey('protocol.id'))
     hostname = Column(String)
     port = Column(Integer)
     protocol = relationship('Protocol')
+
+    @staticmethod
+    def get_dependencies(values, mgr):
+        if 'protocol' in values:
+            proto = mgr.from_json('protocol', values['protocol'])
+        return ({'protocol':proto}, [Service.protocol_id==proto.id])
 
     @staticmethod
     def from_json(values, session):

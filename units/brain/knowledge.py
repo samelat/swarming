@@ -12,7 +12,7 @@ class Knowledge:
 
     def __init__(self, brain):
         self._brain = brain
-        self._db_mgr = DBMgr()
+        self._db_mgr = ORM()
 
     def start(self):
         self._db_mgr.start()
@@ -21,22 +21,16 @@ class Knowledge:
         return int(time.time() * 1000)
 
     ''' ############################################
+        This set and get methods are just to keep an abstract
+        implementation of the database manager. This allow us
+        to change to mongodb (for example) in the future if we
+        want to.
     '''
     def set(self, message):
         params = message['params']
-        print('[knowledge] "add" message - {0}'.format(params))
+        print('[knowledge] "set" message - {0}'.format(params))
 
-        table_class = self._db_mgr.tables[params['table']]
-
-        try:
-            row = table_class.from_json(params['values'], self._db_mgr.session)
-            row_id = row.id
-        except:
-            traceback.print_exc()
-            row_id = -1
-        #row.timestamp = self.timestamp()
-        #self._db_mgr.add(row)
-        self._db_mgr.session.commit()
+        row_id = self._db_mgr.set(params['table'], params['values'])
 
         return {'id':row_id}
 
