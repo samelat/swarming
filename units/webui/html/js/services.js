@@ -6,29 +6,25 @@ function Services () {
     this.update_services = function() {
         
         var message = messenger.get_message_template("brain", "get")
-        message.params.table_name = "login";
+        message.params.table = "login";
         message.params.timestamp  = services.timestamp;
 
         messenger.request(message, {'response':function(response) {
                 console.log("RESPONSE: " + JSON.stringify(response));
                 var table_body = $('#login-table tbody').val(JSON.stringify(response));
                 $.each(response.rows, function(index, obj){
-                    var params = '<ul class="list-unstyled">';/*
-                    $.each(obj.params, function(key, value){
-                        params += '<li>' + key + '=' + value + '</li>';
-                    });*/
+                    var params = '<ul class="list-unstyled">';
+                    for(var key in obj.params)
+                        params += '<li>' + key + '=' + obj.params[key] + '</li>';
                     params += '</ul>';
 
-                    var attrs = '<ul class="list-unstyled">';/*
-                    $.each(obj.attrs, function(key, value){
-                        attrs += '<li>' + key + '=' + value + '</li>';
-                    });*/
+                    var attrs = '<ul class="list-unstyled">';
                     for(var key in obj.attrs)
                         attrs += '<li>' + key + '=' + obj.attrs[key] + '</li>';
                     attrs += '</ul>';
 
                     var html_row = '<tr class="odd gradeX">' +
-                                        '<td>' + obj.service.protocol + '</td>' +
+                                        '<td>' + obj.service.protocol.name + '</td>' +
                                         '<td>' + obj.service.hostname + '</td>' +
                                         '<td>' + obj.service.port + '</td>' +
                                         '<td>' + obj.path + '</td>' +
@@ -53,8 +49,8 @@ function Services () {
     };
 
     this.add_login = function() {
-        var message = messenger.get_message_template("brain", "add")
-        message.params.table_name = "login";
+        var message = messenger.get_message_template("brain", "set")
+        message.params.table = "login";
 
         message.params.values.service = {};
         $('#newLogin .login input').each(function(index, obj) {
@@ -66,7 +62,7 @@ function Services () {
         $('#newLogin .service input').each(function(index, obj) {
             message.params.values.service[obj.name] = obj.value;
         });
-
+        message.params.values.service.protocol = {'name':message.params.values.service.protocol};
         message.params.values.service.port = parseInt(message.params.values.service.port);
 
         console.log(message);

@@ -1,4 +1,7 @@
 
+import traceback
+
+import time
 import json
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, ForeignKey
@@ -18,10 +21,14 @@ class ORM:
                         LoginTask, Resource, ResourceTask, Dictionary]
         self.tables = dict([(c.__tablename__, c) for c in self.classes])
 
+    def timestamp(self):
+        return int(time.time() * 1000)
+
     def set(self, table, values):
         try:
-            row = self.from_json(tables, values)
+            row = self.from_json(table, values)
             row_id = row.id
+            row.timestamp = self.timestamp()
             self.session.commit()
         except:
             traceback.print_exc()
@@ -30,36 +37,44 @@ class ORM:
         #self._db_mgr.add(row)
         return row_id
 
-    def from_json(table, values):
+    def from_json(self, table, values):
         table_class = self.tables[table]
         to_set, conditions = table_class.get_dependencies(values, self)
 
         if 'id' in values:
-            row = session.query(table_class).\
-                          filter_by(id=values['id']).\
-                          first()
+            row = self.session.query(table_class).\
+                               filter_by(id=values['id']).\
+                               first()
         else:
             row_attrs = dict([(attr, values[attr]) for attr in table_class.attributes
                                                    if  attr in values])
-            row = session.query(table_class).\
-                          filter_by(**row_attrs).\
-                          filter(*conditions).\
-                          first()
+            row = self.session.query(table_class).\
+                               filter_by(**row_attrs).\
+                               filter(*conditions).\
+                               first()
             if row:
                 return row
             to_set.update(row_attrs)
             row = table_class()
-            session.add(row)
+            self.session.add(row)
 
         for key, value in to_set.items():
             setattr(row, key, value)
 
-        session.flush()
+        self.session.flush()
 
         return row
 
-    def get(self, table):
-        pass
+    def get(self, table, timestamp):
+        table_class = self.tables[table]
+
+        json_rows = []
+        for row in self.session.query(table_class).\
+                                filter(table_class.timestamp > timestamp).\
+                                all():
+            json_rows.append(row.to_json())
+
+        return {'timestamp':self.timestamp(), 'rows':json_rows}
 
     def halt(self):
         self.session.commit()
@@ -81,32 +96,12 @@ class Protocol(ORMBase):
     def get_dependencies(values, mgr):
         return ({}, [])
 
-    @staticmethod
-    def from_json(values, session):
-        to_set = Protocol.get_dependencies(values, mgr)        
+    def to_json(self):
+        return {'id':self.id,
+                'name':self.name}
 
-        if 'id' in values:
-            row = session.query(Protocol).\
-                          filter_by(id=values['id']).\
-                          first()
-        else:
-            conditions = dict([(attr, values[attr]) for attr in Protocol.attributes if attr in values])
-            row = session.query(Protocol).\
-                          filter_by(**conditions).\
-                          first()
-            if row:
-                return row
-            to_set.update(conditions)
-            row = Protocol()
-            session.add(row)
-
-        for key, value in to_set.items():
-            setattr(row, key, value)
-
-        session.flush()
-
-        return row
-
+''' ################################################
+'''
 class BorderUnit(ORMBase):
     __tablename__ = 'border_unit'
 
@@ -121,45 +116,20 @@ class BorderUnit(ORMBase):
     def get_dependencies(values, mgr):
         to_set = {}
         if 'protocols' in values:
-            to_set['protocols'] = [Protocol.from_json(value, session) for value in values['protocols']]
+            to_set['protocols'] = [mgr.from_json('protocol', value) for value in values['protocols']]
         return (to_set, [])
-
-    @staticmethod
-    def from_json(values, session):
-        to_set = BorderUnit.get_dependencies(values, session)        
-
-        if 'id' in values:
-            row = session.query(BorderUnit).\
-                          filter_by(id=values['id']).\
-                          first()
-        else:
-            conditions = dict([(attr, values[attr]) for attr in BorderUnit.attributes if attr in values])
-            row = session.query(BorderUnit).\
-                          filter_by(**conditions).\
-                          first()
-            if row:
-                return row
-            to_set.update(conditions)
-            row = BorderUnit()
-            session.add(row)
-
-        for key, value in to_set.items():
-            setattr(row, key, value)
-
-        session.flush()
-
-        return row
 
     def to_json(self):
         return {'id':self.id,
                 'name':self.name,
                 'protocols':[proto.to_json() for proto in self.protocols]}
 
-
+''' ################################################
+'''
 class Service(ORMBase):
     __tablename__ = 'service'
 
-    attributes = []
+    attributes = ['hostname', 'port']
 
     id = Column(Integer, primary_key=True)
     protocol_id = Column(Integer, ForeignKey('protocol.id'))
@@ -173,50 +143,18 @@ class Service(ORMBase):
             proto = mgr.from_json('protocol', values['protocol'])
         return ({'protocol':proto}, [Service.protocol_id==proto.id])
 
-    @staticmethod
-    def from_json(values, session):
-        print('[Service]')
-        if 'protocol' in values:
-            protocol = Protocol.from_json(values['protocol'], session)
-
-        if 'id' in values:
-            row = session.query(Service).\
-                          filter_by(id=values['id']).\
-                          first()
-        else:            
-            row = session.query(Service).\
-                          filter_by(hostname=values['hostname'],
-                                    port=values['port'],
-                                    protocol_id=protocol.id).\
-                          first()
-            if row:
-                return row
-            row = Service()
-            row.protocol = protocol
-            session.add(row)
-
-        if 'hostname' in values:
-            row.hostname = values['hostname']
-        
-        if 'port' in values:
-            row.port = values['port']
-
-        session.flush()
-
-        return row
-
     def to_json(self):
         return {'id':self.id,
                 'protocol':self.protocol.to_json(),
                 'hostname':self.hostname,
                 'port':self.port}
 
-
+''' ################################################
+'''
 class Login(ORMBase):
     __tablename__ = 'login'
     
-    attributes = []
-    depending  = []
+    attributes = ['path']
 
     id = Column(Integer, primary_key=True)
     service_id = Column(Integer, ForeignKey('service.id'))
@@ -229,38 +167,17 @@ class Login(ORMBase):
     dependence = relationship('Login')
 
     @staticmethod
-    def from_json(values, session):
-        print('[Login]')
-        if 'service' in values:
-            service = Service.from_json(values['service'], session)
+    def get_dependencies(values, mgr):
+        to_set = {}
+        for attr in ['params', 'attrs']:
+            if attr in values:
+                to_set[attr] = json.dumps(values[attr])
 
-        if 'id' in values:
-            row = session.query(Login).\
-                          filter_by(id=values['id']).\
-                          first()
-        else:            
-            row = session.query(Login).\
-                          filter_by(path=values['path'],
-                                    service_id=service.id).\
-                          first()
-            if row:
-                return row
-            row = Login()
-            row.service = service
-            session.add(row)
+        for attr, table in [('service', 'service'), ('dependence', 'login')]:
+            if attr in values:
+                to_set[attr] = mgr.from_json(table, values[attr])
 
-        if 'path' in values:
-            row.path = values['path']
-        
-        if 'attrs' in values:
-            row.attrs = json.dumps(values['attrs'])
-
-        if 'params' in values:
-            row.params = json.dumps(values['params'])
-
-        session.flush()
-
-        return row
+        return (to_set, [Login.service_id==to_set['service'].id])
 
     def to_json(self):
         return {'id':self.id,
@@ -269,21 +186,29 @@ class Login(ORMBase):
                 'attrs':json.loads(self.attrs),
                 'service':self.service.to_json()}
 
-
+''' ################################################
+'''
 class Dictionary(ORMBase):
     __tablename__ = 'dictionary'
 
     attributes = []
-    depending  = []
 
     id = Column(Integer, primary_key=True)
     timestamp = Column(Integer)
 
+    @staticmethod
+    def get_dependencies(values, mgr):
+        to_set = {}
+        if 'protocols' in values:
+            to_set['protocols'] = [mgr.from_json('protocol', value) for value in values['protocols']]
+        return (to_set, [])
+
+''' ################################################
+'''
 class LoginTask(ORMBase):
     __tablename__ = 'login_task'
 
     attributes = []
-    depending  = []
 
     id = Column(Integer, primary_key=True)
     login_id = Column(Integer, ForeignKey('login.id'))
@@ -293,6 +218,8 @@ class LoginTask(ORMBase):
     command = Column(String)
     timestamp = Column(Integer)
 
+''' ################################################
+'''
 class Resource(ORMBase):
     __tablename__ = 'resource'
 
@@ -309,6 +236,28 @@ class Resource(ORMBase):
     service = relationship('Service', backref='resources')
     dependence = relationship('Login')
 
+    @staticmethod
+    def get_dependencies(values, mgr):
+        to_set = {}
+        for attr in ['params', 'attrs']:
+            if key in values:
+                to_set[key] = json.dumps(values[key])
+
+        for attr, table in [('service', 'service'), ('dependence', 'login')]:
+            if attr in values:
+                to_set[attr] = mgr.from_json(table, values[attr])
+
+        return (to_set, [Login.service_id==to_set['service'].id])
+
+    def to_json(self):
+        return {'id':self.id,
+                'path':self.path,
+                'params':json.loads(self.params),
+                'attrs':json.loads(self.attrs),
+                'service':self.service.to_json()}
+
+''' ################################################
+'''
 class ResourceTask(ORMBase):
     __tablename__ = 'resource_task'
 

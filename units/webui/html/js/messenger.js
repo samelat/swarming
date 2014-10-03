@@ -3,8 +3,8 @@
 function Messenger () {
 
     this.templates = {
-        'brain':{'add':{"table_name":"", "values":{}},
-                 'get':{"table_name":null}},
+        'brain':{'set':{"table":"", "values":{}},
+                 'get':{"table":""}},
         'core' :{'schedule':{}},
         'http' :{'digest':{}}
     };

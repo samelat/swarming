@@ -1,9 +1,4 @@
 
-import traceback
-
-import time
-import json
-
 from units.modules import tools
 from units.brain.orm import *
 
@@ -16,9 +11,6 @@ class Knowledge:
 
     def start(self):
         self._db_mgr.start()
-
-    def timestamp(self):
-        return int(time.time() * 1000)
 
     ''' ############################################
         This set and get methods are just to keep an abstract
@@ -43,16 +35,7 @@ class Knowledge:
         if 'timestamp' in params:
             timestamp = params['timestamp']
 
-        table_class = self._table_classes[params['table']]
-        json_rows = []
-        for row in self._db_mgr.session.query(table_class).\
-                                           filter(table_class.timestamp > timestamp).\
-                                           all():
-            json_row = row.to_json()
-            json_rows.append(json_row)
+        result = self._db_mgr.get(params['table'], timestamp)
 
-        if json_rows:
-            timestamp = self.timestamp()
-
-        return {'timestamp':timestamp, 'rows':json_rows}
+        return result
 
