@@ -28,7 +28,6 @@ class ORM:
         try:
             row = self.from_json(table, values)
             row_id = row.id
-            row.timestamp = self.timestamp()
             self.session.commit()
         except:
             traceback.print_exc()
@@ -61,6 +60,8 @@ class ORM:
         for key, value in to_set.items():
             setattr(row, key, value)
 
+        row.timestamp = self.timestamp()
+
         self.session.flush()
 
         return row
@@ -91,6 +92,7 @@ class Protocol(ORMBase):
     id = Column(Integer, primary_key=True)
     bunit_id = Column(Integer, ForeignKey('border_unit.id'))
     name = Column(String)
+    timestamp = Column(Integer)
 
     @staticmethod
     def get_dependencies(values, mgr):
@@ -135,6 +137,7 @@ class Service(ORMBase):
     protocol_id = Column(Integer, ForeignKey('protocol.id'))
     hostname = Column(String)
     port = Column(Integer)
+    timestamp = Column(Integer)
     protocol = relationship('Protocol')
 
     @staticmethod
@@ -208,23 +211,40 @@ class Dictionary(ORMBase):
 class LoginTask(ORMBase):
     __tablename__ = 'login_task'
 
-    attributes = []
+    attributes = ['state', 'command']
 
     id = Column(Integer, primary_key=True)
     login_id = Column(Integer, ForeignKey('login.id'))
-    bunit_id = Column(String,  ForeignKey('border_unit.id'))
-    dict_id = Column(Integer, ForeignKey('dictionary.id'))
+    dictionary_id = Column(Integer, ForeignKey('dictionary.id'))
     state = Column(String)
-    command = Column(String)
+    action = Column(String)
     timestamp = Column(Integer)
+    login = relationship('Login')
+    dictionary = relationship('Dictionary')
+
+    @staticmethod
+    def get_dependencies(values, mgr):
+        to_set = {}
+
+        for attr, table in [('dictionary', 'dictionary'), ('login', 'login')]:
+            if attr in values:
+                to_set[attr] = mgr.from_json(table, values[attr])
+
+        return (to_set, [Login.service_id==to_set[].id])
+
+    def to_json(self):
+        return {'id':self.id,
+                'dictionary_id':self.dict_id,
+                'state':self.state,
+                'action':self.action,
+                'login':self.login.to_json()}
 
 ''' ################################################
 '''
 class Resource(ORMBase):
     __tablename__ = 'resource'
 
-    attributes = []
-    depending  = []
+    attributes = ['path']
 
     id = Column(Integer, primary_key=True)
     service_id = Column(Integer, ForeignKey('service.id'))
@@ -233,12 +253,14 @@ class Resource(ORMBase):
     params = Column(String)
     attrs = Column(String)
     timestamp = Column(Integer)
-    service = relationship('Service', backref='resources')
+    service = relationship('Service')
     dependence = relationship('Login')
 
     @staticmethod
     def get_dependencies(values, mgr):
         to_set = {}
+        conditions = []
+
         for attr in ['params', 'attrs']:
             if key in values:
                 to_set[key] = json.dumps(values[key])
@@ -247,7 +269,10 @@ class Resource(ORMBase):
             if attr in values:
                 to_set[attr] = mgr.from_json(table, values[attr])
 
-        return (to_set, [Login.service_id==to_set['service'].id])
+        if 'service' in to_set:
+            conditions.append(Login.service_id==to_set['service'].id)
+
+        return (to_set, conditions)
 
     def to_json(self):
         return {'id':self.id,
@@ -261,15 +286,29 @@ class Resource(ORMBase):
 class ResourceTask(ORMBase):
     __tablename__ = 'resource_task'
 
-    attributes = []
-    depending  = []
+    attributes = ['action', 'state']
 
     id = Column(Integer, primary_key=True)
     resource_id = Column(Integer, ForeignKey('resource.id'))
-    bunit_id = Column(String, ForeignKey('border_unit.id'))
     state = Column(String)
-    command = Column(String)
+    action = Column(String)
     timestamp = Column(Integer)
+    resource = relationship('Resource')
 
+    @staticmethod
+    def get_dependencies(values, mgr):
+        to_set = {}
+        conditions = []
 
+        if 'resource' in values:
+            to_set['resource'] = mgr.from_json('resource', values['resource'])
+            conditions.append(ResourceTask.resource_id==to_set['resource'].id)
+
+        return (to_set, conditions)
+
+    def to_json(self):
+        return {'id':self.id,
+                'state':self.state,
+                'action':self.action,
+                'resource':self.resource.to_json()}
 
