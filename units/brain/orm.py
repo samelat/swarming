@@ -124,7 +124,7 @@ class BorderUnit(ORMBase):
     def to_json(self):
         return {'id':self.id,
                 'name':self.name,
-                'protocols':[proto.to_json() for proto in self.protocols]}
+                'protocols':[protocol.to_json() for protocol in self.protocols]}
 
 ''' ################################################
 '''
@@ -152,92 +152,6 @@ class Service(ORMBase):
                 'hostname':self.hostname,
                 'port':self.port}
 
-''' ################################################
-'''
-class Login(ORMBase):
-    __tablename__ = 'login'
-    
-    attributes = ['path']
-
-    id = Column(Integer, primary_key=True)
-    service_id = Column(Integer, ForeignKey('service.id'))
-    dependence_id = Column(Integer, ForeignKey('login.id'))
-    path = Column(String)
-    params = Column(String)
-    attrs = Column(String)
-    timestamp = Column(Integer)
-    service = relationship('Service', backref='logins')
-    dependence = relationship('Login')
-
-    @staticmethod
-    def get_dependencies(values, mgr):
-        to_set = {}
-        for attr in ['params', 'attrs']:
-            if attr in values:
-                to_set[attr] = json.dumps(values[attr])
-
-        for attr, table in [('service', 'service'), ('dependence', 'login')]:
-            if attr in values:
-                to_set[attr] = mgr.from_json(table, values[attr])
-
-        return (to_set, [Login.service_id==to_set['service'].id])
-
-    def to_json(self):
-        return {'id':self.id,
-                'path':self.path,
-                'params':json.loads(self.params),
-                'attrs':json.loads(self.attrs),
-                'service':self.service.to_json()}
-
-''' ################################################
-'''
-class Dictionary(ORMBase):
-    __tablename__ = 'dictionary'
-
-    attributes = []
-
-    id = Column(Integer, primary_key=True)
-    timestamp = Column(Integer)
-
-    @staticmethod
-    def get_dependencies(values, mgr):
-        to_set = {}
-        if 'protocols' in values:
-            to_set['protocols'] = [mgr.from_json('protocol', value) for value in values['protocols']]
-        return (to_set, [])
-
-''' ################################################
-'''
-class LoginTask(ORMBase):
-    __tablename__ = 'login_task'
-
-    attributes = ['state', 'command']
-
-    id = Column(Integer, primary_key=True)
-    login_id = Column(Integer, ForeignKey('login.id'))
-    dictionary_id = Column(Integer, ForeignKey('dictionary.id'))
-    state = Column(String)
-    action = Column(String)
-    timestamp = Column(Integer)
-    login = relationship('Login')
-    dictionary = relationship('Dictionary')
-
-    @staticmethod
-    def get_dependencies(values, mgr):
-        to_set = {}
-
-        for attr, table in [('dictionary', 'dictionary'), ('login', 'login')]:
-            if attr in values:
-                to_set[attr] = mgr.from_json(table, values[attr])
-
-        return (to_set, [Login.service_id==to_set[].id])
-
-    def to_json(self):
-        return {'id':self.id,
-                'dictionary_id':self.dict_id,
-                'state':self.state,
-                'action':self.action,
-                'login':self.login.to_json()}
 
 ''' ################################################
 '''
@@ -283,32 +197,46 @@ class Resource(ORMBase):
 
 ''' ################################################
 '''
-class ResourceTask(ORMBase):
-    __tablename__ = 'resource_task'
+class Dictionary(ORMBase):
+    __tablename__ = 'dictionary'
 
-    attributes = ['action', 'state']
+    attributes = []
 
     id = Column(Integer, primary_key=True)
-    resource_id = Column(Integer, ForeignKey('resource.id'))
-    state = Column(String)
-    action = Column(String)
+    timestamp = Column(Integer)
+
+    @staticmethod
+    def get_dependencies(values, mgr):
+        to_set = {}
+        if 'protocols' in values:
+            to_set['protocols'] = [mgr.from_json('protocol', value) for value in values['protocols']]
+        return (to_set, [])
+
+
+''' ################################################
+'''
+class Task(ORMBase):
+    __tablename__ = 'task'
+
+    attributes = ['stage', 'command']
+
+    id = Column(Integer, primary_key=True)
+    login_id = Column(Integer, ForeignKey('login.id'))
+    dictionary_id = Column(Integer, ForeignKey('dictionary.id'))
+    stage = Column(String)
     timestamp = Column(Integer)
     resource = relationship('Resource')
 
     @staticmethod
     def get_dependencies(values, mgr):
         to_set = {}
-        conditions = []
 
         if 'resource' in values:
-            to_set['resource'] = mgr.from_json('resource', values['resource'])
-            conditions.append(ResourceTask.resource_id==to_set['resource'].id)
+                to_set['resource'] = mgr.from_json('resource', values['resource'])
 
-        return (to_set, conditions)
+        return (to_set, [Login.service_id==to_set[].id])
 
     def to_json(self):
         return {'id':self.id,
-                'state':self.state,
-                'action':self.action,
+                'stage':self.state,
                 'resource':self.resource.to_json()}
-
