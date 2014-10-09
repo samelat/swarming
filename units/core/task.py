@@ -10,7 +10,7 @@ class Task(Unit):
 
     name = 'task'
 
-    def __init__(self, core, unit, task_id):
+    def __init__(self, core, task_id):
         super(Task, self).__init__(core)
         self._messenger = Messenger(self)
         self._sync_msgs = queue.Queue()
