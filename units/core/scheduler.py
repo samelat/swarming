@@ -7,45 +7,50 @@ from units.core.task import Task
 
 class Scheduler:
 
+    executors = 4
+
     def __init__(self, core):
         self._core = core
         self._halt = False
 
-        self.units = {}
+        self._units = {}
+
+        self._executors = {}
 
         self._to_schedule = queue.Queue()
-        
-        self._tasks = {}
-        self._ntid = 1 # Next Task ID
 
     ''' 
     '''
     def _handler(self):
+        neid = 1
         while not self._halt:
             try:
                 message = self._to_schedule.get(timeout=1)
             except queue.Empty:
                 continue
 
-            print('[scheduler] Message {0} - Task ID {1}'.format(message, self._ntid))
+            print('[scheduler] Message {0} - Executor ID {1}'.format(message, self._neid))
 
-            # We change the message dest to redirect it to a new unit
+            # We change the message dest to redirect it to a new Executor
             uname, _  = message['dst'].split(':')
-            message['dst'] = '{0}:{1}'.format(uname, self._ntid)
+            message['dst'] = '{0}:{1}'.format(uname, neid)
 
-            unit_zero = self._units[uname]['0']
-            self._units[uname][self._ntid] = Task(self._core, unit_zero, self._ntid)
-            self._units[uname][self._ntid].start()
+            self._executors[neid].dispatch(message)
 
-            self._units[uname][self._ntid].dispatch(message)
+            if neid > Scheduler.executors:
+                neid = 1
         print('[scheduler] stopped')
 
 
     def start(self):
-        print('[core] Starting all standard units...')
+        print('[core] Starting all units...')
         for uname in self._units:
-            for tid in self._units[uname]:
-                self._units[uname][tid].start()
+            self._units[uname].start()
+
+        for eid in range(1, Scheduler.executors + 1):
+            self._executors[eid] = Executor(self._core, eid)
+            self._executors[eid].start()
+
         self._handler()
 
     def halt(self):
@@ -60,10 +65,12 @@ class Scheduler:
         '''
     
     def add_unit(self, unit):
-        if unit.name not in self.units:
-            self.units[unit.name] = unit
+        if unit.name not in self._units:
+            self._units[unit.name] = unit
 
             # If it is a border unit we register it
+            # TODO: Each module have to registers itself
+            '''
             if unit.is_border_unit:
                 message = {'dst':'brain:0',
                            'cmd':'add',
@@ -71,16 +78,22 @@ class Scheduler:
                                      'values':{'name':unit.name,
                                                'protocols':unit.protocols}}}
                 self._core.dispatch(message)
+            '''
 
     def forward(self, message):
-        uname, tid = message['dst'].split(':')
+        uname, eid = message['dst'].split(':')
         try:
             unit = self.units[uname]
-            if unit.is_border_unit or (tid == '0'):
-                self._tasks[tid].dispatch(message)
-
-            # In this case we have to inform that you cannot
-            # dispatch a message to a basic unit other than '0'.
+            if unit.is_border_unit:
+                if eid in self._executors:
+                    self._executors[eid].dispatch(message)
+                else:
+                    unit.dispatch(message)
+            elif eid == '0':
+                unit.dispatch(message)
+            else:
+                # In this case we have to inform that you cannot
+                # dispatch a message to a basic unit other than '0'.
         except:
             print('[scheduler] exception')
             # TODO: We could generate a error here, informing that

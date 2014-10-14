@@ -6,18 +6,17 @@ from units.modules.unit import Unit
 from units.modules.messenger import Messenger
 
 
-class Task(Unit):
+class Executor(Unit):
 
-    name = 'task'
+    name = 'executor'
 
-    def __init__(self, core, task_id):
+    def __init__(self, core, executor_id):
         super(Task, self).__init__(core)
         self._messenger = Messenger(self)
         self._sync_msgs = queue.Queue()
 
-        self._unit = unit
         self._process = None
-        self.tid = task_id
+        self.eid = executor_id
 
     def _handler(self):
         while not self.halt:
@@ -38,13 +37,10 @@ class Task(Unit):
         self._process.start()
 
     def forward(self, message):
-        if message['dst'] == self._unit.unit_id():
-            if ('async' in message) and not message['async']:
-                self._sync_msgs.push(message)
-            else:
-                self._unit.digest(message)
+        if ('async' in message) and not message['async']:
+            self._sync_msgs.push(message)
         else:
-            super(Task, self).forward(message)
+            self._unit.dispatch(message)
 
     def dispatch(self, message):
         self._messenger.push(message)

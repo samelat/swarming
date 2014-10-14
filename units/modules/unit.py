@@ -7,7 +7,7 @@ from units.modules import tools
 class Unit:
 
     is_border_unit = False
-    tid = '0'
+    lid = '0' # Layer ID
 
     def __init__(self, core=None):
         self.core = core

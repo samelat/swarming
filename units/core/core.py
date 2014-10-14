@@ -43,7 +43,7 @@ class Core(Unit):
         self._scheduler.forward(message)
 
     def dispatch(self, message):
-        if ('async' in message) and (message['async'] != False):
+        if ('async' in message) and not message['async']:
             return super(Core, self).dispatch(message)
         else:
             self._messenger.push(message)
