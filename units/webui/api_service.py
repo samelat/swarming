@@ -76,10 +76,9 @@ class APIService:
         # With this we ensure that the ignored responses will be deleted
         to_remove = []
         for channel, count in self._lost_responses.items():
+            self._lost_responses[channel] += 1
             if count > 3:
                 to_remove.append(channel)
-            else:
-                self._lost_responses[channel] += 1
         self._webui.get_responses(to_remove)
         for channel in to_remove:
             del(self._lost_responses[channel])

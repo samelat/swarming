@@ -21,7 +21,7 @@ class Unit:
         self.halt = False
 
     def unit_id(self):
-        return '{0}:{1}'.format(self.name, self.tid)
+        return '{0}:{1}'.format(self.name, self.lid)
 
     # Start all the things the unit needs
     def start(self):
