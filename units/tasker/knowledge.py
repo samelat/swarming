@@ -5,7 +5,7 @@ from units.brain.orm import *
 
 class Knowledge:
 
-    def __init__(self, brain):
+    def __init__(self, tasker):
         self._brain = brain
         self._db_mgr = ORM()
 

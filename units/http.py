@@ -7,9 +7,7 @@ from units.modules.unit import Unit
 
 class HTTP(Unit):
 
-	is_border_unit = True
 	name = 'http'
-
 	protocols = ['http', 'https']
 
 	def __init__(self, core):

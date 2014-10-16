@@ -90,7 +90,7 @@ class Protocol(ORMBase):
     attributes = ['name']
 
     id = Column(Integer, primary_key=True)
-    bunit_id = Column(Integer, ForeignKey('border_unit.id'))
+    unit_id = Column(Integer, ForeignKey('unit.id'))
     name = Column(String)
     timestamp = Column(Integer)
 
@@ -104,15 +104,15 @@ class Protocol(ORMBase):
 
 ''' ################################################
 '''
-class BorderUnit(ORMBase):
-    __tablename__ = 'border_unit'
+class Unit(ORMBase):
+    __tablename__ = 'unit'
 
     attributes = ['name']
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
     timestamp = Column(Integer)
-    protocols = relationship('Protocol', backref='bunit')
+    protocols = relationship('Protocol', backref='unit')
 
     @staticmethod
     def get_dependencies(values, mgr):

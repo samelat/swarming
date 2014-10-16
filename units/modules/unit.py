@@ -6,8 +6,7 @@ from units.modules import tools
 
 class Unit:
 
-    is_border_unit = False
-    lid = '0' # Layer ID
+    protocols = []
 
     def __init__(self, core=None):
         self.core = core
@@ -20,15 +19,8 @@ class Unit:
 
         self.halt = False
 
-    def unit_id(self):
-        return '{0}:{1}'.format(self.name, self.lid)
-
     # Start all the things the unit needs
     def start(self):
-        pass
-
-    # Wait until the unit finish
-    def wait(self):
         pass
 
     def add_cmd_handler(self, command, handler):
@@ -41,12 +33,12 @@ class Unit:
         responses = {}
 
         self._resp_lock.acquire()
-
         for channel in channels:
             if (channel in self._responses) and (self._responses[channel] != None):
                 responses[channel] = self._responses[channel]
                 self._responses[channel] = None
         self._resp_lock.release()
+        
         return responses
 
     def register_resp(self, channel):
