@@ -1,27 +1,22 @@
 
-from units.modules.unit import Unit
-from units.modules.messenger import Messenger
+import random
 
 from units.http import HTTP
-from units.brain.brain import Brain
 from units.webui.webui import WebUI
-
-from units.core.scheduler import Scheduler
-from units.core.event_mgr import EventMgr
+from units.tasker.tasker import Tasker
+from units.modules.unit import Unit
 
 
 class Core(Unit):
 
     name = 'core'
-
     layers = 4
 
     def __init__(self):
         super(Core, self).__init__()
-        self._scheduler = None
         self._executors = {}
         self._units = {}
-        # self._event_mgr = EventMgr(self)
+        self.layer = 0
 
     def add_unit(self, unit):
         if unit.name not in self._units:
@@ -31,7 +26,7 @@ class Core(Unit):
     ''' ############################################
     '''
     def start(self):
-        self.add_cmd_handler('schedule', self._scheduler.schedule)
+        self.add_cmd_handler('schedule', self.schedule)
 
         ''' TODO: It is better if we take the list of
             modules to load from a config file or something
@@ -44,34 +39,58 @@ class Core(Unit):
         # LIGHT UNITS
         self.add_unit(HTTP(self))
 
-        for _lid in range(0, self.layers):
-            lid = str(_lid)
-            self._executors[lid] = Executor(self._core, lid)
-            self._executors[lid].start()
-
         # HEAVY UNITS
         self.add_unit(Brain(self))
         self.add_unit(WebUI(self))
 
-        self._scheduler = Scheduler(self)
-        self._scheduler.start()
+        for lid in range(0, self.layers):
+            self._executors[lid] = Executor(self._core, lid)
+            self._executors[lid].start()
+
+        self._units['tasker'].start_logic()
 
     ''' ############################################
     '''
     def forward(self, message):
-        print('[core:{0}] Forwarding message to {1}'.format(self.lid, message['dst']))
-        uname, lid  = message['dst'].split(':')
-        if lid == self.lid:
-            self._units[uname].dispatch(message)
+        print('[core:{0}] Forwarding message to {1}'.format(self.layer, message['dst']))
+        if not 'layer' in message:
+            message['layer'] = self.layer
+
+        if message['layer'] == self.layer:
+            self._units[message['dst']].dispatch(message)
         else:
-            self._executors[lid].dispatch(message)
+            self._executors[message['layer']].dispatch(message)
 
 
     ''' ############################################
         Core Unit Commands
         ############################################
     '''
-    def halt(self, params):
-        print('[core:{0}] Halting Layer ...'.format(self.lid))
-        self._scheduler.halt()
+    def halt(self, message):
+        print('[core:{0}] Halting Layer ...'.format(self.layer))
         
+    def schedule(self, message):
+        print('[core] Scheduling: {0}'.format(message))
+        params = message['params']
+        
+        ''' This is called, for example when a layer should be
+            discharged, to flush all the pending messages to
+            the layer 0.
+        '''
+        if 'layer' in params:
+            for msg in params['messages']:
+                self._executors[params['layer']].dispatch(msg)
+        else:
+            ''' If we have to schedule messages from a leyer 
+                higher than 0, we forward the schedule message to
+                the layer 0 to make it digest it.
+            '''
+            if self.layer:
+                self._executors[0].dispatch(message)
+            else:
+                for msg in params['messages']:
+                    if (not 'layer' in msg) or (msg['layer' >= self.layers]):
+                        message['layer'] = random.randint(0, self.layers - 1)
+                    self.forward(msg)
+
+        return {'state':'done'}

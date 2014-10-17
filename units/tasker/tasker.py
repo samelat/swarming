@@ -8,14 +8,18 @@ from units.modules.messenger import Messenger
 from units.brain.knowledge import Knowledge
 
 
-class Brain(Unit):
+class Tasker(Unit):
 
-    name = 'brain'
+    name = 'tasker'
 
     def __init__(self, core):
-        super(Brain, self).__init__(core)
+        super(Tasker, self).__init__(core)
         self._messenger = Messenger(self)
         self._knowledge = Knowledge(self)
+
+    def start_logic(self):
+        while not self.halt:
+            pass
 
     ''' ############################################
 
@@ -33,4 +37,5 @@ class Brain(Unit):
         Command Handlers
     '''
     def halt(self, message):
+        self.halt = True
         self._messenger.halt()

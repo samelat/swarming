@@ -10,13 +10,13 @@ class Executor(Unit):
 
     name = 'executor'
 
-    def __init__(self, core, layer_id):
-        super(Task, self).__init__(core)
+    def __init__(self, core, layer):
+        super(Executor, self).__init__(core)
+        self.layer = layer
         self._messenger = Messenger(self)
         self._sync_msgs = queue.Queue()
 
         self._process = None
-        self.eid = layer_id
 
     def _handler(self):
         while not self.halt:
@@ -24,11 +24,11 @@ class Executor(Unit):
                 message = self._sync_msgs.get(timeout=1)
             except queue.Empty:
                 continue
-            self._unit.dispatch(message)
+            self.core.dispatch(message)
 
     def _launcher(self):
-        print('[{0}] starting ...'.format(self.unit_id()))
-        self._unit.tid = self.tid
+        print('[executor] starting executor {0}...'.format(self.layer))
+        self.core.layer = self.layer
         self._messenger.start()
         self._handler()
 

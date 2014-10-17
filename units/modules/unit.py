@@ -38,7 +38,7 @@ class Unit:
                 responses[channel] = self._responses[channel]
                 self._responses[channel] = None
         self._resp_lock.release()
-        
+
         return responses
 
     def register_resp(self, channel):
@@ -82,7 +82,7 @@ class Unit:
                 self.dispatch(response)
 
     def dispatch(self, message):
-        if message['dst'] == self.unit_id():
+        if message['dst'] == self.name:
             self.digest(message)
         else:
             self.forward(message)
