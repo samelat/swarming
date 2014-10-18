@@ -3,14 +3,15 @@ import random
 
 from units.http import HTTP
 from units.webui.webui import WebUI
-from units.tasker.tasker import Tasker
 from units.modules.unit import Unit
+from units.tasker.tasker import Tasker
+from units.core.executor import Executor
 
 
 class Core(Unit):
 
     name = 'core'
-    layers = 4
+    layers = 3
 
     def __init__(self):
         super(Core, self).__init__()
@@ -40,19 +41,19 @@ class Core(Unit):
         self.add_unit(HTTP(self))
 
         # HEAVY UNITS
-        self.add_unit(Brain(self))
+        self.add_unit(Tasker(self))
         self.add_unit(WebUI(self))
 
         for lid in range(0, self.layers):
-            self._executors[lid] = Executor(self._core, lid)
+            self._executors[lid] = Executor(self, lid)
             self._executors[lid].start()
 
-        self._units['tasker'].start_logic()
+        self._units['tasker'].logic.start()
 
     ''' ############################################
     '''
     def forward(self, message):
-        print('[core:{0}] Forwarding message to {1}'.format(self.layer, message['dst']))
+        print('[core] Forwarding [{0}]--------({1})-------->[{2}]'.format(message['src'], self.layer, message['dst']))
         if not 'layer' in message:
             message['layer'] = self.layer
 

@@ -3,10 +3,10 @@
 function Messenger () {
 
     this.templates = {
-        'brain':{'set':{"table":"", "values":{}},
-                 'get':{"table":""}},
-        'core' :{'schedule':{}},
-        'http' :{'digest':{}}
+        "tasker":{"set":{"table":"", "values":{}},
+                  "get":{"table":""}},
+        "core" :{"schedule":{}},
+        "http" :{"digest":{}}
     };
 
     this.callbacks = {};
@@ -28,7 +28,8 @@ function Messenger () {
     };
 
     this.get_message_template = function(unit, command){
-        return {"dst":unit + ":0",
+        console.log(unit + " - " + command);
+        return {"dst":unit,
                 "cmd":command,
                 "params":messenger.templates[unit][command]};
     };
@@ -50,21 +51,21 @@ function Messenger () {
             contentType: 'application/json',
             dataType: 'json',
             error: function() {
-                console.log('request error');
+                console.log('[messenger.request] request error');
             },
             success: function(result) {
                 console.log('request result: ' + JSON.stringify(result));
 
-                console.log("CALLBACKS!!!: " + callbacks);
-                if('response' in callbacks) {
-                    console.log("No deberia estar aca :S");
-                    messenger.callbacks[result['channel']] = callbacks.response;
-                    messenger.keys.push(result['channel']);
-                }
-                /*
+                if(typeof callbacks != 'undefined') {
+                    console.log("CALLBACKS!!!: " + callbacks);
+                    if('response' in callbacks) {
+                        messenger.callbacks[result['channel']] = callbacks.response;
+                        messenger.keys.push(result['channel']);
+                    }
 
-                if('success' in callbacks)
-                    callbacks.success(result);*/
+                    if('success' in callbacks)
+                        callbacks.success(result);
+                }
 
                 console.log('response channel: ' + result['channel']);
             }

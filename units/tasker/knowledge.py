@@ -1,16 +1,13 @@
 
 from units.modules import tools
-from units.brain.orm import *
+from units.tasker.orm import *
 
 
 class Knowledge:
 
     def __init__(self, tasker):
-        self._brain = brain
+        self._tasker = tasker
         self._db_mgr = ORM()
-
-    def start(self):
-        self._db_mgr.start()
 
     ''' ############################################
         This set and get methods are just to keep an abstract
@@ -22,7 +19,9 @@ class Knowledge:
         params = message['params']
         print('[knowledge] "set" message - {0}'.format(params))
 
+        self._db_mgr.session_lock.acquire()
         row_id = self._db_mgr.set(params['table'], params['values'])
+        self._db_mgr.session_lock.release()
 
         return {'id':row_id}
 
@@ -35,7 +34,9 @@ class Knowledge:
         if 'timestamp' in params:
             timestamp = params['timestamp']
 
+        self._db_mgr.session_lock.acquire()
         result = self._db_mgr.get(params['table'], timestamp)
+        self._db_mgr.session_lock.release()
 
         return result
 

@@ -1,8 +1,8 @@
 
-import traceback
-
 import time
 import json
+import traceback
+from threading import Lock
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
@@ -11,14 +11,22 @@ from sqlalchemy.ext.declarative import declarative_base
 Session = sessionmaker()
 ORMBase = declarative_base()
 
-class ORM:
+class Singleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+class ORM(metaclass=Singleton):
     def __init__(self):
         self._engine = create_engine('sqlite:///context.db', echo=True)
         ORMBase.metadata.create_all(self._engine)
         Session.configure(bind=self._engine)
         self.session = Session()
-        self.classes = [Protocol, BorderUnit, Service, Login,
-                        LoginTask, Resource, ResourceTask, Dictionary]
+        self.session_lock = Lock()
+
+        self.classes = [Protocol, Unit, Service, Resource, Task, Dictionary]
         self.tables = dict([(c.__tablename__, c) for c in self.classes])
 
     def timestamp(self):
@@ -162,29 +170,30 @@ class Resource(ORMBase):
 
     id = Column(Integer, primary_key=True)
     service_id = Column(Integer, ForeignKey('service.id'))
-    dependence_id = Column(Integer, ForeignKey('login.id'))
-    path = Column(String)
-    params = Column(String)
-    attrs = Column(String)
-    timestamp = Column(Integer)
+    dependence_id = Column(Integer, ForeignKey('resource.id'))
+    path = Column(String, default='')
+    params = Column(String, default='{}')
+    attrs = Column(String, default='{}')
+    timestamp = Column(Integer, default=0)
+
     service = relationship('Service')
-    dependence = relationship('Login')
+    dependence = relationship('Resource')
 
     @staticmethod
     def get_dependencies(values, mgr):
         to_set = {}
         conditions = []
 
-        for attr in ['params', 'attrs']:
+        for key in ['params', 'attrs']:
             if key in values:
                 to_set[key] = json.dumps(values[key])
 
-        for attr, table in [('service', 'service'), ('dependence', 'login')]:
-            if attr in values:
-                to_set[attr] = mgr.from_json(table, values[attr])
+        for key, table in [('service', 'service'), ('dependence', 'resource')]:
+            if key in values:
+                to_set[key] = mgr.from_json(table, values[key])
 
         if 'service' in to_set:
-            conditions.append(Login.service_id==to_set['service'].id)
+            conditions.append(Resource.service_id==to_set['service'].id)
 
         return (to_set, conditions)
 
@@ -218,25 +227,27 @@ class Dictionary(ORMBase):
 class Task(ORMBase):
     __tablename__ = 'task'
 
-    attributes = ['stage', 'command']
+    attributes = ['stage']
 
     id = Column(Integer, primary_key=True)
-    login_id = Column(Integer, ForeignKey('login.id'))
-    dictionary_id = Column(Integer, ForeignKey('dictionary.id'))
-    stage = Column(String)
+    resource_id = Column(Integer, ForeignKey('resource.id'))
+    stage = Column(String, default='initial')
     timestamp = Column(Integer)
+
     resource = relationship('Resource')
 
     @staticmethod
     def get_dependencies(values, mgr):
         to_set = {}
+        conditions = []
 
         if 'resource' in values:
                 to_set['resource'] = mgr.from_json('resource', values['resource'])
+                conditions.append(Task.resource_id==to_set['resource'].id)
 
-        return (to_set, [Login.service_id==to_set[].id])
+        return (to_set, conditions)
 
     def to_json(self):
         return {'id':self.id,
-                'stage':self.state,
+                'stage':self.stage,
                 'resource':self.resource.to_json()}

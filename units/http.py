@@ -14,7 +14,7 @@ class HTTP(Unit):
 		super(HTTP, self).__init__(core)
 
 	def start(self):
-		print('[http] Staring')
+		print('[http] Starting')
 		self.add_cmd_handler('digest', self.digest)
 
 	''' ############################################

@@ -39,6 +39,6 @@ class WebUI(Unit):
         self._process.join()
 
     def start(self):
-        print('[webui] Staring')
+        print('[webui] Starting')
         self._process = Process(target=self._launcher)
         self._process.start()

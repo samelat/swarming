@@ -40,4 +40,3 @@ def check_msg(message):
 
 def restrict(message, keys):
     return dict([(key, message[key]) for key in keys if key in message])
-

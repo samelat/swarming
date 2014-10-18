@@ -5,8 +5,8 @@ function Services () {
 
     this.update_services = function() {
         
-        var message = messenger.get_message_template("brain", "get")
-        message.params.table = "login";
+        var message = messenger.get_message_template("tasker", "get")
+        message.params.table = "resource";
         message.params.timestamp  = services.timestamp;
 
         messenger.request(message, {'response':function(response) {
@@ -49,8 +49,8 @@ function Services () {
     };
 
     this.add_login = function() {
-        var message = messenger.get_message_template("brain", "set")
-        message.params.table = "login";
+        var message = messenger.get_message_template("tasker", "set")
+        message.params.table = "resource";
 
         message.params.values.service = {};
         $('#newLogin .login input').each(function(index, obj) {
