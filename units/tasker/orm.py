@@ -126,7 +126,7 @@ class Unit(ORMBase):
     def get_dependencies(values, mgr):
         to_set = {}
         if 'protocols' in values:
-            to_set['protocols'] = [mgr.from_json('protocol', value) for value in values['protocols']]
+            to_set['protocols'] = [mgr.from_json('protocol', protocol) for protocol in values['protocols']]
         return (to_set, [])
 
     def to_json(self):

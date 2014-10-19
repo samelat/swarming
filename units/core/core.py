@@ -37,12 +37,12 @@ class Core(Unit):
             starting because in another way they will not exist in the
             different layers.
         '''
-        # LIGHT UNITS
-        self.add_unit(HTTP(self))
-
         # HEAVY UNITS
         self.add_unit(Tasker(self))
         self.add_unit(WebUI(self))
+
+        # LIGHT UNITS
+        self.add_unit(HTTP(self))
 
         for lid in range(0, self.layers):
             self._executors[lid] = Executor(self, lid)

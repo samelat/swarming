@@ -46,6 +46,13 @@ class Unit:
         self._responses[channel] = None
         self._resp_lock.release()
 
+    def register(self):
+        message = {'src':self.name, 'dst':'tasker', 'cmd':'set',
+                   'params':{'table':'unit',
+                             'values':{'name':self.name,
+                                       'protocol':[{'name':protocol} for protocol in self.protocols]}}}
+        uid = self.core.dispatch(message)
+        print('[unit.register] {0}'.format(uid))
 
     ''' ############################################
         These are default handlers for the basic commands

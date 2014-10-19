@@ -15,6 +15,7 @@ class HTTP(Unit):
 
 	def start(self):
 		print('[http] Starting')
+		self.register()
 		self.add_cmd_handler('digest', self.digest)
 
 	''' ############################################
