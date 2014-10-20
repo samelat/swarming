@@ -52,20 +52,16 @@ class Logic:
             units = self._get_protocol_units()
 
             tasks = self._get_initial_tasks()
-            print('[tasker.login] tasks: {0}'.format(tasks))
+            print('[tasker.login] {0}'.format(tasks))
 
             tasks.extend(self._get_login_tasks())
-
-            print('[tasker.login] units: {0}'.format(units))
 
             # Create a message for each task to do.
             messages = []
             for task in tasks:
-                protocol = task['resource']['service']['protocol']['name']
-                if protocol not in units:
-                    continue
+                protocol = task['service']
                 message = {'dst':units[protocol], 'src':'tasker',
-                           'cmd':'digest', 'params':{'task':task}}
+                           ''}
                 messages.append(message)
 
             # Create a schedule message for all pending task messages.
@@ -73,7 +69,7 @@ class Logic:
                 schedule_msg = {'dst':'core', 'src':'tasker', 'cmd':'schedule', 'params':{}}
                 schedule_msg['params']['messages'] = messages
 
-                response = self._tasker.dispatch(schedule_msg)
+            response = self._tasker.dispatch(schedule_msg)
 
             time.sleep(self._cycle_delay)
             

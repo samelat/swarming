@@ -17,7 +17,7 @@ class Tasker(Unit):
         super(Tasker, self).__init__(core)
         self._messenger = Messenger(self)
 
-        self._knowledge = Knowledge(self)
+        self.knowledge = Knowledge(self)
         self.logic = Logic(self)
 
     ''' ############################################
@@ -25,8 +25,8 @@ class Tasker(Unit):
     '''
     def start(self):
         print('[brain] Starting')
-        self.add_cmd_handler('get', self._knowledge.get)
-        self.add_cmd_handler('set', self._knowledge.set)
+        self.add_cmd_handler('get', self.knowledge.get)
+        self.add_cmd_handler('set', self.knowledge.set)
         self._messenger.start()
 
     def dispatch(self, message):
