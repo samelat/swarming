@@ -1,6 +1,8 @@
 
+from threading import Lock
 from multiprocessing import Process
 
+from units.tasker.orm import ORM
 from units.modules import tools
 from units.modules.unit import Unit
 from units.modules.messenger import Messenger
@@ -17,8 +19,9 @@ class Tasker(Unit):
         super(Tasker, self).__init__(core)
         self._messenger = Messenger(self)
 
-        self.knowledge = Knowledge(self)
-        self.logic = Logic(self)
+        lock = Lock()
+        self.knowledge = Knowledge(self, ORM(lock))
+        self.logic = Logic(self, ORM(lock))
 
     ''' ############################################
 

@@ -5,9 +5,9 @@ from units.tasker.orm import *
 
 class Knowledge:
 
-    def __init__(self, tasker):
+    def __init__(self, tasker, db_mgr):
         self._tasker = tasker
-        self._db_mgr = ORM()
+        self._db_mgr = db_mgr
 
     ''' ############################################
         This set and get methods are just to keep an abstract

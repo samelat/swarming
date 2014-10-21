@@ -50,7 +50,7 @@ class Unit:
         message = {'src':self.name, 'dst':'tasker', 'cmd':'set',
                    'params':{'table':'unit',
                              'values':{'name':self.name,
-                                       'protocol':[{'name':protocol} for protocol in self.protocols]}}}
+                                       'protocols':[{'name':protocol} for protocol in self.protocols]}}}
         uid = self.core.dispatch(message)
         print('[unit.register] {0}'.format(uid))
 

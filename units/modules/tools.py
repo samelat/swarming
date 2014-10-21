@@ -10,7 +10,7 @@ def new_msg(dst, cmd, params={}):
 
 def make_response(message):
     if (message['cmd'] == 'response') or\
-       (not 'src' in message):
+        not(('src' in message) and ('channel' in message)):
         return None
 
     response = {}

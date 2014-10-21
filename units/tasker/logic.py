@@ -7,16 +7,16 @@ from units.tasker.orm import *
 
 class Logic:
 
-    def __init__(self, tasker):
+    def __init__(self, tasker, db_mgr):
         self._tasker = tasker
-        self._db_mgr = ORM()
+        self._db_mgr = db_mgr
         self._cycle_delay = 10
 
     def _get_protocol_units(self):
         protocol_units = {}
         for unit in self._db_mgr.session.query(Unit).all():
             for protocol in unit.protocols:
-                protocol_unit[protocol.name] = unit.name
+                protocol_units[protocol.name] = unit.name
         return protocol_units
 
     def _get_initial_tasks(self):
@@ -27,8 +27,10 @@ class Logic:
         with_tasks = [rid[0] for rid in with_tasks]
 
         _tasks = [Task(resource=rsrc) for rsrc in resources if rsrc.id not in with_tasks]
-        self._db_mgr.session.add_all(_tasks)
-        self._db_mgr.session.flush()
+        if _tasks:
+            self._db_mgr.session.add_all(_tasks)
+            self._db_mgr.session.commit()
+
         tasks = [task.to_json() for task in _tasks]
 
         self._db_mgr.session_lock.release()
@@ -59,9 +61,9 @@ class Logic:
             # Create a message for each task to do.
             messages = []
             for task in tasks:
-                protocol = task['service']
+                protocol = task['resource']['service']['protocol']['name']
                 message = {'dst':units[protocol], 'src':'tasker',
-                           ''}
+                           'cmd':'digest', 'params':{'task':task}}
                 messages.append(message)
 
             # Create a schedule message for all pending task messages.
@@ -69,7 +71,8 @@ class Logic:
                 schedule_msg = {'dst':'core', 'src':'tasker', 'cmd':'schedule', 'params':{}}
                 schedule_msg['params']['messages'] = messages
 
-            response = self._tasker.dispatch(schedule_msg)
+                response = self._tasker.dispatch(schedule_msg)
 
+            print('#######################################################')
             time.sleep(self._cycle_delay)
             

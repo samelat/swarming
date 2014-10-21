@@ -2,7 +2,6 @@
 import time
 import json
 import traceback
-from threading import Lock
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
@@ -11,20 +10,14 @@ from sqlalchemy.ext.declarative import declarative_base
 Session = sessionmaker()
 ORMBase = declarative_base()
 
-class Singleton(type):
-    _instances = {}
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
 
-class ORM(metaclass=Singleton):
-    def __init__(self):
+class ORM:
+    def __init__(self, lock):
         self._engine = create_engine('sqlite:///context.db', echo=True)
         ORMBase.metadata.create_all(self._engine)
         Session.configure(bind=self._engine)
         self.session = Session()
-        self.session_lock = Lock()
+        self.session_lock = lock
 
         self.classes = [Protocol, Unit, Service, Resource, Task, Dictionary]
         self.tables = dict([(c.__tablename__, c) for c in self.classes])
@@ -232,6 +225,8 @@ class Task(ORMBase):
     id = Column(Integer, primary_key=True)
     resource_id = Column(Integer, ForeignKey('resource.id'))
     stage = Column(String, default='initial')
+    state = Column(String, default='stopped')
+    complete = Column(Integer, default=0)
     timestamp = Column(Integer)
 
     resource = relationship('Resource')
@@ -250,4 +245,5 @@ class Task(ORMBase):
     def to_json(self):
         return {'id':self.id,
                 'stage':self.stage,
+                'state':self.state,
                 'resource':self.resource.to_json()}
