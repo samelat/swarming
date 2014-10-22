@@ -3,6 +3,7 @@ import queue
 from multiprocessing import Queue
 from threading import Thread
 
+from units.modules import tools
 from units.modules.unit import Unit
 
 
@@ -23,7 +24,7 @@ class Messenger:
                 message = self._messages.get(timeout=1)
             except queue.Empty:
                 continue
-            print('[{0}] Message Manager - New message: {1}'.format(self._owner.name, message))
+            print('[{0}.messenger] message: {1}'.format(self._owner.name, tools.msg_to_str(message)))
             if message['dst'] == self._owner.name:
                 self._owner.digest(message)
             else:

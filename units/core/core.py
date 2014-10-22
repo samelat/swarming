@@ -7,6 +7,8 @@ from units.modules.unit import Unit
 from units.tasker.tasker import Tasker
 from units.core.executor import Executor
 
+from units.modules import tools
+
 
 class Core(Unit):
 
@@ -71,7 +73,7 @@ class Core(Unit):
         print('[core:{0}] Halting Layer ...'.format(self.layer))
         
     def schedule(self, message):
-        print('[core] Scheduling: {0}'.format(message))
+        print('[core.schedule] message: {0}'.format(tools.msg_to_str(message)))
         params = message['params']
         
         ''' This is called, for example when a layer should be

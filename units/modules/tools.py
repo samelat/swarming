@@ -40,3 +40,12 @@ def check_msg(message):
 
 def restrict(message, keys):
     return dict([(key, message[key]) for key in keys if key in message])
+
+def msg_to_str(message):
+    channel = -1
+    if 'channel' in message:
+        channel = message['channel']
+    return 'dst: {0} - src: {1} - cmd: {2} - channel: {3}'.format(message['dst'],
+                                                                  message['src'],
+                                                                  message['cmd'],
+                                                                  channel)

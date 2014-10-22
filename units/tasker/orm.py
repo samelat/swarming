@@ -13,7 +13,7 @@ ORMBase = declarative_base()
 
 class ORM:
     def __init__(self, lock):
-        self._engine = create_engine('sqlite:///context.db', echo=True)
+        self._engine = create_engine('sqlite:///context.db', echo=False)
         ORMBase.metadata.create_all(self._engine)
         Session.configure(bind=self._engine)
         self.session = Session()

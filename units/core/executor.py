@@ -21,6 +21,7 @@ class Executor(Unit):
     def _handler(self):
         while not self.halt:
             try:
+                print('[executor.async]')
                 message = self._sync_msgs.get(timeout=1)
             except queue.Empty:
                 continue

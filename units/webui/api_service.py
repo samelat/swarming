@@ -61,17 +61,16 @@ class APIService:
     @cherrypy.tools.json_out()
     def response(self):
         data = cherrypy.request.json
-        print('RESPONSE {0}'.format(data))
+        print('[webui.response] {0}'.format(data))
         _responses = self._webui.get_responses(data['channels'])
 
-        print('_responses {0}'.format(_responses))
         responses = {}
         for channel in _responses:
             try:
                 responses[channel] = _responses[channel]['params']
                 del(self._lost_responses[channel])
             except KeyError:
-                print('[ERROR] Response Channel {0} does not exits'.format(channel))
+                print('[webui.error] Response Channel {0} does not exits'.format(channel))
 
         # With this we ensure that the ignored responses will be deleted
         to_remove = []
@@ -82,7 +81,6 @@ class APIService:
         self._webui.get_responses(to_remove)
         for channel in to_remove:
             del(self._lost_responses[channel])
-        print('[webui] Deleting old responses: {0}'.format(to_remove))
+        print('[webui.deleting] Deleting old responses: {0}'.format(to_remove))
 
-        print('RESPONSES: {0}'.format(responses))
         return {'error':'success', 'responses':responses, 'channels':list(_responses.keys())}

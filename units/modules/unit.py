@@ -61,7 +61,7 @@ class Unit:
         self.halt = True
 
     def response(self, message):
-        print('[{0}] Response received: {1}'.format(self.name, message))
+        print('[{0}.response] message: {1}'.format(self.name, tools.msg_to_str(message)))
         channel = message['channel']
 
         if channel in self._resp_handlers:
@@ -78,14 +78,14 @@ class Unit:
         self.core.dispatch(message)
 
     def digest(self, message):
-        print('[{0}] Digesting command {1}'.format(self.name, message['cmd']))
+        print('[{0}.digest] message: {2}'.format(self.name, tools.msg_to_str(message)))
         command = message['cmd']
         if command in self._commands:
             result = self._commands[command](message)
             response = tools.make_response(message)
             if response:
                 response['params'].update(result)
-                print('[{0}] response message- {1}'.format(self.name, response))
+                print('[{0}.digest] response - {1}'.format(self.name, result))
                 self.dispatch(response)
 
     def dispatch(self, message):

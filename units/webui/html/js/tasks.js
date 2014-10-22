@@ -4,14 +4,13 @@ function Tasks () {
     this.timestamp = 0;
 
     this.update_tasks = function() {
-        console.log('HOLA');
         
         var message = messenger.get_message_template("tasker", "get")
         message.params.table = "task";
         message.params.timestamp  = tasks.timestamp;
 
         messenger.request(message, {'response':function(response) {
-                console.log("RESPONSE: " + JSON.stringify(response));
+                console.log("[task.response] message: " + JSON.stringify(response));
                 var table_body = $('#task-table tbody').val(JSON.stringify(response));
                 $.each(response.rows, function(index, obj){
                     /*
@@ -26,11 +25,11 @@ function Tasks () {
                     attrs += '</ul>';*/
 
                     var html_row = '<tr class="odd gradeX">' +
-                                        '<td>' + obj + '</td>' +
-                                        '<td>' + obj + '</td>' +
-                                        '<td>' + obj + '</td>' +
+                                        '<td>' + obj.stage + '</td>' +
+                                        '<td>' + obj.state + '</td>' +
+                                        '<td>' + JSON.stringify(obj.resource.service) + '</td>' +
                                         '<td>' +
-                                            '<div class="progress progress-striped active">' +
+                                            '<div class="progress">' +
                                                 '<div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 74%">' +
                                                 '</div>' +
                                             '</div>' +
