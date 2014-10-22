@@ -3,16 +3,18 @@ function Tasks () {
 
     this.timestamp = 0;
 
-    this.update_services = function() {
+    this.update_tasks = function() {
+        console.log('HOLA');
         
         var message = messenger.get_message_template("tasker", "get")
         message.params.table = "task";
-        message.params.timestamp  = services.timestamp;
+        message.params.timestamp  = tasks.timestamp;
 
         messenger.request(message, {'response':function(response) {
                 console.log("RESPONSE: " + JSON.stringify(response));
-                var table_body = $('#login-table tbody').val(JSON.stringify(response));
+                var table_body = $('#task-table tbody').val(JSON.stringify(response));
                 $.each(response.rows, function(index, obj){
+                    /*
                     var params = '<ul class="list-unstyled">';
                     for(var key in obj.params)
                         params += '<li>' + key + '=' + obj.params[key] + '</li>';
@@ -21,36 +23,34 @@ function Tasks () {
                     var attrs = '<ul class="list-unstyled">';
                     for(var key in obj.attrs)
                         attrs += '<li>' + key + '=' + obj.attrs[key] + '</li>';
-                    attrs += '</ul>';
+                    attrs += '</ul>';*/
 
                     var html_row = '<tr class="odd gradeX">' +
-                                        '<td>' + obj.service.protocol.name + '</td>' +
-                                        '<td>' + obj.service.hostname + '</td>' +
-                                        '<td>' + obj.service.port + '</td>' +
-                                        '<td>' + obj.path + '</td>' +
-                                        '<td>' + params + '</td>' +
-                                        '<td>' + attrs + '</td>' +
+                                        '<td>' + obj + '</td>' +
+                                        '<td>' + obj + '</td>' +
+                                        '<td>' + obj + '</td>' +
                                         '<td>' +
-                                            '<a href="javascript:alert(\'remove login\')">' +
-                                                '<i class="fa fa-times fa-fw"></i>' +
-                                            '</a>' +
+                                            '<div class="progress progress-striped active">' +
+                                                '<div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 74%">' +
+                                                '</div>' +
+                                            '</div>' +
                                         '</td>' +
                                     '</tr>';
                     table_body.append(html_row);
                 });
 
-                services.timestamp = response.timestamp;
+                tasks.timestamp = response.timestamp;
             }
         });
     };
 
     this.update = function() {
-        services.update_services();
+        tasks.update_tasks();
     };
-
-    this.add_login = function() {
+    /*
+    this.add_task = function() {
         var message = messenger.get_message_template("tasker", "set")
-        message.params.table = "resource";
+        message.params.table = "task";
 
         message.params.values.service = {};
         $('#newLogin .login input').each(function(index, obj) {
@@ -70,9 +70,9 @@ function Tasks () {
         messenger.request(message);
 
         $('#newLogin').modal('hide');
-    };
+    };*/
 };
 
-var services = new Services();
-messenger.update = services.update;
+var tasks = new Tasks();
+messenger.update = tasks.update;
 messenger.start();

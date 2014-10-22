@@ -23,10 +23,13 @@ class Logic:
         self._db_mgr.session_lock.acquire()
 
         resources = self._db_mgr.session.query(Resource).all()
-        with_tasks = self._db_mgr.session.query(Resource.id).filter(Task.resource_id == Resource.id).all()
+        with_tasks = self._db_mgr.session.query(Resource.id).\
+                                          filter(Task.resource_id == Resource.id).all()
         with_tasks = [rid[0] for rid in with_tasks]
 
-        _tasks = [Task(resource=rsrc) for rsrc in resources if rsrc.id not in with_tasks]
+        timestamp = self._db_mgr.timestamp()
+        _tasks = [Task(resource=rsrc, timestamp=timestamp)
+                  for rsrc in resources if rsrc.id not in with_tasks]
         if _tasks:
             self._db_mgr.session.add_all(_tasks)
             self._db_mgr.session.commit()

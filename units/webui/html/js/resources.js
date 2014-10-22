@@ -1,17 +1,17 @@
 
-function Services () {
+function Resources () {
 
     this.timestamp = 0;
 
-    this.update_services = function() {
+    this.update_resources = function() {
         
         var message = messenger.get_message_template("tasker", "get")
         message.params.table = "resource";
-        message.params.timestamp  = services.timestamp;
+        message.params.timestamp  = resources.timestamp;
 
         messenger.request(message, {'response':function(response) {
                 console.log("RESPONSE: " + JSON.stringify(response));
-                var table_body = $('#login-table tbody').val(JSON.stringify(response));
+                var table_body = $('#resource-table tbody').val(JSON.stringify(response));
                 $.each(response.rows, function(index, obj){
                     var params = '<ul class="list-unstyled">';
                     for(var key in obj.params)
@@ -31,7 +31,7 @@ function Services () {
                                         '<td>' + params + '</td>' +
                                         '<td>' + attrs + '</td>' +
                                         '<td>' +
-                                            '<a href="javascript:alert(\'remove login\')">' +
+                                            '<a href="javascript:alert(\'remove resource\')">' +
                                                 '<i class="fa fa-times fa-fw"></i>' +
                                             '</a>' +
                                         '</td>' +
@@ -39,27 +39,27 @@ function Services () {
                     table_body.append(html_row);
                 });
 
-                services.timestamp = response.timestamp;
+                resources.timestamp = response.timestamp;
             }
         });
     };
 
     this.update = function() {
-        services.update_services();
+        resources.update_resources();
     };
 
-    this.add_login = function() {
+    this.add_resource = function() {
         var message = messenger.get_message_template("tasker", "set")
         message.params.table = "resource";
 
         message.params.values.service = {};
-        $('#newLogin .login input').each(function(index, obj) {
+        $('#newResource .resource input').each(function(index, obj) {
             message.params.values[obj.name] = obj.value;
         });
         message.params.values.params = JSON.parse(message.params.values.params);
         message.params.values.attrs = JSON.parse(message.params.values.attrs);
 
-        $('#newLogin .service input').each(function(index, obj) {
+        $('#newResource .service input').each(function(index, obj) {
             message.params.values.service[obj.name] = obj.value;
         });
         message.params.values.service.protocol = {'name':message.params.values.service.protocol};
@@ -69,10 +69,10 @@ function Services () {
 
         messenger.request(message);
 
-        $('#newLogin').modal('hide');
+        $('#newResource').modal('hide');
     };
 };
 
-var services = new Services();
-messenger.update = services.update;
+var resources = new Resources();
+messenger.update = resources.update;
 messenger.start();
