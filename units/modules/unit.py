@@ -78,7 +78,7 @@ class Unit:
         self.core.dispatch(message)
 
     def digest(self, message):
-        print('[{0}.digest] message: {2}'.format(self.name, tools.msg_to_str(message)))
+        print('[{0}.digest] message: {1}'.format(self.name, tools.msg_to_str(message)))
         command = message['cmd']
         if command in self._commands:
             result = self._commands[command](message)

@@ -56,6 +56,9 @@ class Core(Unit):
     '''
     def forward(self, message):
         print('[core] Forwarding [{0}]--------({1})-------->[{2}]'.format(message['src'], self.layer, message['dst']))
+        ''' This condition is for cases where one unit send
+            a message to another unit in the same layer.
+        '''
         if not 'layer' in message:
             message['layer'] = self.layer
 
@@ -93,7 +96,7 @@ class Core(Unit):
             else:
                 for msg in params['messages']:
                     if (not 'layer' in msg) or (msg['layer' >= self.layers]):
-                        message['layer'] = random.randint(0, self.layers - 1)
+                        msg['layer'] = random.randint(0, self.layers - 1)
                     self.forward(msg)
 
         return {'state':'done'}

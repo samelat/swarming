@@ -57,7 +57,7 @@ class Logic:
             units = self._get_protocol_units()
 
             tasks = self._get_initial_tasks()
-            print('[tasker.login] {0}'.format(tasks))
+            print('[tasker.tasks] {0}'.format(tasks))
 
             tasks.extend(self._get_login_tasks())
 
