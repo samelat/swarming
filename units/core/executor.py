@@ -41,7 +41,7 @@ class Executor(Unit):
         if ('async' in message) and not message['async']:
             self._sync_msgs.push(message)
         else:
-            self._unit.dispatch(message)
+            self.core.dispatch(message)
 
     def dispatch(self, message):
         self._messenger.push(message)

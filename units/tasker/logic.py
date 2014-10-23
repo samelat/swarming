@@ -65,7 +65,7 @@ class Logic:
             messages = []
             for task in tasks:
                 protocol = task['resource']['service']['protocol']['name']
-                message = {'dst':units[protocol], 'src':'tasker',
+                message = {'dst':units[protocol], 'src':'tasker', 'async':False,
                            'cmd':'digest', 'params':{'task':task}}
                 messages.append(message)
 
