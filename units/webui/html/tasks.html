@@ -37,6 +37,14 @@
         .table .progress {
             margin-bottom: 0px;
         }
+
+        .progress .stopped {
+            background-color: #D8D8D8;
+        }
+
+        .progress .running {
+            background-color: #01DF01;
+        }
     </style>
 
 </head>
@@ -254,17 +262,50 @@
                                             <th class="col-lg-2">Stage</th>
                                             <th class="col-lg-1">State</th>
                                             <th>Resource</th>
-                                            <th>complete</th>
+                                            <th class="col-lg-3">complete</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr class="odd gradeX ">
-                                            <td>waiting.delay.60</td>
+                                            <td>forcing.dictionary</td>
                                             <td>running</td>
-                                            <td>ssh://127.0.0.1:22/</td>
+                                            <td>ssh://10.0.0.54:22/</td>
                                             <td>
                                                 <div class="progress">
-                                                    <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 74%">
+                                                    <div class="progress-bar running" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 74%">
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr class="odd gradeX ">
+                                            <td>crawling</td>
+                                            <td>running</td>
+                                            <td>https://10.0.0.1:443/</td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar running" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 45%">
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr class="odd gradeX ">
+                                            <td>waiting.time.60.forcing.dictionary</td>
+                                            <td>waiting</td>
+                                            <td>telnet://10.0.0.2:23/</td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar stopped" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 90%">
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr class="odd gradeX ">
+                                            <td>waiting.dependence.crawling</td>
+                                            <td>waiting</td>
+                                            <td>http://10.0.0.26:8080/admin/</td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar stopped" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 10%">
                                                     </div>
                                                 </div>
                                             </td>
