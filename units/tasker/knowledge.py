@@ -10,7 +10,7 @@ class Knowledge:
         self._db_mgr = db_mgr
 
     ''' ############################################
-        This set and get methods are just to keep an abstract
+        These set and get methods are just to keep an abstract
         implementation of the database manager. This allow us
         to change to mongodb (for example) in the future if we
         want to.

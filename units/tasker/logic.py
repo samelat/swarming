@@ -54,12 +54,18 @@ class Logic:
             ''' Por ahi convenga implementar actividades dictadas
                 por el numero de ciclos ejecutados de la logica.
             '''
+
+            # Get units per protocol
             units = self._get_protocol_units()
 
             tasks = self._get_initial_tasks()
-            print('[tasker.tasks] {0}'.format(tasks))
+
+            if tasks:
+                print('[tasker.tasks] {0}'.format(tasks))
 
             tasks.extend(self._get_login_tasks())
+
+            continue
 
             # Create a message for each task to do.
             messages = []

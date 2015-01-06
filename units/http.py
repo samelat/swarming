@@ -13,6 +13,8 @@ class HTTP(Unit):
 	def __init__(self, core):
 		super(HTTP, self).__init__(core)
 
+		#self.stages = {'initial':self.initial_stage,}
+
 	def start(self):
 		print('[http] Starting')
 		self.register()
@@ -23,6 +25,9 @@ class HTTP(Unit):
 	'''
 	def digest(self, message):
 		task = message['params']['task']
+
+		if task['stage'] == 'initial':
+			pass
 		
 		print('[i] Sync Digest Message - {0}'.format(message))
 		for c in range(1, 7):
