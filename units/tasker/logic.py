@@ -11,67 +11,100 @@ class Logic:
         self._tasker = tasker
         self._db_mgr = db_mgr
         self._cycle_delay = 10
+        self._units = {}
 
     def _get_protocol_units(self):
         protocol_units = {}
+
+        self._db_mgr.session_lock.acquire()
+
         for unit in self._db_mgr.session.query(Unit).all():
             for protocol in unit.protocols:
                 protocol_units[protocol.name] = unit.name
+
+        self._db_mgr.session_lock.release()
+
+        print('[tasker.protocol_units] {0}'.format(protocol_units))
+
         return protocol_units
+
 
     def _get_initial_tasks(self):
         self._db_mgr.session_lock.acquire()
 
-        resources = self._db_mgr.session.query(Resource).all()
-        with_tasks = self._db_mgr.session.query(Resource.id).\
-                                          filter(Task.resource_id == Resource.id).all()
-        with_tasks = [rid[0] for rid in with_tasks]
+        tasks = self._db_mgr.session.query(Task).\
+                                     filter_by(stage = 'initial').all()
 
-        timestamp = self._db_mgr.timestamp()
-        _tasks = [Task(resource=rsrc, timestamp=timestamp)
-                  for rsrc in resources if rsrc.id not in with_tasks]
-        if _tasks:
-            self._db_mgr.session.add_all(_tasks)
-            self._db_mgr.session.commit()
-
-        tasks = [task.to_json() for task in _tasks]
+        json_tasks = [task.to_json() for task in tasks]
 
         self._db_mgr.session_lock.release()
 
-        return tasks
+        for json_task in json_tasks:
+            print('[tasker.initial_task] {0}'.format(json_task))
+
+        return json_tasks
+
+
+    def _get_new_tasks(self):
+
+        self._db_mgr.session_lock.acquire()
+
+        resources = self._db_mgr.session.query(Resource).\
+                                         filter(~Task.resource.has(Resource.id)).\
+                                         all()
+
+        ''' For each resource that not has a Task, we create a new one if there
+            is a Unit that support its protocol.
+        '''
+        timestamp = self._db_mgr.timestamp()
+        tasks = [Task(resource=rsrc, timestamp=timestamp)
+                 for rsrc in resources if rsrc.service.protocol.name in self._units]
+        if tasks:
+            self._db_mgr.session.add_all(tasks)
+            self._db_mgr.session.commit()
+
+        json_tasks = [task.to_json() for task in tasks]
+
+        self._db_mgr.session_lock.release()
+
+        for json_task in json_tasks:
+            print('[tasker.new_task] {0}'.format(json_task))
+
+        return json_tasks
+
 
     def _get_login_tasks(self):
         return []
 
+
     def _get_crawling_tasks(self):
         return []
+
 
     def _get_waiting_tasks(self):
         return []
 
+
     def start(self):
+        tasks = self._get_initial_tasks()
+
         while not self._tasker.halt:
-            ''' Por ahi convenga implementar actividades dictadas
-                por el numero de ciclos ejecutados de la logica.
-            '''
 
             # Get units per protocol
-            units = self._get_protocol_units()
+            self._units = self._get_protocol_units()
 
-            tasks = self._get_initial_tasks()
-
-            if tasks:
-                print('[tasker.tasks] {0}'.format(tasks))
-
+            tasks.extend(self._get_new_tasks())
             tasks.extend(self._get_login_tasks())
 
-            continue
+            time.sleep(self._cycle_delay)
+
+            #continue
 
             # Create a message for each task to do.
             messages = []
             for task in tasks:
                 protocol = task['resource']['service']['protocol']['name']
-                message = {'dst':units[protocol], 'src':'tasker', 'async':False,
+                message = {'dst':self._units[protocol], 'src':'tasker', 'async':False,
                            'cmd':'digest', 'params':{'task':task}}
                 messages.append(message)
 
@@ -82,6 +115,7 @@ class Logic:
 
                 response = self._tasker.dispatch(schedule_msg)
 
+            tasks = []
+
             print('#######################################################')
-            time.sleep(self._cycle_delay)
             

@@ -28,10 +28,19 @@ class HTTP(Unit):
 
 		if task['stage'] == 'initial':
 			pass
+
+		elif task['stage'] == 'forcing':
+			pass
+
+		elif task['stage'] == 'crawling':
+			pass
+
+		else:
+			print('[e] http.digest: unknown stage {0}'.format(task['stage']))
 		
 		print('[i] Sync Digest Message - {0}'.format(message))
 		for c in range(1, 7):
 			print('[http] Waiting cicle {0}'.format(c))
-			time.sleep(10)
+			time.sleep(4)
 		return {'status':'done'}
 

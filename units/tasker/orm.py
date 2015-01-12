@@ -113,6 +113,7 @@ class Unit(ORMBase):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     timestamp = Column(Integer)
+    
     protocols = relationship('Protocol', backref='unit')
 
     @staticmethod
@@ -139,6 +140,7 @@ class Service(ORMBase):
     hostname = Column(String)
     port = Column(Integer)
     timestamp = Column(Integer)
+
     protocol = relationship('Protocol')
 
     @staticmethod

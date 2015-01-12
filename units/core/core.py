@@ -57,7 +57,7 @@ class Core(Unit):
     def forward(self, message):
         print('[core] Forwarding [{0}]--------({1})-------->[{2}]'.format(message['src'], self.layer, message['dst']))
         ''' This condition is for cases where one unit send
-            a message to another unit in the same layer.
+            a message to another one in the same layer.
         '''
         if not 'layer' in message:
             message['layer'] = self.layer

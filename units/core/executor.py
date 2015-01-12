@@ -39,7 +39,7 @@ class Executor(Unit):
 
     def forward(self, message):
         if ('async' in message) and not message['async']:
-            self._sync_msgs.push(message)
+            self._sync_msgs.put(message)
         else:
             self.core.dispatch(message)
 
