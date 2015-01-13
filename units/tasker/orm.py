@@ -13,7 +13,7 @@ ORMBase = declarative_base()
 
 class ORM:
     def __init__(self, lock):
-        self._engine = create_engine('sqlite:///context.db', echo=False)
+        self._engine = create_engine('sqlite:///context.db', echo=True)
         ORMBase.metadata.create_all(self._engine)
         Session.configure(bind=self._engine)
         self.session = Session()
@@ -29,6 +29,7 @@ class ORM:
         try:
             row = self.from_json(table, values)
             row_id = row.id
+            print('[orm.set] id={0}'.format(row_id))
             self.session.commit()
         except:
             traceback.print_exc()
