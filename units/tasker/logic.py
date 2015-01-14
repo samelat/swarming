@@ -85,14 +85,31 @@ class Logic:
         return []
 
 
+    ''' This method change de state field of every task
+        to set them to 'stopped'
+    '''
+    def _restart_tasks(self):
+        self._db_mgr.session_lock.acquire()
+        tasks = self._db_mgr.session.query(Task).filter(Task.state != 'stopped',
+                                                        Task.state != 'complete').all()
+        for task in tasks:
+            task.state = 'stopped'
+        self._db_mgr.session_lock.release()
+
+        
+
+
     def start(self):
-        tasks = self._get_initial_tasks()
+
+        self._restart_tasks()
 
         while not self._tasker.halt:
 
             # Get units per protocol
             self._units = self._get_protocol_units()
 
+            tasks = []
+            tasks.extend(self._get_initial_tasks())
             tasks.extend(self._get_new_tasks())
             tasks.extend(self._get_login_tasks())
 
@@ -114,8 +131,6 @@ class Logic:
                 schedule_msg['params']['messages'] = messages
 
                 response = self._tasker.dispatch(schedule_msg)
-
-            tasks = []
 
             print('#######################################################')
             

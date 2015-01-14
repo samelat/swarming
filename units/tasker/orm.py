@@ -13,7 +13,7 @@ ORMBase = declarative_base()
 
 class ORM:
     def __init__(self, lock):
-        self._engine = create_engine('sqlite:///context.db', echo=True)
+        self._engine = create_engine('sqlite:///context.db', echo=False)
         ORMBase.metadata.create_all(self._engine)
         Session.configure(bind=self._engine)
         self.session = Session()
@@ -32,6 +32,7 @@ class ORM:
             print('[orm.set] id={0}'.format(row_id))
             self.session.commit()
         except:
+            print('[!] ERROR!!!')
             traceback.print_exc()
             row_id = -1
         #row.timestamp = self.timestamp()
@@ -42,10 +43,14 @@ class ORM:
         table_class = self.tables[table]
         to_set, conditions = table_class.get_dependencies(values, self)
 
+        print('[orm.from_json] values: {0}'.format(values))
         if 'id' in values:
             row = self.session.query(table_class).\
                                filter_by(id=values['id']).\
                                first()
+            for attr in table_class.attributes:
+                if attr in values:
+                    to_set[attr] = values[attr]
         else:
             row_attrs = dict([(attr, values[attr]) for attr in table_class.attributes
                                                    if  attr in values])
@@ -59,7 +64,9 @@ class ORM:
             row = table_class()
             self.session.add(row)
 
+        print('[orm.set] to_set: {0}'.format(to_set))
         for key, value in to_set.items():
+            print('[orm.set] {0} = {1}'.format(key, value))
             setattr(row, key, value)
 
         row.timestamp = self.timestamp()
@@ -227,8 +234,8 @@ class Task(ORMBase):
 
     id = Column(Integer, primary_key=True)
     resource_id = Column(Integer, ForeignKey('resource.id'))
-    stage = Column(String, default='initial')
-    state = Column(String, default='stopped')
+    stage = Column(String, default='initial') # (initial, crawling, forcing, waiting, complete)
+    state = Column(String, default='stopped') # (stopped, running, ready, complete)
     complete = Column(Integer, default=0)
     timestamp = Column(Integer)
 
