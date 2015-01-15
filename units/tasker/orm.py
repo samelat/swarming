@@ -230,12 +230,12 @@ class Dictionary(ORMBase):
 class Task(ORMBase):
     __tablename__ = 'task'
 
-    attributes = ['stage']
+    attributes = ['stage', 'state']
 
     id = Column(Integer, primary_key=True)
     resource_id = Column(Integer, ForeignKey('resource.id'))
     stage = Column(String, default='initial') # (initial, crawling, forcing, waiting, complete)
-    state = Column(String, default='stopped') # (stopped, running, ready, complete)
+    state = Column(String, default='stopped') # (stopped, running, ready)
     complete = Column(Integer, default=0)
     timestamp = Column(Integer)
 

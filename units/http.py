@@ -14,11 +14,39 @@ class HTTP(LightUnit):
         super(HTTP, self).__init__(core)
 
     def start(self):
-    	super(HTTP, self).start()
-    	self.add_stage_hanlder('initial', self.http_initial_stage)
+        super(HTTP, self).start()
+        self.add_stage_handler('initial', self.http_initial_stage)
+        self.add_stage_handler('forcing', self.http_forcing_stage)
+        self.add_stage_handler('crawling', self.http_crawling_stage)
 
     ''' ############################################
         Command & Stage handlers
     '''
     def http_initial_stage(self, message):
-    	print('HTTP Initial Stage method')
+        print('HTTP Initial Stage method')
+
+        task = message['params']['task']
+
+        message = {'dst':message['src'], 'src':self.name,
+                   'cmd':'set', 'params':{'values':{'id':task['id'],
+                                                    'stage':'crawling',
+                                                    'state':'stopped'},
+                                          'table':'task'}}
+        self.dispatch(message)
+
+        return {'status':'done'}
+
+
+    def http_forcing_stage(self, message):
+        print('HTTP Forcing Stage method')
+        for c in range(1, 7):
+            print('[http] Waiting cicle {0}'.format(c))
+            time.sleep(4)
+
+        return {'status':'done'}
+
+
+    def http_crawling_stage(self, message):
+        print('HTTP Crawling Stage method')
+
+        return {'status':'done'}

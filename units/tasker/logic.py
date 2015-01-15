@@ -13,6 +13,7 @@ class Logic:
         self._cycle_delay = 10
         self._units = {}
 
+
     def _get_protocol_units(self):
         protocol_units = {}
 
@@ -29,22 +30,6 @@ class Logic:
         return protocol_units
 
 
-    def _get_initial_tasks(self):
-        self._db_mgr.session_lock.acquire()
-
-        tasks = self._db_mgr.session.query(Task).\
-                                     filter_by(stage = 'initial').all()
-
-        json_tasks = [task.to_json() for task in tasks]
-
-        self._db_mgr.session_lock.release()
-
-        for json_task in json_tasks:
-            print('[tasker.initial_task] {0}'.format(json_task))
-
-        return json_tasks
-
-
     def _get_new_tasks(self):
 
         self._db_mgr.session_lock.acquire()
@@ -53,7 +38,7 @@ class Logic:
                                          filter(~Task.resource.has(Resource.id)).\
                                          all()
 
-        ''' For each resource that not has a Task, we create a new one if there
+        ''' For each resource does not has a Task, we create a new one if there
             is a Unit that support its protocol.
         '''
         timestamp = self._db_mgr.timestamp()
@@ -72,16 +57,65 @@ class Logic:
 
         return json_tasks
 
+    '''
 
-    def _get_login_tasks(self):
-        return []
+    '''
+    def __get_stopped_tasks(self, stage):
+        json_tasks = []
 
+        self._db_mgr.session_lock.acquire()
 
+        tasks = self._db_mgr.session.query(Task).\
+                                     filter_by(state = 'stopped').\
+                                     filter(Task.stage.like(stage + '%')).all()
+
+        if tasks:
+            for task in tasks:
+                task.state = 'running'
+                json_tasks.append(task.to_json())
+            self._db_mgr.session.commit()
+
+        self._db_mgr.session_lock.release()
+
+        return json_tasks
+
+    '''
+
+    '''
+    def _get_initial_tasks(self):
+        json_tasks = self.__get_stopped_tasks('initial')
+
+        for json_task in json_tasks:
+            print('[tasker.initial_task] {0}'.format(json_task))
+
+        return json_tasks
+
+    '''
+
+    '''
+    def _get_forcing_tasks(self):
+        json_tasks = self.__get_stopped_tasks('forcing')
+
+        for json_task in json_tasks:
+            print('[tasker.forcing_task] {0}'.format(json_task))
+
+        return json_tasks
+
+    '''
+
+    '''
     def _get_crawling_tasks(self):
-        return []
+        json_tasks = self.__get_stopped_tasks('crawling')
 
+        for json_task in json_tasks:
+            print('[tasker.crawling_task] {0}'.format(json_task))
 
-    def _get_waiting_tasks(self):
+        return json_tasks
+
+    '''
+
+    '''
+    def _check_waiting_tasks(self):
         return []
 
 
@@ -94,9 +128,8 @@ class Logic:
                                                         Task.state != 'complete').all()
         for task in tasks:
             task.state = 'stopped'
+        self._db_mgr.session.commit()
         self._db_mgr.session_lock.release()
-
-        
 
 
     def start(self):
@@ -108,10 +141,13 @@ class Logic:
             # Get units per protocol
             self._units = self._get_protocol_units()
 
+            self._check_waiting_tasks()
+
             tasks = []
-            tasks.extend(self._get_initial_tasks())
             tasks.extend(self._get_new_tasks())
-            tasks.extend(self._get_login_tasks())
+            tasks.extend(self._get_initial_tasks())
+            tasks.extend(self._get_forcing_tasks())
+            tasks.extend(self._get_crawling_tasks())
 
             time.sleep(self._cycle_delay)
 
@@ -133,4 +169,3 @@ class Logic:
                 response = self._tasker.dispatch(schedule_msg)
 
             print('#######################################################')
-            
