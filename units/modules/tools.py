@@ -26,8 +26,8 @@ def make_response(message):
 def gen_token():
     return random.getrandbits(32)
 
-''' This method control if the message have all the things
-    that it should have.
+''' This method control if the message has all the things
+    it should have.
 '''
 def check_msg(message):
     if not 'id' in message:

@@ -7,7 +7,8 @@ class LightUnit(Unit):
     def __init__(self, core):
         super(LightUnit, self).__init__(core)
 
-        self.stages = {}
+        self.stages  = {}
+        self.message = None
 
 
     def add_stage_handler(self, stage, handler):
@@ -34,6 +35,8 @@ class LightUnit(Unit):
 
     def digest(self, message):
 
+        self.message = message
+
         task = message['params']['task']
         stage = task['stage'].split('.')
         if stage[-1] == '*':
@@ -49,3 +52,13 @@ class LightUnit(Unit):
         result = where['*'](message)
 
         return result
+
+    ''' The aim of this method is to simplify the task information
+    '''
+    def update_task(self, data):
+        message = {'dst':message['src'], 'src':self.name,
+                   'cmd':'set', 'params':{'values':{'id':task['id'],
+                                                    'stage':'crawling',
+                                                    'state':'stopped'},
+                                          'table':'task'}}
+        self.dispatch(message)

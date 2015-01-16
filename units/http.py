@@ -40,7 +40,7 @@ class HTTP(LightUnit):
     def http_forcing_stage(self, message):
         print('HTTP Forcing Stage method')
         for c in range(1, 7):
-            print('[http] Waiting cicle {0}'.format(c))
+            print('[http] Forcing cicle {0}'.format(c))
             time.sleep(4)
 
         return {'status':'done'}
@@ -48,5 +48,15 @@ class HTTP(LightUnit):
 
     def http_crawling_stage(self, message):
         print('HTTP Crawling Stage method')
+        for c in range(1, 7):
+            print('[http] Crawling cicle {0}'.format(c))
+            time.sleep(4)
+
+        message = {'dst':message['src'], 'src':self.name,
+                   'cmd':'set', 'params':{'values':{'id':task['id'],
+                                                    'stage':'crawling',
+                                                    'state':'stopped'},
+                                          'table':'task'}}
+        self.dispatch(message)
 
         return {'status':'done'}
