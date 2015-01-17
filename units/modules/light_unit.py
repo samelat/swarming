@@ -53,9 +53,9 @@ class LightUnit(Unit):
 
         return result
 
-    ''' The aim of this method is to simplify the task information
+    ''' 
     '''
-    def update_task(self, data):
+    def persist(self, values):
         message = {'dst':message['src'], 'src':self.name,
                    'cmd':'set', 'params':{'values':{'id':task['id'],
                                                     'stage':'crawling',

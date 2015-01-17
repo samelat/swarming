@@ -33,7 +33,7 @@ class Tasker(Unit):
         self._messenger.start()
 
     def dispatch(self, message):
-        self._messenger.push(message)
+        return self._messenger.push(message)
 
     ''' ############################################
         Command Handlers

@@ -36,7 +36,9 @@ class HTTP(LightUnit):
 
         return {'status':'done'}
 
+    '''
 
+    '''
     def http_forcing_stage(self, message):
         print('HTTP Forcing Stage method')
         for c in range(1, 7):
@@ -45,7 +47,9 @@ class HTTP(LightUnit):
 
         return {'status':'done'}
 
+    '''
 
+    '''
     def http_crawling_stage(self, message):
         print('HTTP Crawling Stage method')
         for c in range(1, 7):

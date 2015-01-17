@@ -19,11 +19,14 @@ class Knowledge:
         params = message['params']
         print('[knowledge] "set" message - {0}'.format(params))
 
+        result = {}
         self._db_mgr.session_lock.acquire()
-        row_id = self._db_mgr.set(params['table'], params['values'])
+        for table, values in params.items():
+            row_id = self._db_mgr.set(table, values)
+            result[table] = {'id':row_id}
         self._db_mgr.session_lock.release()
 
-        return {'id':row_id}
+        return result
 
 
     def get(self, message):
