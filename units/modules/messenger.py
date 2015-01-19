@@ -3,8 +3,8 @@ import queue
 from multiprocessing import Queue
 from threading import Thread
 
-from units.modules import tools
 from units.modules.unit import Unit
+from units.modules.message import Message
 
 
 class Messenger:

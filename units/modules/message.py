@@ -5,57 +5,42 @@ import random
 class Message:
 
     def __init__(self, message={}):
-        self.message = message
+        self.raw = message.copy()
 
-        message = {'dst':dst,
-                   'cmd':cmd,
-                   'params' : params.copy()}
+        if 'channel' not in self.raw:
+            self.raw['channel'] = self.new_token()
+
+        for field in ['cmd', 'dst', 'src']:
+            if not field in self.raw:
+                raise ValueError
 
 
     def __str__(self):
-        result = 'dst: {0}'.format(message['dst'])
+        result = 'dst: {0}'.format(self.raw['dst'])
 
-        result += ' - src: {0}'.format(message['src'])
-        result += ' - cmd: {0}'.format(meesage['cmd'])
+        result += ' - src: {0}'.format(self.raw['src'])
+        result += ' - cmd: {0}'.format(self.meesage['cmd'])
 
-        if 'channel' in self.message:
-            result += ' - channel: {0}'.format(self.message['channel'])
+        if 'channel' in self.raw:
+            result += ' - channel: {0}'.format(self.raw['channel'])
 
         return result
 
 
-    def gen_token(self):
+    def new_token(self):
         return random.getrandbits(32)
 
 
-    def response(self):
-        if (message['cmd'] == 'response') or\
-            not(('src' in message) and ('channel' in message)):
+    def make_response(self, values):
+        if (self.raw['cmd'] == 'response'):
             return None
 
         response = {}
-        response['channel']  = message['channel']
-        response['src'] = message['dst']
+        response['channel']  = self.raw['channel']
+        response['src'] = self.raw['dst']
+        response['dst'] = self.raw['src']
         response['cmd'] = 'response'
-        response['params'] = {}
-        
-        response['dst'] = message['src']
+        response['params'] = values.copy()
 
-        return response
-
-
-    ''' This method control if the message has all the things
-        it should have.
-    '''
-    def check(self):
-        if not 'id' in message:
-            message['id'] = gen_token()
-
-        if not 'dst' in message:
-            return False
-
-        return True
-
-    # ?????
-    #def restrict(self, keys):
-    #    return dict([(key, message[key]) for key in keys if key in message])
+        return Message(response)
+    
