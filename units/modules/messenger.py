@@ -38,4 +38,11 @@ class Messenger:
         self._halt = True
 
     def push(self, message):
-        self._messages.put(message)
+        try:
+            _message = Message(message)
+        except ValueError:
+            return {'error':-1}
+
+        self._messages.put(_message.raw)
+
+        return {'channel':_message.raw['channel'], 'error':0}

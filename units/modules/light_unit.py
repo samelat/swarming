@@ -47,7 +47,7 @@ class LightUnit(Unit):
             try:
                 where = where[stage]
             except KeyError:
-                return {'status':'error', 'msg':'Unknown stage'}
+                return {'error':-1, 'msg':'Unknown stage'}
 
         result = where['*'](message)
 

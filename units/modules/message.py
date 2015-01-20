@@ -35,12 +35,15 @@ class Message:
         if (self.raw['cmd'] == 'response'):
             return None
 
-        response = {}
-        response['channel']  = self.raw['channel']
-        response['src'] = self.raw['dst']
-        response['dst'] = self.raw['src']
-        response['cmd'] = 'response'
-        response['params'] = values.copy()
+        try:
+            response = {}
+            response['channel']  = self.raw['channel']
+            response['src'] = self.raw['dst']
+            response['dst'] = self.raw['src']
+            response['cmd'] = 'response'
+            response['params'] = values.copy()
+        except KeyError:
+            return None
 
         return Message(response)
     
