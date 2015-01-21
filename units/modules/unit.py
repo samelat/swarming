@@ -46,13 +46,32 @@ class Unit:
         self._responses[channel] = None
         self._resp_lock.release()
 
-    def register(self):
+    ''' The aim of these methods is to simplify the tasker's knowledge accesses
+    '''
+    def set_knowledge(self, values):
         message = {'src':self.name, 'dst':'tasker', 'cmd':'set',
                    'params':{'table':'unit',
-                             'values':{'name':self.name,
-                                       'protocols':[{'name':protocol} for protocol in self.protocols]}}}
-        uid = self.core.dispatch(message)
-        print('[unit.register] {0}'.format(uid))
+                             'values':values}}
+        return self.core.dispatch(message)
+
+    def get_knowledge(self, values, async=True):
+        message = {'src':self.name, 'dst':'tasker', 'cmd':'get',
+                   'params':{'table':'unit',
+                             'values':values}}
+        result = self.core.dispatch(message)
+        if async:
+            return result
+
+        while True:
+            response = self.get_responses(result['channel'])
+            if response:
+                return response
+
+    def register(self):
+        values = {'name':self.name,
+                  'protocols':[{'name':protocol} for protocol in self.protocols]}
+        self.set_knowledge(values)
+        print('[unit.register] {0}'.format(result))
 
     ''' ############################################
         These are default handlers for the basic commands
