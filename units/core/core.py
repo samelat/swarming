@@ -66,7 +66,7 @@ class Core(Unit):
             message['layer'] = self.layer
 
         if message['layer'] == self.layer:
-            if message['src'] in self._units:
+            if self._units[message['dst']].light:
                 self._executors[self.layer].dispatch(message)
             else:
                 self._units[message['dst']].dispatch(message)
