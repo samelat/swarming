@@ -31,6 +31,7 @@ class Tasker(Unit):
         self.add_cmd_handler('get', self.knowledge.get)
         self.add_cmd_handler('set', self.knowledge.set)
         self._messenger.start()
+        self.logic.start()
 
     def dispatch(self, message):
         return self._messenger.push(message)

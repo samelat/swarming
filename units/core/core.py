@@ -24,7 +24,8 @@ class Core(Unit):
     def add_unit(self, unit):
         if unit.name not in self._units:
             self._units[unit.name] = unit
-            unit.start()
+            if unit.light:
+                unit.start()
 
     ''' ############################################
     '''
@@ -46,11 +47,13 @@ class Core(Unit):
         # LIGHT UNITS
         self.add_unit(HTTP(self))
 
+        # NEW LAYERS (EXECUTORS)
         for lid in range(0, self.layers):
             self._executors[lid] = Executor(self, lid)
             self._executors[lid].start()
 
-        self._units['tasker'].logic.start()
+        self._units[WebUI.name].start()
+        self._units[Tasker.name].start()
 
     ''' ############################################
     '''
@@ -63,7 +66,10 @@ class Core(Unit):
             message['layer'] = self.layer
 
         if message['layer'] == self.layer:
-            self._units[message['dst']].dispatch(message)
+            if message['src'] in self._units:
+                self._executors[self.layer].dispatch(message)
+            else:
+                self._units[message['dst']].dispatch(message)
         else:
             self._executors[message['layer']].dispatch(message)
 

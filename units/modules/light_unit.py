@@ -4,6 +4,8 @@ from units.modules.unit import Unit
 
 class LightUnit(Unit):
 
+    light = True
+
     def __init__(self, core):
         super(LightUnit, self).__init__(core)
 

@@ -6,6 +6,7 @@ from units.modules import tools
 
 class Unit:
 
+    light = False
     protocols = []
 
     def __init__(self, core=None):
