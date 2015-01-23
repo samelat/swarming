@@ -37,13 +37,14 @@ class Message:
 
         try:
             response = {}
-            response['channel']  = self.raw['channel']
             response['src'] = self.raw['dst']
             response['dst'] = self.raw['src']
+            response['layer'] = self.raw['layer']
+            response['channel'] = self.raw['channel']
             response['cmd'] = 'response'
             response['params'] = values.copy()
         except KeyError:
             return None
 
-        return Message(response)
+        return response
     

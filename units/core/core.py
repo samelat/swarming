@@ -65,11 +65,15 @@ class Core(Unit):
         if not 'layer' in message:
             message['layer'] = self.layer
 
+        if not 'jump' in message:
+            message['jump'] = message['src']
+
         if message['layer'] == self.layer:
-            if self._units[message['dst']].light:
+            if self._units[message['dst']].light and (message['jump'] != 'executor'):
                 self._executors[self.layer].dispatch(message)
             else:
                 self._units[message['dst']].dispatch(message)
+                
         else:
             self._executors[message['layer']].dispatch(message)
 
