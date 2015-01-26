@@ -134,10 +134,12 @@ class Logic:
 
     def start(self):
 
+        print('[tasker] starting logic')
         self._restart_tasks()
 
         while not self._tasker.halt:
 
+            print('[tasker] logic main loop')
             # Get units per protocol
             self._units = self._get_protocol_units()
 
@@ -151,6 +153,7 @@ class Logic:
 
             time.sleep(self._cycle_delay)
 
+            print('A')
             #continue
 
             # Create a message for each task to do.
@@ -158,8 +161,9 @@ class Logic:
             for task in tasks:
                 protocol = task['resource']['service']['protocol']['name']
                 message = {'dst':self._units[protocol], 'src':'tasker', 'async':False,
-                           'cmd':'digest', 'params':{'task':task}}
+                           'cmd':'consume', 'params':{'task':task}}
                 messages.append(message)
+            print('B')
 
             # Create a schedule message for all pending task messages.
             if messages:
@@ -167,5 +171,6 @@ class Logic:
                 schedule_msg['params']['messages'] = messages
 
                 response = self._tasker.dispatch(schedule_msg)
+            print('C')
 
             print('#######################################################')

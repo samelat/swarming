@@ -53,9 +53,9 @@ class Unit:
     def set_knowledge(self, values, block=True):
         print('[{0}] set_knowledge: {1}'.format(self.name, values))
         message = {'src':self.name, 'dst':'tasker', 'cmd':'set',
-                   'params':{'table':'unit',
-                             'values':values}}
+                   'params':{'unit':values}}
         result = self.core.dispatch(message)
+        '''
         if not block:
             return result
 
@@ -64,14 +64,16 @@ class Unit:
 
         print('[{0}] set_knowledge response: {1}'.format(response))
         
-        return response
+        return response'''
+
+        return {'error':0}
 
 
     def get_knowledge(self, values, block=True):
         message = {'src':self.name, 'dst':'tasker', 'cmd':'get',
-                   'params':{'table':'unit',
-                             'values':values}}
+                   'params':{'unit':values}}
         result = self.core.dispatch(message)
+        '''
         if not block:
             return result
 
@@ -79,13 +81,15 @@ class Unit:
 
         print('[get_knowledge] {0}'.format(response))
         
-        return response
+        return response'''
 
+        return {'error':0}
 
+    # TODO: Move this method to LightUnit
     def register(self):
         values = {'name':self.name,
                   'protocols':[{'name':protocol} for protocol in self.protocols]}
-        self.set_knowledge(values)
+        result = self.set_knowledge(values, False)
         print('[unit.register] {0}'.format(result))
 
     ''' ############################################
@@ -117,10 +121,12 @@ class Unit:
         if command in self._commands:
             result = self._commands[command](message)
             response = tools.make_response(message)
+            '''
             if response:
                 response['params'].update(result)
                 print('[{0}.digest] response - {1}'.format(self.name, result))
                 self.dispatch(response)
+            '''
 
 
     def dispatch(self, message):

@@ -12,6 +12,8 @@ class LightUnit(Unit):
         self.stages  = {}
         self.message = None
 
+        self.add_cmd_handler('consume', self.consume)
+
 
     def add_stage_handler(self, stage, handler):
         _stage = stage.split('.')
@@ -32,10 +34,9 @@ class LightUnit(Unit):
     def start(self):
         print('[{0}] Starting'.format(self.name))
         self.register()
-        self.add_cmd_handler('digest', self.digest)
 
 
-    def digest(self, message):
+    def consume(self, message):
 
         self.message = message
 

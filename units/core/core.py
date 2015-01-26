@@ -40,17 +40,26 @@ class Core(Unit):
             different layers.
         '''
         # HEAVY UNITS
-        self.add_unit(Tasker(self))
-        self.add_unit(WebUI(self))
+        self._units['tasker'] = Tasker(self)
+        #self._units['webui']  = WebUI(self)
+        print('1')
 
         # LIGHT UNITS
-        self.add_unit(HTTP(self))
+        self._units['http'] = HTTP(self)
 
         # NEW LAYERS (EXECUTORS)
         for lid in range(0, self.layers):
             self._executors[lid] = Executor(self, lid)
             self._executors[lid].start()
 
+        #self._units['webui'].start()
+
+        print('2')
+        self._units['http'].start()
+
+        self._units['tasker'].start()
+
+        print('3')
         self._units['tasker'].logic.start()
 
     ''' ############################################
@@ -68,6 +77,7 @@ class Core(Unit):
 
         if message['layer'] == self.layer:
             if self._units[message['dst']].light and (message['jump'] != 'executor'):
+                message['jump'] = 'executor'
                 return self._executors[self.layer].dispatch(message)
             else:
                 return self._units[message['dst']].dispatch(message)

@@ -24,7 +24,7 @@ class Messenger:
                 message = self._messages.get(timeout=1)
             except queue.Empty:
                 continue
-            print('[{0}.messenger] message: {1}'.format(self._owner.name, message))
+            print('[messenger.{0}] message: {1}'.format(self._owner.name, message))
             if message['dst'] == self._owner.name:
                 self._owner.digest(message)
             else:

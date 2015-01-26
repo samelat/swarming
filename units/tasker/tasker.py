@@ -27,7 +27,7 @@ class Tasker(Unit):
 
     '''
     def start(self):
-        print('[brain] Starting')
+        print('[tasker] Starting')
         self.add_cmd_handler('get', self.knowledge.get)
         self.add_cmd_handler('set', self.knowledge.set)
         self._messenger.start()
