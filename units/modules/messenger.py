@@ -24,13 +24,14 @@ class Messenger:
                 message = self._messages.get(timeout=1)
             except queue.Empty:
                 continue
-            print('[{0}.messenger] message: {1}'.format(self._owner.name, tools.msg_to_str(message)))
+            print('[{0}.messenger] message: {1}'.format(self._owner.name, message))
             if message['dst'] == self._owner.name:
                 self._owner.digest(message)
             else:
                 self._owner.forward(message)
 
     def start(self):
+        print('[messenger.{0}] starting'.format(self._owner.name))
         self._thread = Thread(target=self._handler)
         self._thread.start()
 

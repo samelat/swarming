@@ -25,7 +25,8 @@ class Executor(Unit):
             except queue.Empty:
                 continue
             print('[executor.async]')
-            self.core.dispatch(message)
+            response = self.core.dispatch(message)
+
 
     def _launcher(self):
         print('[executor] starting executor {0}...'.format(self.layer))
@@ -40,11 +41,13 @@ class Executor(Unit):
     def forward(self, message):
         if ('async' in message) and not message['async']:
             self._sync_msgs.put(message)
+            return 
         else:
-            self.core.dispatch(message)
+            return self.core.dispatch(message)
 
     def dispatch(self, message):
-        self._messenger.push(message)
+        print('[executor:{0}] dispatching'.format(self.core.layer))
+        return self._messenger.push(message)
 
     ''' ############################################
         Command Handlers

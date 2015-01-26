@@ -27,12 +27,19 @@ class HTTP(LightUnit):
 
         task = message['params']['task']
 
+        '''
         message = {'dst':message['src'], 'src':self.name,
                    'cmd':'set', 'params':{'values':{'id':task['id'],
                                                     'stage':'crawling',
                                                     'state':'stopped'},
                                           'table':'task'}}
         self.dispatch(message)
+        '''
+
+        values = {'id':task['id'], 'stage':'crawling', 'state':'stopped'}
+
+        print('[http] setting initial task values')
+        self.set_knowledge(values, True)
 
         return {'status':'done'}
 
