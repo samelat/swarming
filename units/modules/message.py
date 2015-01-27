@@ -19,7 +19,7 @@ class Message:
         result = 'dst: {0}'.format(self.raw['dst'])
 
         result += ' - src: {0}'.format(self.raw['src'])
-        result += ' - cmd: {0}'.format(self.meesage['cmd'])
+        result += ' - cmd: {0}'.format(self.raw['cmd'])
 
         if 'channel' in self.raw:
             result += ' - channel: {0}'.format(self.raw['channel'])

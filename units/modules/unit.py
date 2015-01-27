@@ -104,9 +104,8 @@ class Unit:
         channel = message['channel']
 
         self._resp_lock.acquire()
-        if channel in self._responses:
-            self._responses[channel] = message
-            self._resp_lock.notify_all()
+        self._responses[channel] = message
+        self._resp_lock.notify_all()
         self._resp_lock.release()
 
     ''' ############################################
@@ -120,13 +119,17 @@ class Unit:
         command = message['cmd']
         if command in self._commands:
             result = self._commands[command](message)
-            response = tools.make_response(message)
-            '''
-            if response:
-                response['params'].update(result)
-                print('[{0}.digest] response - {1}'.format(self.name, result))
-                self.dispatch(response)
-            '''
+            #response = tools.make_response(message)
+            return {'error':-666, 'msg':'TEST TEST TEST'}
+            return result
+
+        return {'error':-1, 'msg':'command not found'}
+        '''
+        if response:
+            response['params'].update(result)
+            print('[{0}.digest] response - {1}'.format(self.name, result))
+            self.dispatch(response)
+        '''
 
 
     def dispatch(self, message):

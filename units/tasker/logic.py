@@ -153,7 +153,6 @@ class Logic:
 
             time.sleep(self._cycle_delay)
 
-            print('A')
             #continue
 
             # Create a message for each task to do.
@@ -163,7 +162,6 @@ class Logic:
                 message = {'dst':self._units[protocol], 'src':'tasker', 'async':False,
                            'cmd':'consume', 'params':{'task':task}}
                 messages.append(message)
-            print('B')
 
             # Create a schedule message for all pending task messages.
             if messages:
@@ -171,6 +169,5 @@ class Logic:
                 schedule_msg['params']['messages'] = messages
 
                 response = self._tasker.dispatch(schedule_msg)
-            print('C')
 
             print('#######################################################')

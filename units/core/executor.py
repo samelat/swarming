@@ -41,7 +41,7 @@ class Executor(Unit):
     def forward(self, message):
         if ('async' in message) and not message['async']:
             self._sync_msgs.put(message)
-            return 
+            return {'error':0, 'msg':'executor forward'}
         else:
             return self.core.dispatch(message)
 

@@ -42,7 +42,6 @@ class Core(Unit):
         # HEAVY UNITS
         self._units['tasker'] = Tasker(self)
         #self._units['webui']  = WebUI(self)
-        print('1')
 
         # LIGHT UNITS
         self._units['http'] = HTTP(self)
@@ -54,12 +53,10 @@ class Core(Unit):
 
         #self._units['webui'].start()
 
-        print('2')
         self._units['http'].start()
 
         self._units['tasker'].start()
 
-        print('3')
         self._units['tasker'].logic.start()
 
     ''' ############################################
