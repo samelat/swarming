@@ -110,15 +110,20 @@ class Core(Unit):
         else:
         '''
         ''' If we have to schedule messages from a leyer 
-            higher than 0, we forward the schedule message to
-            the layer 0 to make the layer digest it.
+            higher than 0, first we forward the schedule message to
+            the layer 0 to make the layer digest it. This is because
+            the 'layers' variable would be only updated in layer 0, not
+            necessarily in all layers. For example, when you append new
+            layers, these are copies of layer 0, so just layer 0 and new others
+            known the real number of working layers.
         '''
+        msg = params['message']
         if self.layer:
             self._executors[0].dispatch(message)
+        elif ('layer' in msg) and (msg['layer'] >= self.layers):
+            return {'error':-1}
         else:
-            for msg in params['messages']:
-                if (not 'layer' in msg) or (msg['layer' >= self.layers]):
-                    msg['layer'] = random.randint(0, self.layers - 1)
-                self._executors[msg['layer']].dispatch(msg)
+            msg['layer'] = random.randint(0, self.layers - 1)
+            self._executors[msg['layer']].dispatch(msg)
 
-        return {'state':'done'}
+        return {'error':0}
