@@ -3,6 +3,7 @@ import queue
 from multiprocessing import Process
 
 from units.modules.unit import Unit
+from units.modules.message import Message
 from units.modules.messenger import Messenger
 
 
@@ -24,7 +25,7 @@ class Executor(Unit):
                 message = self._sync_msgs.get(timeout=1)
             except queue.Empty:
                 continue
-            print('[executor.async]')
+            print('[executor.async] new message: {0}'.format(Message(message)))
             response = self.core.dispatch(message)
 
 
@@ -41,12 +42,11 @@ class Executor(Unit):
     def forward(self, message):
         if ('async' in message) and not message['async']:
             self._sync_msgs.put(message)
-            return {'error':0, 'msg':'executor forward'}
+            return None
         else:
             return self.core.dispatch(message)
 
     def dispatch(self, message):
-        print('[executor:{0}] dispatching'.format(self.core.layer))
         return self._messenger.push(message)
 
     ''' ############################################

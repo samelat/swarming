@@ -33,9 +33,7 @@ class Tasker(Unit):
         self._messenger.start()
 
     def dispatch(self, message):
-        print('[tasker] dispatching')
         result = self._messenger.push(message)
-        print('[tasker] dispatch result: {0}'.format(result))
         return result
 
     ''' ############################################

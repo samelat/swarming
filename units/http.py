@@ -23,7 +23,7 @@ class HTTP(LightUnit):
         Command & Stage handlers
     '''
     def http_initial_stage(self, message):
-        print('HTTP Initial Stage method')
+        print('[http] Initial Stage method')
 
         task = message['params']['task']
 
@@ -41,7 +41,7 @@ class HTTP(LightUnit):
         print('[http] setting initial task values')
         self.set_knowledge(values, True)
 
-        return {'status':'done'}
+        return {'error':0}
 
     '''
 
@@ -52,7 +52,7 @@ class HTTP(LightUnit):
             print('[http] Forcing cicle {0}'.format(c))
             time.sleep(4)
 
-        return {'status':'done'}
+        return {'error':0}
 
     '''
 
@@ -70,4 +70,4 @@ class HTTP(LightUnit):
                                           'table':'task'}}
         self.dispatch(message)
 
-        return {'status':'done'}
+        return {'error':0}

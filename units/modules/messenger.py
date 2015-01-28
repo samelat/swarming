@@ -24,15 +24,14 @@ class Messenger:
                 message = self._messages.get(timeout=1)
             except queue.Empty:
                 continue
-            print('[messenger.{0}] message: {1}'.format(self._owner.name, Message(message)))
+            print('[{0}.messenger] new message: {1}'.format(self._owner.name, Message(message)))
             if message['dst'] == self._owner.name:
                 result = self._owner.digest(message)
             else:
-                ''' TODO:
-                    El forward puede tener dos resultados: Uno, el resultado de la ejecucion del
-                    comando y otro el resultado de despacharlo. Hay que ver como manejar eso
-                '''
                 result = self._owner.forward(message)
+            
+            if not result:
+                continue
 
             response = Message(message).make_response(result)
             if response:
@@ -40,7 +39,7 @@ class Messenger:
 
 
     def start(self):
-        print('[messenger.{0}] starting'.format(self._owner.name))
+        print('[{0}.messenger] starting'.format(self._owner.name))
         self._thread = Thread(target=self._handler)
         self._thread.start()
 

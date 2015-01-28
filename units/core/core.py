@@ -98,25 +98,27 @@ class Core(Unit):
             discharged, to flush all the pending messages to
             the layer 0.
         '''
+        '''
         if 'layer' in params:
             try:
                 layer = params['layer']
-                for msg in params['messages']:
+                for msg in params['message']:
                     msg['layer'] = layer
                     self._executors[layer].dispatch(msg)
             except KeyError:
                 return {'error':'-1', 'msg':'Layer {0} does not exist'.format(layer)}
         else:
-            ''' If we have to schedule messages from a leyer 
-                higher than 0, we forward the schedule message to
-                the layer 0 to make the layer digest it.
-            '''
-            if self.layer:
-                self._executors[0].dispatch(message)
-            else:
-                for msg in params['messages']:
-                    if (not 'layer' in msg) or (msg['layer' >= self.layers]):
-                        msg['layer'] = random.randint(0, self.layers - 1)
-                    self._executors[msg['layer']].dispatch(msg)
+        '''
+        ''' If we have to schedule messages from a leyer 
+            higher than 0, we forward the schedule message to
+            the layer 0 to make the layer digest it.
+        '''
+        if self.layer:
+            self._executors[0].dispatch(message)
+        else:
+            for msg in params['messages']:
+                if (not 'layer' in msg) or (msg['layer' >= self.layers]):
+                    msg['layer'] = random.randint(0, self.layers - 1)
+                self._executors[msg['layer']].dispatch(msg)
 
         return {'state':'done'}
