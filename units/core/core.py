@@ -119,11 +119,13 @@ class Core(Unit):
         '''
         msg = params['message']
         if self.layer:
-            self._executors[0].dispatch(message)
+            result = self._executors[0].dispatch(message)
+
         elif ('layer' in msg) and (msg['layer'] >= self.layers):
             return {'error':-1}
+
         else:
             msg['layer'] = random.randint(0, self.layers - 1)
-            self._executors[msg['layer']].dispatch(msg)
+            result = self._executors[msg['layer']].dispatch(msg)
 
-        return {'error':0}
+        return result

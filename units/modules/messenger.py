@@ -53,5 +53,8 @@ class Messenger:
             return {'error':-1}
 
         self._messages.put(_message.raw)
+        result = {'error':0}
+        if 'channel' not in message:
+            result['channel'] = _message.raw['channel']
 
-        return {'channel':_message.raw['channel'], 'error':0}
+        return result
