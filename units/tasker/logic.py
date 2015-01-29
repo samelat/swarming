@@ -161,7 +161,6 @@ class Logic:
                 protocol = task['resource']['service']['protocol']['name']
                 message = {'dst':self._units[protocol], 'src':'tasker', 'async':False,
                            'cmd':'consume', 'params':{'task':task}}
-                messages.append(message)
 
                 schedule_msg = {'dst':'core', 'src':'tasker', 'cmd':'schedule', 'params':{}}
                 schedule_msg['params']['message'] = message

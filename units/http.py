@@ -13,11 +13,10 @@ class HTTP(LightUnit):
     def __init__(self, core):
         super(HTTP, self).__init__(core)
 
-    def start(self):
-        super(HTTP, self).start()
         self.add_stage_handler('initial', self.http_initial_stage)
         self.add_stage_handler('forcing', self.http_forcing_stage)
         self.add_stage_handler('crawling', self.http_crawling_stage)
+        
 
     ''' ############################################
         Command & Stage handlers

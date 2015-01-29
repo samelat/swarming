@@ -26,7 +26,12 @@ class Executor(Unit):
             except queue.Empty:
                 continue
             print('[executor.async] new message: {0}'.format(Message(message)))
-            response = self.core.dispatch(message)
+            result = self.core.dispatch(message)
+
+            if result['status'] <= 0:
+                response = Message(message).make_response(result)
+                if response:
+                    self.core.dispatch(response)
 
 
     def _launcher(self):
@@ -42,7 +47,7 @@ class Executor(Unit):
     def forward(self, message):
         if ('async' in message) and not message['async']:
             self._sync_msgs.put(message)
-            return None
+            return {'status':1, 'channel':message['channel']}
         else:
             return self.core.dispatch(message)
 
@@ -55,3 +60,5 @@ class Executor(Unit):
     def halt(self, message):
         self.halt = True
         self._messenger.halt()
+
+        return {'status':0}

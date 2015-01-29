@@ -55,18 +55,18 @@ class Unit:
         message = {'src':self.name, 'dst':'tasker', 'cmd':'set',
                    'params':{'unit':values}}
         result = self.core.dispatch(message)
-        '''
+        
         if not block:
             return result
 
         print('[{0}] set_knowledge dispatch result: {1}'.format(self.name, result))
         response = self.get_response(result['channel'], True)
 
-        print('[{0}] set_knowledge response: {1}'.format(response))
+        print('[{0}] set_knowledge response: {1}'.format(self.name, response))
         
-        return response'''
+        return response
 
-        return {'error':0}
+        #return {'status':0}
 
 
     def get_knowledge(self, values, block=True):
@@ -83,20 +83,15 @@ class Unit:
         
         return response'''
 
-        return {'error':0}
-
-    # TODO: Move this method to LightUnit
-    def register(self):
-        values = {'name':self.name,
-                  'protocols':[{'name':protocol} for protocol in self.protocols]}
-        result = self.set_knowledge(values, False)
-        print('[unit.register] {0}'.format(result))
+        return {'status':0}
 
     ''' ############################################
         These are default handlers for basic commands
     '''
     def halt(self, message):
         self.halt = True
+
+        return {'status':0}
 
 
     def response(self, message):
@@ -107,6 +102,8 @@ class Unit:
         self._responses[channel] = message
         self._resp_lock.notify_all()
         self._resp_lock.release()
+
+        return {'status':0}
 
     ''' ############################################
     '''
@@ -119,11 +116,10 @@ class Unit:
         command = message['cmd']
         if command in self._commands:
             result = self._commands[command](message)
-            #response = tools.make_response(message)
-            return {'error':-666, 'msg':'TEST TEST TEST'}
+            return {'status':-666, 'error':'TEST TEST TEST'}
             return result
 
-        return {'error':-1, 'msg':'command not found'}
+        return {'status':-1, 'error':'command not found'}
         '''
         if response:
             response['params'].update(result)

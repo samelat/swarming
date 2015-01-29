@@ -30,12 +30,10 @@ class Messenger:
             else:
                 result = self._owner.forward(message)
             
-            if not result:
-                continue
-
-            response = Message(message).make_response(result)
-            if response:
-                self._owner.core.dispatch(response)
+            if result['status'] <= 0:
+                response = Message(message).make_response(result)
+                if response:
+                    self._owner.core.dispatch(response)
 
 
     def start(self):
@@ -50,11 +48,8 @@ class Messenger:
         try:
             _message = Message(message)
         except ValueError:
-            return {'error':-1}
+            return {'status':-1, 'error':'message format error'}
 
         self._messages.put(_message.raw)
-        result = {'error':0}
-        if 'channel' not in message:
-            result['channel'] = _message.raw['channel']
 
-        return result
+        return {'status':1, 'channel':_message.raw['channel']}

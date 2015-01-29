@@ -41,10 +41,12 @@ class Core(Unit):
         '''
         # HEAVY UNITS
         self._units['tasker'] = Tasker(self)
+        self._units['tasker'].start()
         #self._units['webui']  = WebUI(self)
 
         # LIGHT UNITS
         self._units['http'] = HTTP(self)
+        self._units['http'].start()
 
         # NEW LAYERS (EXECUTORS)
         for lid in range(0, self.layers):
@@ -52,10 +54,10 @@ class Core(Unit):
             self._executors[lid].start()
 
         #self._units['webui'].start()
-
-        self._units['http'].start()
-
-        self._units['tasker'].start()
+        for unit in self._units.values():
+            if unit.light:
+                msg = {'dst':unit.name, 'src':'core', 'cmd':'register', 'params':{}, 'async':False}
+                self.dispatch(msg)
 
         self._units['tasker'].logic.start()
 
@@ -78,9 +80,8 @@ class Core(Unit):
                 return self._executors[self.layer].dispatch(message)
             else:
                 return self._units[message['dst']].dispatch(message)
-                
-        else:
-            return self._executors[message['layer']].dispatch(message)
+        
+        return self._executors[message['layer']].dispatch(message)
 
 
     ''' ############################################
@@ -89,6 +90,11 @@ class Core(Unit):
     '''
     def halt(self, message):
         print('[core:{0}] Halting Layer ...'.format(self.layer))
+        return {'status':0}
+
+    def response(self, message):
+        print('[core:{0}] Response: {1}'.format(self.layer, message))
+        return {'status':0}
         
     def schedule(self, message):
         print('[core.schedule] message: {0}'.format(tools.msg_to_str(message)))
@@ -122,7 +128,7 @@ class Core(Unit):
             result = self._executors[0].dispatch(message)
 
         elif ('layer' in msg) and (msg['layer'] >= self.layers):
-            return {'error':-1}
+            return {'status':-1}
 
         else:
             msg['layer'] = random.randint(0, self.layers - 1)
