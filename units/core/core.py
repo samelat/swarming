@@ -97,7 +97,7 @@ class Core(Unit):
         return {'status':0}
         
     def schedule(self, message):
-        print('[core.schedule] message: {0}'.format(tools.msg_to_str(message)))
+        print('[core.schedule] message: {0}'.format(message))
         params = message['params']
         
         ''' This is called, for example when a layer should be
@@ -132,6 +132,7 @@ class Core(Unit):
 
         else:
             msg['layer'] = random.randint(0, self.layers - 1)
+            msg['jump']  = 'executor'
             result = self._executors[msg['layer']].dispatch(msg)
 
         return result

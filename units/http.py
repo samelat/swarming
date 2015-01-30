@@ -35,7 +35,7 @@ class HTTP(LightUnit):
         self.dispatch(message)
         '''
 
-        values = {'id':task['id'], 'stage':'crawling', 'state':'stopped'}
+        values = {'task':{'id':task['id'], 'stage':'crawling', 'state':'stopped'}}
 
         print('[http] setting initial task values')
         self.set_knowledge(values, True)

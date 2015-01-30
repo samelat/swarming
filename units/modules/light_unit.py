@@ -64,6 +64,6 @@ class LightUnit(Unit):
         values = {'name':self.name,
                   'protocols':[{'name':protocol} for protocol in self.protocols]}
         result = self.set_knowledge(values)
-        print('[unit.register] REGISTRATION RESULT: {0}'.format(result))
+        print('[{0}.register] REGISTRATION RESULT: {1}'.format(self.name, result))
 
         return {'status':0}
