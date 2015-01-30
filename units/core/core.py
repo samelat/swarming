@@ -81,6 +81,7 @@ class Core(Unit):
             else:
                 return self._units[message['dst']].dispatch(message)
         
+        message['jump'] = 'executor'
         return self._executors[message['layer']].dispatch(message)
 
 

@@ -61,8 +61,8 @@ class LightUnit(Unit):
     '''
     # TODO: Move this method to LightUnit
     def register(self, message):
-        values = {'name':self.name,
-                  'protocols':[{'name':protocol} for protocol in self.protocols]}
+        values = {'unit':{'name':self.name,
+                  'protocols':[{'name':protocol} for protocol in self.protocols]}}
         result = self.set_knowledge(values)
         print('[{0}.register] REGISTRATION RESULT: {1}'.format(self.name, result))
 

@@ -26,21 +26,12 @@ class HTTP(LightUnit):
 
         task = message['params']['task']
 
-        '''
-        message = {'dst':message['src'], 'src':self.name,
-                   'cmd':'set', 'params':{'values':{'id':task['id'],
-                                                    'stage':'crawling',
-                                                    'state':'stopped'},
-                                          'table':'task'}}
-        self.dispatch(message)
-        '''
-
         values = {'task':{'id':task['id'], 'stage':'crawling', 'state':'stopped'}}
 
         print('[http] setting initial task values')
         self.set_knowledge(values, True)
 
-        return {'error':0}
+        return {'status':0}
 
     '''
 
@@ -51,7 +42,7 @@ class HTTP(LightUnit):
             print('[http] Forcing cicle {0}'.format(c))
             time.sleep(4)
 
-        return {'error':0}
+        return {'status':0}
 
     '''
 
@@ -62,11 +53,8 @@ class HTTP(LightUnit):
             print('[http] Crawling cicle {0}'.format(c))
             time.sleep(4)
 
-        message = {'dst':message['src'], 'src':self.name,
-                   'cmd':'set', 'params':{'values':{'id':task['id'],
-                                                    'stage':'crawling',
-                                                    'state':'stopped'},
-                                          'table':'task'}}
+        values = {'task':{'id':task['id'], 'stage':'crawling', 'state':'complete'}}
+
         self.dispatch(message)
 
-        return {'error':0}
+        return {'status':0}

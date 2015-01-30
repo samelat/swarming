@@ -53,7 +53,7 @@ class Unit:
     def set_knowledge(self, values, block=True):
         print('[{0}] set_knowledge: {1}'.format(self.name, values))
         message = {'src':self.name, 'dst':'tasker', 'cmd':'set',
-                   'params':{'unit':values}}
+                   'params':values}
         result = self.core.dispatch(message)
         
         if not block:
