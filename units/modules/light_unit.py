@@ -10,26 +10,9 @@ class LightUnit(Unit):
         super(LightUnit, self).__init__(core)
 
         self.stages  = {}
-        self.message = None
 
         self.add_cmd_handler('consume', self.consume)
         self.add_cmd_handler('register', self.register)
-
-
-    def add_stage_handler(self, stage, handler):
-        _stage = stage.split('.')
-        if _stage[-1] == '*':
-            _stage.pop()
-        
-        where = self.stages
-        for stage in _stage:
-            try:
-                where = where[stage]
-            except KeyError:
-                where[stage] = {}
-                where = where[stage]
-
-        where['*'] = handler
 
 
     def start(self):
@@ -39,21 +22,11 @@ class LightUnit(Unit):
 
     def consume(self, message):
 
-        self.message = message
-
-        task = message['params']['task']
-        stage = task['stage'].split('.')
-        if stage[-1] == '*':
-            stage.pop()
-
-        where = self.stages
-        for stage in stage:
-            try:
-                where = where[stage]
-            except KeyError:
-                return {'status':-1, 'msg':'Unknown stage'}
-
-        result = where['*'](message)
+        try:
+            stage = message['params']['task']['stage']
+            result = self.stages[stage](message)
+        except KeyError:
+            return {'status':-1, 'error':'Unknown stage'}
 
         return result
 
@@ -64,6 +37,6 @@ class LightUnit(Unit):
         values = {'unit':{'name':self.name,
                   'protocols':[{'name':protocol} for protocol in self.protocols]}}
         result = self.set_knowledge(values)
-        print('[{0}.register] REGISTRATION RESULT: {1}'.format(self.name, result))
+        #print('[{0}.register] REGISTRATION RESULT: {1}'.format(self.name, result))
 
         return {'status':0}

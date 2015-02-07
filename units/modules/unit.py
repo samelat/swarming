@@ -1,7 +1,7 @@
 
 from threading import Condition
 
-from units.modules import tools
+from units.modules.message import Message
 
 
 class Unit:
@@ -36,10 +36,10 @@ class Unit:
             self._resp_lock.release()
             return None
 
-        print('[{0}] waiting for response'.format(self.name))
+        #print('[{0}] waiting for response'.format(self.name))
         while channel not in self._responses:
             self._resp_lock.wait()
-        print('[{0}] response received'.format(self.name))
+        #print('[{0}] response received'.format(self.name))
 
         response = self._responses[channel]
         del(self._responses[channel])
@@ -51,7 +51,7 @@ class Unit:
     ''' The aim of these methods is to simplify the tasker's knowledge accesses
     '''
     def set_knowledge(self, values, block=True):
-        print('[{0}] set_knowledge: {1}'.format(self.name, values))
+        #print('[{0}] set_knowledge: {1}'.format(self.name, values))
         message = {'src':self.name, 'dst':'tasker', 'cmd':'set',
                    'params':values}
         result = self.core.dispatch(message)
@@ -59,10 +59,10 @@ class Unit:
         if not block:
             return result
 
-        print('[{0}] set_knowledge dispatch result: {1}'.format(self.name, result))
+        #print('[{0}] set_knowledge dispatch result: {1}'.format(self.name, result))
         response = self.get_response(result['channel'], True)
 
-        print('[{0}] set_knowledge response: {1}'.format(self.name, response))
+        #print('[{0}] set_knowledge response: {1}'.format(self.name, response))
         
         return response
 
@@ -95,7 +95,7 @@ class Unit:
 
 
     def response(self, message):
-        print('[{0}.response] message: {1}'.format(self.name, tools.msg_to_str(message)))
+        #print('[{0}.response] message: {1}'.format(self.name, tools.msg_to_str(message)))
         channel = message['channel']
 
         self._resp_lock.acquire()
@@ -112,11 +112,10 @@ class Unit:
 
 
     def digest(self, message):
-        print('[{0}.digest] message: {1}'.format(self.name, tools.msg_to_str(message)))
+        #print('[{0}.digest] {1}'.format(self.name, tools.msg_to_str(message)))
         command = message['cmd']
         if command in self._commands:
             result = self._commands[command](message)
-            return {'status':-666, 'error':'TEST TEST TEST'}
             return result
 
         return {'status':-1, 'error':'command not found'}
@@ -129,6 +128,7 @@ class Unit:
 
 
     def dispatch(self, message):
+        print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
         if message['dst'] == self.name:
             return self.digest(message)
         else:

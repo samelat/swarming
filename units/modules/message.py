@@ -7,28 +7,33 @@ class Message:
     def __init__(self, message={}):
         self.raw = message.copy()
 
-        if 'channel' not in self.raw:
-            self.raw['channel'] = self.new_token()
-
         for field in ['cmd', 'dst', 'src']:
             if not field in self.raw:
                 raise ValueError
 
 
     def __str__(self):
-        result = 'dst: {0}'.format(self.raw['dst'])
 
-        result += ' - src: {0}'.format(self.raw['src'])
-        result += ' - cmd: {0}'.format(self.raw['cmd'])
+        conn_info = ''
+        if 'layer' in self.raw:
+            conn_info += 'layer:{0}'.format(self.raw['layer'])
 
         if 'channel' in self.raw:
-            result += ' - channel: {0}'.format(self.raw['channel'])
+            if conn_info:
+                conn_info += '|'
+            conn_info += 'channel:{0}'.format(self.raw['channel'])
 
-        return result
+        if 'jump' in self.raw:
+            if conn_info:
+                conn_info += '|'
+            conn_info += 'jump:{0}'.format(self.raw['jump'])
+
+        return '[{src}]-----[{0}]--({cmd}|{params})----->[{dst}]'.format(conn_info, **self.raw)
 
 
-    def new_token(self):
-        return random.getrandbits(32)
+    def add_channel(self):
+        if not 'channel' in  self.raw:
+            self.raw['channel'] = random.getrandbits(32)
 
 
     def make_response(self, values):

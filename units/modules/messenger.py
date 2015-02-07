@@ -24,7 +24,7 @@ class Messenger:
                 message = self._messages.get(timeout=1)
             except queue.Empty:
                 continue
-            print('[{0}.messenger] new message: {1}'.format(self._owner.name, Message(message)))
+            #print('[{0}.messenger] new message: {1}'.format(self._owner.name, Message(message)))
             if message['dst'] == self._owner.name:
                 result = self._owner.digest(message)
             else:
@@ -37,7 +37,7 @@ class Messenger:
 
 
     def start(self):
-        print('[{0}.messenger] starting'.format(self._owner.name))
+        #print('[{0}.messenger] starting'.format(self._owner.name))
         self._thread = Thread(target=self._handler)
         self._thread.start()
 
@@ -45,11 +45,13 @@ class Messenger:
         self._halt = True
 
     def push(self, message):
+        print('[{0}.messenger] {1}'.format(self._owner.name, Message(message)))
         try:
             _message = Message(message)
         except ValueError:
             return {'status':-1, 'error':'message format error'}
 
+        _message.add_channel()
         self._messages.put(_message.raw)
 
         return {'status':1, 'channel':_message.raw['channel']}

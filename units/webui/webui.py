@@ -1,7 +1,6 @@
 
 from multiprocessing import Process
 
-from units.modules import tools
 from units.modules.unit import Unit
 from units.modules.messenger import Messenger
 
@@ -24,16 +23,11 @@ class WebUI(Unit):
         self._messenger.start()
         self._api_service.start()
 
-    ''' ############################################
-    '''
-    def halt(self, message):
-        print('[webui] Halting service ...')
-        self.halt = True
 
     ''' ############################################
     '''
     def dispatch(self, message):
-        self._messenger.push(message)
+        return self._messenger.push(message)
 
     def wait(self):
         self._process.join()

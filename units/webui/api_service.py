@@ -3,7 +3,7 @@ import os
 import cherrypy
 from cherrypy.process import servers
 
-from units.modules import tools
+from units.modules.message import Message
 
 
 class APIService:
@@ -44,6 +44,7 @@ class APIService:
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     def request(self):
+        '''
         channel = tools.gen_token()
         message = cherrypy.request.json
         message['channel'] = channel
@@ -53,8 +54,9 @@ class APIService:
         self._webui.dispatch(message)
 
         self._lost_responses[channel] = 0
+        '''
 
-        return {'error':'success', 'channel':channel}
+        return {'status':0, 'channel':channel}
 
     @cherrypy.expose
     @cherrypy.tools.json_in()
@@ -62,6 +64,7 @@ class APIService:
     def response(self):
         data = cherrypy.request.json
         print('[webui.response] {0}'.format(data))
+        '''
         _responses = self._webui.get_responses(data['channels'])
 
         responses = {}
@@ -82,5 +85,6 @@ class APIService:
         for channel in to_remove:
             del(self._lost_responses[channel])
         print('[webui.deleting] Deleting old responses: {0}'.format(to_remove))
+        '''
 
-        return {'error':'success', 'responses':responses, 'channels':list(_responses.keys())}
+        return {'status':0, 'responses':responses, 'channels':list(_responses.keys())}

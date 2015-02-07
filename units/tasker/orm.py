@@ -29,7 +29,7 @@ class ORM:
         try:
             row = self.from_json(table, values)
             row_id = row.id
-            print('[orm.set] id={0}'.format(row_id))
+            #print('[orm.set] id={0}'.format(row_id))
             self.session.commit()
         except:
             print('[!] ERROR!!!')
@@ -43,7 +43,7 @@ class ORM:
         table_class = self.tables[table]
         to_set, conditions = table_class.get_dependencies(values, self)
 
-        print('[orm.from_json] values: {0}'.format(values))
+        #print('[orm.from_json] values: {0}'.format(values))
         if 'id' in values:
             row = self.session.query(table_class).\
                                filter_by(id=values['id']).\
@@ -64,9 +64,9 @@ class ORM:
             row = table_class()
             self.session.add(row)
 
-        print('[orm.set] to_set: {0}'.format(to_set))
+        #print('[orm.set] to_set: {0}'.format(to_set))
         for key, value in to_set.items():
-            print('[orm.set] {0} = {1}'.format(key, value))
+            #print('[orm.set] {0} = {1}'.format(key, value))
             setattr(row, key, value)
 
         row.timestamp = self.timestamp()
@@ -155,7 +155,8 @@ class Service(ORMBase):
     def get_dependencies(values, mgr):
         if 'protocol' in values:
             proto = mgr.from_json('protocol', values['protocol'])
-        return ({'protocol':proto}, [Service.protocol_id==proto.id])
+            return ({'protocol':proto}, [Service.protocol_id==proto.id])
+        return ({}, [])
 
     def to_json(self):
         return {'id':self.id,
@@ -212,9 +213,11 @@ class Resource(ORMBase):
 class Dictionary(ORMBase):
     __tablename__ = 'dictionary'
 
-    attributes = []
+    attributes = ['username', 'password']
 
     id = Column(Integer, primary_key=True)
+    username = Column(String)
+    password = Column(String)
     timestamp = Column(Integer)
 
     @staticmethod
@@ -223,6 +226,11 @@ class Dictionary(ORMBase):
         if 'protocols' in values:
             to_set['protocols'] = [mgr.from_json('protocol', value) for value in values['protocols']]
         return (to_set, [])
+
+    def to_json(self):
+        return {'id':self.id,
+                'username':self.username,
+                'password':self.password}
 
 
 ''' ################################################
@@ -235,7 +243,7 @@ class Task(ORMBase):
     id = Column(Integer, primary_key=True)
     resource_id = Column(Integer, ForeignKey('resource.id'))
     stage = Column(String, default='initial') # (initial, crawling, forcing, waiting, complete)
-    state = Column(String, default='stopped') # (stopped, running, ready)
+    state = Column(String, default='stopped') # (stopped, running)
     complete = Column(Integer, default=0)
     timestamp = Column(Integer)
 
@@ -257,3 +265,19 @@ class Task(ORMBase):
                 'stage':self.stage,
                 'state':self.state,
                 'resource':self.resource.to_json()}
+
+''' ################################################
+    These classes are for internal use only
+    ################################################
+'''
+class DictionaryTask(ORMBase):
+    __tablename__ = 'dictionary_task'
+
+    id = Column(Integer, primary_key=True)
+    task_id = Column(Integer, ForeignKey('task.id'))
+
+    index = Column(Integer)
+    current = Column(Integer)
+    channel = Column(Integer)
+    state = Column(String, default='stopped') # (stopped, running, complete)
+    timestamp = Column(Integer)

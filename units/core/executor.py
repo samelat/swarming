@@ -25,7 +25,7 @@ class Executor(Unit):
                 message = self._sync_msgs.get(timeout=1)
             except queue.Empty:
                 continue
-            print('[executor.async] new message: {0}'.format(message))
+            #print('[executor.async] new message: {0}'.format(message))
             result = self.core.dispatch(message)
 
             if result['status'] <= 0:

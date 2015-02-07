@@ -3,7 +3,6 @@ from threading import Lock
 from multiprocessing import Process
 
 from units.tasker.orm import ORM
-from units.modules import tools
 from units.modules.unit import Unit
 from units.modules.messenger import Messenger
 

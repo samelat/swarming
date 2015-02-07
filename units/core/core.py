@@ -1,13 +1,13 @@
 
 import random
 
-from units.http import HTTP
+from units.http.http import HTTP
 from units.webui.webui import WebUI
 from units.modules.unit import Unit
 from units.tasker.tasker import Tasker
 from units.core.executor import Executor
 
-from units.modules import tools
+from units.modules.message import Message
 
 
 class Core(Unit):
@@ -64,7 +64,9 @@ class Core(Unit):
     ''' ############################################
     '''
     def forward(self, message):
-        print('[core] Forwarding [{0}]--------({1})-------->[{2}]'.format(message['src'], self.layer, message['dst']))
+
+        print('[core.forward] {0}'.format(Message(message)))
+
         ''' This condition is for cases where one unit send
             a message to another one in the same layer.
         '''
@@ -98,7 +100,7 @@ class Core(Unit):
         return {'status':0}
         
     def schedule(self, message):
-        print('[core.schedule] message: {0}'.format(message))
+        #print('[core.schedule] message: {0}'.format(message))
         params = message['params']
         
         ''' This is called, for example when a layer should be

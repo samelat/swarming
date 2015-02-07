@@ -1,5 +1,4 @@
 
-from units.modules import tools
 from units.tasker.orm import *
 
 
@@ -17,21 +16,21 @@ class Knowledge:
     '''
     def set(self, message):
         params = message['params']
-        print('[knowledge] "set" message - {0}'.format(params))
+        #print('[knowledge] "set" message - {0}'.format(params))
 
-        result = {}
+        values = {}
         self._db_mgr.session_lock.acquire()
-        for table, values in params.items():
-            row_id = self._db_mgr.set(table, values)
-            result[table] = {'id':row_id}
+        for table, vls in params.items():
+            row_id = self._db_mgr.set(table, vls)
+            values[table] = {'id':row_id}
         self._db_mgr.session_lock.release()
 
-        return result
+        return {'status':0, 'values':values}
 
 
     def get(self, message):
         params = message['params']
-        print('[knowledge] "get" message - {0}'.format(params))
+        #print('[knowledge] "get" message - {0}'.format(params))
 
         timestamp = 0
         if 'timestamp' in params:
