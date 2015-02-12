@@ -1,10 +1,11 @@
 
 import time
+import traceback
 
 from units.modules.light_unit import LightUnit
 
+from units.http import cracker
 from units.http.crawler import crawler
-from units.http.cracker import cracker
 
 
 class HTTP(LightUnit):
@@ -35,7 +36,7 @@ class HTTP(LightUnit):
         values = {'task':{'id':task['id'], 'stage':'crawling', 'state':'stopped'}}
 
         print('[http] setting initial task values')
-        self.set_knowledge(values, True)
+        self.set_knowledge(values)
 
         return {'status':0}
 
@@ -53,20 +54,25 @@ class HTTP(LightUnit):
         except KeyError:
             return {'status':-1, 'error':'Unknown Authentication Scheme "{0}"'.format(auth_scheme)}
 
-        return {'status':0, 'values':result}
+        return result
 
     ''' 
     '''
     def http_crawling_stage(self, message):
         print('HTTP Crawling Stage method')
 
-        #_crawler = crawler.Crawler(self)
-        #result = _crawler.dispatch(message)
+        try:
+            _crawler = crawler.Crawler(self)
+            
+            result = _crawler.crawl(message['params']['task']['resource'])
+        except KeyError:
+            traceback.print_exc()
+            return {'status':-1}
 
-        new_task = {'task':{'stage':'forcing.dictionary', 'state':'stopped'}}
-        new_task['task']['resource'] = {'service':{'id':1}, 'attrs':{'auth_scheme':'basic'}, 'path':'/'}
+        # new_task = {'task':{'stage':'forcing.dictionary', 'state':'stopped'}}
+        # new_task['task']['resource'] = {'service':{'id':1}, 'attrs':{'auth_scheme':'basic'}, 'path':'/'}
 
-        self.set_knowledge(new_task, True)
+        # self.set_knowledge(new_task, True)
 
         #values = {'task':{'id':task['id'], 'state':'complete'}}
 

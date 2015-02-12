@@ -1,4 +1,5 @@
 
+import time
 import requests
 
 from units.modules.dictionary import Dictionary
@@ -18,5 +19,6 @@ class BasicAuth:
         for dictionary in dictionaries:
             for username, password in Dictionary(**dictionary).pairs():
                 print('[http] Forcing Username: {0} - Password: {1}'.format(username, password))
+        time.sleep(5)
 
         return {'status':0}

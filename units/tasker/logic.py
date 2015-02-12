@@ -14,6 +14,9 @@ class Logic:
         self._cycle_delay = 10
         self._units = {}
 
+        # Forcing Dictionary
+        self.dictionary_limit = 3
+
 
     def _schedule_task(self, task):
         protocol = task['task']['resource']['service']['protocol']['name']
@@ -78,7 +81,7 @@ class Logic:
         self._db_mgr.session_lock.acquire()
 
         tasks = self._db_mgr.session.query(Task).\
-                                     filter_by(state = 'stopped').\
+                                     filter_by(state = 'ready').\
                                      filter(Task.stage.like(stage + '%')).all()
 
         if tasks:
@@ -104,12 +107,21 @@ class Logic:
     '''
     '''
     def _crawling_tasks(self):
-        json_tasks = self.__get_stopped_tasks('crawling')
 
-        for json_task in json_tasks:
-            print('[tasker.crawling_task] {0}'.format(json_task))
+        self._db_mgr.session_lock.acquire()
 
-        return json_tasks
+        crawling_tasks = self._db_mgr.session.query(Task).\
+                                              filter_by(state = 'ready').\
+                                              filter(Task.stage.like('crawling')).all()
+
+        if crawling_tasks:
+            for task in crawling_tasks:
+                task.state = 'running'
+                response = self._schedule_task({'task':task.to_json()})
+                print('[logic.crawling_task] Schedule response: {0}'.format(response))
+            self._db_mgr.session.commit()
+
+        self._db_mgr.session_lock.release()
 
 
     ''' TODO: ###########################################
@@ -120,9 +132,26 @@ class Logic:
         #################################################
     '''
     def _forcing_dictionary_tasks(self):
-        json_tasks = []
 
         self._db_mgr.session_lock.acquire()
+
+        running_subtasks = self._db_mgr.session.query(DictionaryTask).\
+                                                filter_by(state = 'running').\
+                                                all()
+
+        self._tasker._resp_lock.acquire()
+        for subtask in running_subtasks:
+            if subtask.channel in self._tasker._responses:
+                del(self._tasker._responses[subtask.channel])
+                subtask.state = 'complete'
+        self._tasker._resp_lock.release()
+
+        self._db_mgr.session.commit()
+
+        #self._db_mgr.session_lock.release()
+
+        #################################################################
+        #################################################################
         
         forcing_tasks = self._db_mgr.session.query(Task).\
                                      filter_by(state = 'running').\
@@ -155,6 +184,7 @@ class Logic:
                     index = last_subtask.index
                     current = last_subtask.current
 
+                count = 0
                 current_entry = None
                 dictionary = {'usernames':set(), 'passwords':set(), 'pairs':set()}
                 while True:
@@ -162,7 +192,6 @@ class Logic:
                     last_entry = current_entry
 
                     if index == current:
-                        index = 0
                         current_entry = self._db_mgr.session.query(Dictionary).\
                                                              order_by(Dictionary.id.asc()).\
                                                              filter(Dictionary.id > current).first()
@@ -171,6 +200,7 @@ class Logic:
                             dictionaries.append(dictionary)
                             break
 
+                        index = 0
                         current = current_entry.id
 
                     else:
@@ -199,6 +229,8 @@ class Logic:
                         dictionary['passwords'].add(current_entry.password)
                         dictionary['usernames'].update([usr for uid, usr in usernames])
 
+                        count += len(usernames)
+
                     # It's a username
                     elif current_entry.password == None:
                         # The password's ID will be used in a futer limitation in the number of results.
@@ -210,13 +242,26 @@ class Logic:
                         dictionary['usernames'].add(current_entry.username)
                         dictionary['passwords'].update([pwd for pid, pwd in passwords])
 
+                        count += len(passwords)
+
                     # It's a pair
                     else:
-                        pass
+                        #dictionary['usernames'].add(current_entry.username)
+                        count += 1
 
                     index = current
 
+                    if count > self.dictionary_limit:
+                        print('[forcing.dictionary] limited - {0}'.format(dictionary))
+                        dictionaries.append(dictionary)
+                        break
+
                     ####################################
+
+                if not count:
+                    task.state = 'ready'
+                    continue
+                task.state = 'running'
 
                 _dictionaries = []
                 for dictionary in dictionaries:
@@ -227,15 +272,16 @@ class Logic:
                 response = self._schedule_task({'task':task.to_json(), 'dictionaries':_dictionaries})
                 print('[logic] Schedule response: {0}'.format(response))
 
+                new_subtask = DictionaryTask(index=index, current=current,
+                                             channel=response['channel'],
+                                             state='running', timestamp=self._db_mgr.timestamp())
+                new_subtask.task = task
+                self._db_mgr.session.add(new_subtask)
+
             # ???????????????????
             self._db_mgr.session.commit()
 
         self._db_mgr.session_lock.release()
-
-        for json_task in json_tasks:
-            print('[tasker.forcing_task] {0}'.format(json_task))
-        
-        return json_tasks
 
 
     ''' #################################################
@@ -273,7 +319,7 @@ class Logic:
 
             self._new_tasks()
             self._initial_tasks()
-            self._forcing_dictionary_tasks()
             self._crawling_tasks()
+            self._forcing_dictionary_tasks()
 
             time.sleep(self._cycle_delay)

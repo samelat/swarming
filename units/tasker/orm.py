@@ -191,6 +191,7 @@ class Resource(ORMBase):
         for key in ['params', 'attrs']:
             if key in values:
                 to_set[key] = json.dumps(values[key])
+                conditions.append(Resource.attrs==json.dumps(values['attrs']))
 
         for key, table in [('service', 'service'), ('dependence', 'resource')]:
             if key in values:
@@ -243,7 +244,7 @@ class Task(ORMBase):
     id = Column(Integer, primary_key=True)
     resource_id = Column(Integer, ForeignKey('resource.id'))
     stage = Column(String, default='initial') # (initial, crawling, forcing, waiting, complete)
-    state = Column(String, default='stopped') # (stopped, running)
+    state = Column(String, default='ready') # (ready, stopped, running)
     complete = Column(Integer, default=0)
     timestamp = Column(Integer)
 
@@ -266,6 +267,7 @@ class Task(ORMBase):
                 'state':self.state,
                 'resource':self.resource.to_json()}
 
+
 ''' ################################################
     These classes are for internal use only
     ################################################
@@ -281,3 +283,5 @@ class DictionaryTask(ORMBase):
     channel = Column(Integer)
     state = Column(String, default='stopped') # (stopped, running, complete)
     timestamp = Column(Integer)
+
+    task = relationship('Task')
