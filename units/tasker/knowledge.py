@@ -20,8 +20,8 @@ class Knowledge:
 
         values = {}
         self._db_mgr.session_lock.acquire()
-        for table, vls in params.items():
-            row_id = self._db_mgr.set(table, vls)
+        for table, _values in params.items():
+            row_id = self._db_mgr.set(table, _values)
             values[table] = {'id':row_id}
         self._db_mgr.session_lock.release()
 

@@ -19,7 +19,7 @@ class Logic:
 
 
     def _schedule_task(self, task):
-        protocol = task['task']['resource']['service']['protocol']['name']
+        protocol = task['task']['resource']['protocol']
         message = {'dst':self._units[protocol], 'src':'tasker', 'async':False,
                    'cmd':'consume', 'params':task}
 
@@ -29,14 +29,17 @@ class Logic:
         return self._tasker.core.dispatch(schedule_msg)
 
 
+    ''' #################################################
+    
+        #################################################
+    '''
     def _get_protocol_units(self):
         protocol_units = {}
 
         self._db_mgr.session_lock.acquire()
 
         for unit in self._db_mgr.session.query(Unit).all():
-            for protocol in unit.protocols:
-                protocol_units[protocol.name] = unit.name
+            protocol_units[unit.protocol] = unit.name
 
         self._db_mgr.session_lock.release()
 
@@ -45,10 +48,15 @@ class Logic:
         return protocol_units
 
 
+    ''' #################################################
+
+        #################################################
+    '''
     def _new_tasks(self):
 
         self._db_mgr.session_lock.acquire()
 
+        # Resources without Task
         resources = self._db_mgr.session.query(Resource).\
                                          filter(~Task.resource.has(Resource.id)).\
                                          all()
@@ -57,62 +65,36 @@ class Logic:
             is a Unit that support its protocol.
         '''
         timestamp = self._db_mgr.timestamp()
-        tasks = [Task(resource=rsrc, timestamp=timestamp)
-                 for rsrc in resources if rsrc.service.protocol.name in self._units]
-        if tasks:
-            self._db_mgr.session.add_all(tasks)
-            self._db_mgr.session.commit()
+        new_tasks = [Task(resource=rsrc, timestamp=timestamp)
+                 for rsrc in resources if rsrc.protocol in self._units]
+        if not new_tasks:
+            self._db_mgr.session_lock.release()
+            return
 
-        json_tasks = [task.to_json() for task in tasks]
+        self._db_mgr.session.add_all(new_tasks)
+        self._db_mgr.session.commit()
+
+        json_tasks = [task.to_json() for task in new_tasks]
 
         self._db_mgr.session_lock.release()
 
         for json_task in json_tasks:
+
             print('[tasker.new_task] {0}'.format(json_task))
 
-        return json_tasks
 
+    ''' #################################################
+
+        #################################################
     '''
-
-    '''
-    def __get_stopped_tasks(self, stage):
-        json_tasks = []
-
-        self._db_mgr.session_lock.acquire()
-
-        tasks = self._db_mgr.session.query(Task).\
-                                     filter_by(state = 'ready').\
-                                     filter(Task.stage.like(stage + '%')).all()
-
-        if tasks:
-            for task in tasks:
-                task.state = 'running'
-                json_tasks.append(task.to_json())
-            self._db_mgr.session.commit()
-
-        self._db_mgr.session_lock.release()
-
-        return json_tasks
-
-    '''
-    '''
-    def _initial_tasks(self):
-        json_tasks = self.__get_stopped_tasks('initial')
-
-        for json_task in json_tasks:
-            print('[tasker.initial_task] {0}'.format(json_task))
-
-        return json_tasks
-
-    '''
-    '''
-    def _crawling_tasks(self):
+    def _ready_tasks(self):
 
         self._db_mgr.session_lock.acquire()
 
         crawling_tasks = self._db_mgr.session.query(Task).\
                                               filter_by(state = 'ready').\
-                                              filter(Task.stage.like('crawling')).all()
+                                              filter(Task.stage.like('crawling')|Task.stage.like('initial')).\
+                                              all()
 
         if crawling_tasks:
             for task in crawling_tasks:
@@ -154,7 +136,8 @@ class Logic:
         #################################################################
         
         forcing_tasks = self._db_mgr.session.query(Task).\
-                                     filter_by(state = 'running').\
+                                     filter((Task.state == 'running')|
+                                            (Task.state == 'ready')).\
                                      filter_by(stage = 'forcing.dictionary').\
                                      all()
 
@@ -285,9 +268,11 @@ class Logic:
 
 
     ''' #################################################
+
+        #################################################
     '''
     def _check_waiting_tasks(self):
-        return []
+        pass
 
 
     ''' This method change de state field of every task
@@ -295,10 +280,11 @@ class Logic:
     '''
     def _restart_tasks(self):
         self._db_mgr.session_lock.acquire()
-        tasks = self._db_mgr.session.query(Task).filter(Task.state != 'stopped',
-                                                        Task.state != 'complete').all()
+        tasks = self._db_mgr.session.query(Task).\
+                                     filter(Task.state != 'stopped', Task.stage != 'complete').\
+                                     all()
         for task in tasks:
-            task.state = 'stopped'
+            task.state = 'ready'
         self._db_mgr.session.commit()
         self._db_mgr.session_lock.release()
 
@@ -306,7 +292,7 @@ class Logic:
     def start(self):
 
         print('[tasker] starting logic')
-        # self._restart_tasks()
+        self._restart_tasks()
 
         while not self._tasker.halt:
 
@@ -318,8 +304,7 @@ class Logic:
             self._check_waiting_tasks()
 
             self._new_tasks()
-            self._initial_tasks()
-            self._crawling_tasks()
+            self._ready_tasks()
             self._forcing_dictionary_tasks()
 
             time.sleep(self._cycle_delay)

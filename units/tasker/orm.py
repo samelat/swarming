@@ -19,7 +19,7 @@ class ORM:
         self.session = Session()
         self.session_lock = lock
 
-        self.classes = [Protocol, Unit, Service, Resource, Task, Dictionary]
+        self.classes = [Unit, Resource, Task, Dictionary]
         self.tables = dict([(c.__tablename__, c) for c in self.classes])
 
     def timestamp(self):
@@ -93,76 +93,27 @@ class ORM:
 
 ''' ORM Classes
 '''
-class Protocol(ORMBase):
-    __tablename__ = 'protocol'
-
-    attributes = ['name']
-
-    id = Column(Integer, primary_key=True)
-    unit_id = Column(Integer, ForeignKey('unit.id'))
-    name = Column(String)
-    timestamp = Column(Integer)
-
-    @staticmethod
-    def get_dependencies(values, mgr):
-        return ({}, [])
-
-    def to_json(self):
-        return {'id':self.id,
-                'name':self.name}
 
 ''' ################################################
 '''
 class Unit(ORMBase):
     __tablename__ = 'unit'
 
-    attributes = ['name']
+    attributes = ['name', 'protocol']
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
+    protocol = Column(String)
     timestamp = Column(Integer)
-    
-    protocols = relationship('Protocol', backref='unit')
 
     @staticmethod
     def get_dependencies(values, mgr):
-        to_set = {}
-        if 'protocols' in values:
-            to_set['protocols'] = [mgr.from_json('protocol', protocol) for protocol in values['protocols']]
-        return (to_set, [])
+        return ({}, [])
 
     def to_json(self):
         return {'id':self.id,
                 'name':self.name,
                 'protocols':[protocol.to_json() for protocol in self.protocols]}
-
-''' ################################################
-'''
-class Service(ORMBase):
-    __tablename__ = 'service'
-
-    attributes = ['hostname', 'port']
-
-    id = Column(Integer, primary_key=True)
-    protocol_id = Column(Integer, ForeignKey('protocol.id'))
-    hostname = Column(String)
-    port = Column(Integer)
-    timestamp = Column(Integer)
-
-    protocol = relationship('Protocol')
-
-    @staticmethod
-    def get_dependencies(values, mgr):
-        if 'protocol' in values:
-            proto = mgr.from_json('protocol', values['protocol'])
-            return ({'protocol':proto}, [Service.protocol_id==proto.id])
-        return ({}, [])
-
-    def to_json(self):
-        return {'id':self.id,
-                'protocol':self.protocol.to_json(),
-                'hostname':self.hostname,
-                'port':self.port}
 
 
 ''' ################################################
@@ -170,17 +121,19 @@ class Service(ORMBase):
 class Resource(ORMBase):
     __tablename__ = 'resource'
 
-    attributes = ['path']
+    attributes = ['protocol', 'hostname', 'port', 'path']
 
     id = Column(Integer, primary_key=True)
-    service_id = Column(Integer, ForeignKey('service.id'))
     dependence_id = Column(Integer, ForeignKey('resource.id'))
+
+    protocol = Column(String)
+    hostname = Column(String)
+    port = Column(Integer)
     path = Column(String, default='')
-    params = Column(String, default='{}')
     attrs = Column(String, default='{}')
+
     timestamp = Column(Integer, default=0)
 
-    service = relationship('Service')
     dependence = relationship('Resource')
 
     @staticmethod
@@ -188,28 +141,26 @@ class Resource(ORMBase):
         to_set = {}
         conditions = []
 
-        for key in ['params', 'attrs']:
-            if key in values:
-                to_set[key] = json.dumps(values[key])
-                conditions.append(Resource.attrs==json.dumps(values['attrs']))
+        if 'attrs' in values:
+            to_set['attrs'] = json.dumps(values['attrs'])
+            conditions.append(Resource.attrs==json.dumps(values['attrs']))
 
-        for key, table in [('service', 'service'), ('dependence', 'resource')]:
-            if key in values:
-                to_set[key] = mgr.from_json(table, values[key])
-
-        if 'service' in to_set:
-            conditions.append(Resource.service_id==to_set['service'].id)
+        if 'dependence' in values:
+            to_set['dependence'] = mgr.from_json('resource', values['dependence'])
 
         return (to_set, conditions)
 
     def to_json(self):
         return {'id':self.id,
+                'protocol':self.protocol,
+                'hostname':self.hostname,
+                'port':self.port,
                 'path':self.path,
-                'params':json.loads(self.params),
-                'attrs':json.loads(self.attrs),
-                'service':self.service.to_json()}
+                'attrs':json.loads(self.attrs)}
 
 ''' ################################################
+
+    ################################################
 '''
 class Dictionary(ORMBase):
     __tablename__ = 'dictionary'

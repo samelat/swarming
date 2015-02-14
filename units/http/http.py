@@ -33,7 +33,7 @@ class HTTP(LightUnit):
 
         task = message['params']['task']
 
-        values = {'task':{'id':task['id'], 'stage':'crawling', 'state':'stopped'}}
+        values = {'task':{'id':task['id'], 'stage':'crawling', 'state':'ready'}}
 
         print('[http] setting initial task values')
         self.set_knowledge(values)
@@ -49,7 +49,7 @@ class HTTP(LightUnit):
         try:
             _cracker = self.crackers[auth_scheme](self)
 
-            result = _cracker.crack(message['params']['task']['resource'],
+            result = _cracker.crack(message['params']['task'],
                                     message['params']['dictionaries'])
         except KeyError:
             return {'status':-1, 'error':'Unknown Authentication Scheme "{0}"'.format(auth_scheme)}
@@ -64,7 +64,7 @@ class HTTP(LightUnit):
         try:
             _crawler = crawler.Crawler(self)
             
-            result = _crawler.crawl(message['params']['task']['resource'])
+            result = _crawler.crawl(message['params']['task'])
         except KeyError:
             traceback.print_exc()
             return {'status':-1}

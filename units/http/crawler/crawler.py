@@ -1,5 +1,4 @@
 
-import urllib
 import requests
 
 from units.http.crawler.container import Container
@@ -15,20 +14,17 @@ class Crawler:
 
         self.resource = None
 
-    def crawl(self, resource):
+    def crawl(self, task):
 
         '''
-{'path': '/', 'attrs': {}, 'id': 2, 'params': {}, 'service': {'protocol': {'name': 'http', 'id': 1}, 'id': 1, 'hostname': '127.0.0.1', 'port': 80}}
+        'resource': {'protocol': 'http', 'id': 1, 'port': 8090, 'path': '/joomla/', 'attrs': {}, 'hostname': '192.168.2.3'}
         '''
         
-        self.resource = resource
+        self.resource = task['resource']
 
-        url = urllib.parse.urlunparse((resource['service']['protocol']['name'],
-                                       '{0}:{1}'.format(resource['service']['hostname'], resource['service']['port']),
-                                       resource['path'],
-                                       '',
-                                       '',
-                                       ''))
+        url = '{protocol}://{hostname}:{port}{path}'.format(**self.resource)
+        if 'query' in self.resource['attrs']:
+            url += self.resource['attrs']['query']
 
         self.container = Container(url)
         
@@ -54,11 +50,14 @@ class Crawler:
                         print('[http.crawler] new dictionary: {0}'.format(dictionary))
 
                 if 'tasks' in result:
-                    for task in result['tasks']:
-                        if 'service' not in task['resource']:
-                            task['resource']['service'] = {}
-                            task['resource']['service']['id'] = resource['service']['id']
+                    for _task in result['tasks']:
+                        _resource = self.resource.copy()
+                        del(_resource['id'])
+                        if 'resource' in _task:
+                            _resource.update(_task['resource'])
+                        _task['resource'] = _resource
+                        self.unit.set_knowledge({'task':_task})
 
-                        self.unit.set_knowledge({'task':task})
+        self.unit.set_knowledge({'task':{'id':task['id'], 'stage':'complete'}})
 
         return {'status':0}

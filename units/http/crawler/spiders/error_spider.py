@@ -16,9 +16,7 @@ class ErrorSpider:
 
             _url = urllib.parse.urlparse(request['url'])
 
-            task = {'resource':{}}
-            task['resource'] = {'path': _url.path, 'attrs': {'auth_scheme':'basic'}, 'params': {}}
-
+            task = {'resource':{'path': _url.path, 'attrs': {'auth_scheme':'basic'}}}
             task['stage'] = 'forcing.dictionary'
 
             result['tasks'] = [task]

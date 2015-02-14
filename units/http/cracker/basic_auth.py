@@ -10,9 +10,9 @@ class BasicAuth:
     def __init__(self, unit):
         self.unit = unit
 
-    def crack(self, resource, dictionaries):
+    def crack(self, task, dictionaries):
 
-        #resource = message['params']['task']['resource']
+        resource = task['resource']
 
         print('[<#########>] {0}'.format(resource))
 
