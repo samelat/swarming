@@ -48,7 +48,7 @@ class Unit:
         return response
 
 
-    ''' The aim of these methods is to simplify the tasker's knowledge accesses
+    ''' The aim of these methods is to simplify the tasker knowledge accesses
     '''
     def set_knowledge(self, values, block=True):
         #print('[{0}] set_knowledge: {1}'.format(self.name, values))
@@ -59,10 +59,10 @@ class Unit:
         if not block:
             return result
 
-        #print('[{0}] set_knowledge dispatch result: {1}'.format(self.name, result))
+        # print('[{0}] set_knowledge dispatch result: {1}'.format(self.name, result))
         response = self.get_response(result['channel'], True)
 
-        #print('[{0}] set_knowledge response: {1}'.format(self.name, response))
+        # print('[{0}] set_knowledge response: {1}'.format(self.name, response))
         
         return response
 
@@ -85,6 +85,7 @@ class Unit:
 
         return {'status':0}
 
+
     ''' ############################################
         These are default handlers for basic commands
     '''
@@ -99,7 +100,7 @@ class Unit:
         channel = message['channel']
 
         self._resp_lock.acquire()
-        self._responses[channel] = message
+        self._responses[channel] = message['params']
         self._resp_lock.notify_all()
         self._resp_lock.release()
 

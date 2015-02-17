@@ -271,12 +271,42 @@ class Logic:
 
         #################################################
     '''
-    def _check_waiting_tasks(self):
-        pass
+    def _waiting_tasks(self):
+        self._db_mgr.session_lock.acquire()
+
+        waiting_tasks = self._db_mgr.session.query(Task).\
+                                             filter(Task.state != 'stopped', 
+                                                    Task.stage.like('waiting.%')).\
+                                             all()
+        if not waiting_tasks:
+            self._db_mgr.session_lock.release()
+            return
+
+        for task in waiting_tasks:
+            stage = task.stage.split('.')
+
+            # waiting.dependence
+            if stage[1] == 'dependence':
+                dependence = self._db_mgr.session.query(Resource).\
+                                                  filter_by(id=task.resource.dependence_id).\
+                                                  first()
+                if dependence.complete:
+                    task.stage = '.'.join(stage[2:])
+
+            # waiting.time
+            elif stage[1] == 'time':
+                if int(stage[2]) < (self._db_mgr.timestamp() - task.timestamp)/1000:
+                    task.stage = '.'.join(stage[3:])
+
+        self._db_mgr.session.commit()
+
+        self._db_mgr.session_lock.release()
 
 
-    ''' This method change de state field of every task
+    ''' #################################################
+        This method change de state field of every task
         to set them to 'stopped'
+        #################################################
     '''
     def _restart_tasks(self):
         self._db_mgr.session_lock.acquire()
@@ -289,6 +319,10 @@ class Logic:
         self._db_mgr.session_lock.release()
 
 
+    ''' #################################################
+
+        #################################################
+    '''
     def start(self):
 
         print('[tasker] starting logic')
@@ -301,7 +335,7 @@ class Logic:
             # Get units per protocol
             self._units = self._get_protocol_units()
 
-            self._check_waiting_tasks()
+            self._waiting_tasks()
 
             self._new_tasks()
             self._ready_tasks()

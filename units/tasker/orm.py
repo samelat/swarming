@@ -3,7 +3,7 @@ import time
 import json
 import traceback
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -19,84 +19,115 @@ class ORM:
         self.session = Session()
         self.session_lock = lock
 
-        self.classes = [Unit, Resource, Task, Dictionary]
+        self.classes = [Unit, Resource, Task, Dictionary, Success]
         self.tables = dict([(c.__tablename__, c) for c in self.classes])
+
 
     def timestamp(self):
         return int(time.time() * 1000)
 
+
     def set(self, table, values):
-        try:
-            row = self.from_json(table, values)
-            row_id = row.id
-            #print('[orm.set] id={0}'.format(row_id))
-            self.session.commit()
-        except:
-            print('[!] ERROR!!!')
-            traceback.print_exc()
-            row_id = -1
-        #row.timestamp = self.timestamp()
-        #self._db_mgr.add(row)
-        return row_id
+        cls = self.tables[table]
+        error, row = cls.from_json(values, self)
+        self.session.commit()
 
-    def from_json(self, table, values):
-        table_class = self.tables[table]
-        to_set, conditions = table_class.get_dependencies(values, self)
+        if error < 0:
+            return error
+        return row.to_json(simple=True)
 
-        #print('[orm.from_json] values: {0}'.format(values))
-        if 'id' in values:
-            row = self.session.query(table_class).\
-                               filter_by(id=values['id']).\
-                               first()
-            for attr in table_class.attributes:
-                if attr in values:
-                    to_set[attr] = values[attr]
-        else:
-            row_attrs = dict([(attr, values[attr]) for attr in table_class.attributes
-                                                   if  attr in values])
-            row = self.session.query(table_class).\
-                               filter_by(**row_attrs).\
-                               filter(*conditions).\
-                               first()
-            if row:
-                return row
-            to_set.update(row_attrs)
-            row = table_class()
-            self.session.add(row)
 
-        #print('[orm.set] to_set: {0}'.format(to_set))
-        for key, value in to_set.items():
-            #print('[orm.set] {0} = {1}'.format(key, value))
-            setattr(row, key, value)
+    def get(self, table, values):
+        cls = self.tables[table]
 
-        row.timestamp = self.timestamp()
-
-        self.session.flush()
-
-        return row
-
-    def get(self, table, timestamp):
-        table_class = self.tables[table]
+        timestamp = 0
+        if 'timestamp' in values:
+            timestamp = values['timestamp']
 
         json_rows = []
-        for row in self.session.query(table_class).\
-                                filter(table_class.timestamp > timestamp).\
+
+        if 'id' in values:
+            condition = (cls.id==values['id'])
+        else:
+            condition = (cls.timestamp > timestamp)
+
+        for row in self.session.query(cls).\
+                                filter(condition).\
                                 all():
             json_rows.append(row.to_json())
 
-        return {'timestamp':self.timestamp(), 'rows':json_rows}
+        return {'rows':json_rows}
+
 
     def halt(self):
         self.session.commit()
         self.session.close()
 
 
-''' ORM Classes
+''' ################################################
+                    ORM Classes
+                    Common Class
+    ################################################
 '''
+class ORMCommon:
+
+    @classmethod
+    def from_json(cls, values, mgr):
+
+        error, to_set = cls.get_to_set(values, mgr)
+        if error < 0:
+            return (error, None)
+
+        #print('[orm.from_json] values: {0}'.format(values))
+        if 'id' in values:
+            row = mgr.session.query(cls).\
+                               filter_by(id=values['id']).\
+                               first()
+
+            if ('timestamp' in values) and (values['timestamp'] < row.timestamp):
+                # You have to refresh your reference.
+                return (-2, None)
+
+            for attr in cls.attributes:
+                if attr in values:
+                    to_set[attr] = values[attr]
+        else:
+            row_attrs = dict([(attr, values[attr]) for attr in cls.attributes
+                                                   if  attr in values])
+            
+            conditions = cls.get_conditions(to_set)
+            row = mgr.session.query(cls).\
+                               filter_by(**row_attrs).\
+                               filter(*conditions).\
+                               first()
+            if row:
+                return (0, row)
+            to_set.update(row_attrs)
+            row = cls()
+            mgr.session.add(row)
+
+        for key, value in to_set.items():
+            setattr(row, key, value)
+
+        row.timestamp = mgr.timestamp()
+
+        mgr.session.flush()
+
+        return (0, row)
+
+    @staticmethod
+    def get_conditions(to_set):
+        return []
+
+    @staticmethod
+    def get_to_set(values, mgr):
+        return (0, {})
+
 
 ''' ################################################
+    ################################################
 '''
-class Unit(ORMBase):
+class Unit(ORMBase, ORMCommon):
     __tablename__ = 'unit'
 
     attributes = ['name', 'protocol']
@@ -106,19 +137,18 @@ class Unit(ORMBase):
     protocol = Column(String)
     timestamp = Column(Integer)
 
-    @staticmethod
-    def get_dependencies(values, mgr):
-        return ({}, [])
-
-    def to_json(self):
+    def to_json(self, simple=False):
+        if simple:
+            return {'id':self.id}
         return {'id':self.id,
                 'name':self.name,
                 'protocols':[protocol.to_json() for protocol in self.protocols]}
 
 
 ''' ################################################
+    ################################################
 '''
-class Resource(ORMBase):
+class Resource(ORMBase, ORMCommon):
     __tablename__ = 'resource'
 
     attributes = ['protocol', 'hostname', 'port', 'path']
@@ -129,65 +159,59 @@ class Resource(ORMBase):
     protocol = Column(String)
     hostname = Column(String)
     port = Column(Integer)
-    path = Column(String, default='')
+    path = Column(String, default='/')
     attrs = Column(String, default='{}')
+    complete = Column(Boolean, default=False) # DO NOT confuse with complete task stage.
 
     timestamp = Column(Integer, default=0)
 
-    dependence = relationship('Resource')
+    @staticmethod
+    def get_conditions(to_set):
+        conditions = []
+
+        if 'attrs' in to_set:
+            conditions.append(Resource.attrs==to_set['attrs'])
+
+        if 'dependence_id' in to_set:
+            conditions.append(Resource.dependence_id==to_set['dependence_id'])
+
+        return conditions
 
     @staticmethod
-    def get_dependencies(values, mgr):
+    def get_to_set(values, mgr):
         to_set = {}
-        conditions = []
 
         if 'attrs' in values:
             to_set['attrs'] = json.dumps(values['attrs'])
-            conditions.append(Resource.attrs==json.dumps(values['attrs']))
 
         if 'dependence' in values:
-            to_set['dependence'] = mgr.from_json('resource', values['dependence'])
+            error, row = Resource.from_json(values['dependence'], mgr)
+            if error < 0:
+                return (error, None)
+            to_set['dependence_id'] = row.id
 
-        return (to_set, conditions)
+        return (0, to_set)
 
-    def to_json(self):
-        return {'id':self.id,
-                'protocol':self.protocol,
-                'hostname':self.hostname,
-                'port':self.port,
-                'path':self.path,
-                'attrs':json.loads(self.attrs)}
+
+    def to_json(self, simple=False):
+        if simple:
+            return {'id':self.id}
+        values = {'id':self.id,
+                  'protocol':self.protocol,
+                  'hostname':self.hostname,
+                  'port':self.port,
+                  'path':self.path,
+                  'attrs':json.loads(self.attrs),
+                  'timestamp':self.timestamp}
+        if self.dependence_id:
+            values['dependence'] = {'id':self.dependence_id}
+        return values
+
 
 ''' ################################################
-
     ################################################
 '''
-class Dictionary(ORMBase):
-    __tablename__ = 'dictionary'
-
-    attributes = ['username', 'password']
-
-    id = Column(Integer, primary_key=True)
-    username = Column(String)
-    password = Column(String)
-    timestamp = Column(Integer)
-
-    @staticmethod
-    def get_dependencies(values, mgr):
-        to_set = {}
-        if 'protocols' in values:
-            to_set['protocols'] = [mgr.from_json('protocol', value) for value in values['protocols']]
-        return (to_set, [])
-
-    def to_json(self):
-        return {'id':self.id,
-                'username':self.username,
-                'password':self.password}
-
-
-''' ################################################
-'''
-class Task(ORMBase):
+class Task(ORMBase, ORMCommon):
     __tablename__ = 'task'
 
     attributes = ['stage', 'state']
@@ -196,27 +220,75 @@ class Task(ORMBase):
     resource_id = Column(Integer, ForeignKey('resource.id'))
     stage = Column(String, default='initial') # (initial, crawling, forcing, waiting, complete)
     state = Column(String, default='ready') # (ready, stopped, running)
-    complete = Column(Integer, default=0)
     timestamp = Column(Integer)
 
     resource = relationship('Resource')
 
     @staticmethod
-    def get_dependencies(values, mgr):
+    def get_to_set(values, mgr):
         to_set = {}
-        conditions = []
-
         if 'resource' in values:
-                to_set['resource'] = mgr.from_json('resource', values['resource'])
-                conditions.append(Task.resource_id==to_set['resource'].id)
+            error, row = Resource.from_json(values['resource'], mgr)
+            if error < 0:
+                return (error, None)
+            to_set['resource'] = row
 
-        return (to_set, conditions)
+        return (0, to_set)
 
-    def to_json(self):
+    def to_json(self, simple=False):
+        if simple:
+            return {'id':self.id, 'resource':self.resource.to_json(True)}
         return {'id':self.id,
                 'stage':self.stage,
                 'state':self.state,
                 'resource':self.resource.to_json()}
+
+
+''' ################################################
+    ################################################
+'''
+class Dictionary(ORMBase, ORMCommon):
+    __tablename__ = 'dictionary'
+
+    attributes = ['username', 'password']
+
+    id = Column(Integer, primary_key=True)
+    resource_id = Column(Integer, ForeignKey('resource.id'))
+
+    username = Column(String)
+    password = Column(String)
+    timestamp = Column(Integer)
+
+    def to_json(self, simple=False):
+        if simple:
+            return {'id':self.id}
+        values = {'id':self.id,
+                  'username':self.username,
+                  'password':self.password}
+        if self.resource_id:
+            values['resource'] = {'id':self.resource_id}
+
+
+''' ################################################
+    ################################################
+'''
+class Success(ORMBase, ORMCommon):
+    __tablename__ = 'success'
+
+    attributes = ['username', 'password']
+
+    id = Column(Integer, primary_key=True)
+    resource_id = Column(Integer, ForeignKey('resource.id'))
+
+    username = Column(String, nullable=False)
+    password = Column(String, nullable=False)
+    timestamp = Column(Integer)
+
+    def to_json(self, simple=False):
+        return {'id':self.id,
+                'username':self.username,
+                'password':self.password,
+                'resource':{'id':self.resource_id}}
 
 
 ''' ################################################
@@ -236,3 +308,4 @@ class DictionaryTask(ORMBase):
     timestamp = Column(Integer)
 
     task = relationship('Task')
+

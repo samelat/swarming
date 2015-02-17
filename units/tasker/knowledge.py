@@ -21,8 +21,8 @@ class Knowledge:
         values = {}
         self._db_mgr.session_lock.acquire()
         for table, _values in params.items():
-            row_id = self._db_mgr.set(table, _values)
-            values[table] = {'id':row_id}
+            result = self._db_mgr.set(table, _values)
+            values[table] = result
         self._db_mgr.session_lock.release()
 
         return {'status':0, 'values':values}
@@ -32,13 +32,12 @@ class Knowledge:
         params = message['params']
         #print('[knowledge] "get" message - {0}'.format(params))
 
-        timestamp = 0
-        if 'timestamp' in params:
-            timestamp = params['timestamp']
-
+        values = {}
         self._db_mgr.session_lock.acquire()
-        result = self._db_mgr.get(params['table'], timestamp)
+        for table, _values in params.items():
+            rows = self._db_mgr.get(table, _values)
+            values[table] = {table:rows}
         self._db_mgr.session_lock.release()
 
-        return result
+        return {'status':0, 'values':values}
 

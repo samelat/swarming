@@ -49,8 +49,7 @@ class HTTP(LightUnit):
         try:
             _cracker = self.crackers[auth_scheme](self)
 
-            result = _cracker.crack(message['params']['task'],
-                                    message['params']['dictionaries'])
+            result = _cracker.crack(message['params']['dictionaries'])
         except KeyError:
             return {'status':-1, 'error':'Unknown Authentication Scheme "{0}"'.format(auth_scheme)}
 
