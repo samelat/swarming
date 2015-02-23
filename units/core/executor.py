@@ -15,8 +15,8 @@ class Executor(Unit):
         super(Executor, self).__init__(core)
         self.layer = layer
         self._messenger = Messenger(self)
-        self._sync_msgs = queue.Queue()
 
+        self._sync_msgs = None
         self._process = None
 
     def _handler(self):
@@ -37,6 +37,9 @@ class Executor(Unit):
     def _launcher(self):
         print('[executor] starting executor {0}...'.format(self.layer))
         self.core.layer = self.layer
+        self.core.minimal()
+
+        self._sync_msgs = queue.Queue()
         self._messenger.start()
         self._handler()
 

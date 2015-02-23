@@ -19,6 +19,11 @@ class Unit:
 
         self.halt = False
 
+
+    def minimal(self):
+        pass
+    
+
     # Start all the things the unit needs
     def start(self):
         pass

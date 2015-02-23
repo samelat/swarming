@@ -18,17 +18,30 @@ class Tasker(Unit):
         super(Tasker, self).__init__(core)
         self._messenger = Messenger(self)
 
-        lock = Lock()
-        self.knowledge = Knowledge(self, ORM(lock))
-        self.logic = Logic(self, ORM(lock))
+        self.knowledge = None
+        self.tasker = None
+        self.uiapi = None
+
+
+    def minimal(self):
+        self.knowledge = None
+        self.tasker = None
+        self.uiapi = None
+
 
     ''' ############################################
 
     '''
     def start(self):
         print('[tasker] Starting')
+        lock = Lock()
+        self.knowledge = Knowledge(self, ORM(lock))
+        self.logic = Logic(self, ORM(lock))
+        self.uiapi = None
+
         self.add_cmd_handler('get', self.knowledge.get)
         self.add_cmd_handler('set', self.knowledge.set)
+
         self._messenger.start()
 
     def dispatch(self, message):

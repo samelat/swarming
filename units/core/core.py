@@ -13,22 +13,32 @@ from units.modules.message import Message
 class Core(Unit):
 
     name = 'core'
-    layers = 3
 
     def __init__(self):
         super(Core, self).__init__()
-        self._executors = {}
-        self._units = {}
+        self.executors = {}
+        self.units = {}
         self.layer = 0
+
 
     def add_unit(self, unit):
         if unit.name not in self._units:
-            self._units[unit.name] = unit
-            self._units[unit.name].start()
+            self.units[unit.name] = unit
+            self.units[unit.name].start()
+
+
+    def minimal(self):
+        self._executors = {}
+        units = {}
+        for name, unit in self.units.items():
+            if not unit.light:
+                unit.minimal()
+                units[name] = unit
+        self.units = units
 
     ''' ############################################
     '''
-    def start(self):
+    def start(self, layers):
         self.add_cmd_handler('schedule', self.schedule)
 
         ''' TODO: It is better if we take the list of
@@ -41,24 +51,23 @@ class Core(Unit):
         '''
         # HEAVY UNITS
         self._units['tasker'] = Tasker(self)
-        self._units['tasker'].start()
-        #self._units['webui'] = WebUI(self)
 
         # LIGHT UNITS
-        self._units['http'] = HTTP(self)
-        self._units['http'].start()
+        # self._units['http'] = HTTP(self)
+        # self._units['http'].start()
         
         # NEW LAYERS (EXECUTORS)
-        for lid in range(0, self.layers):
+        for lid in range(0, layers):
             self._executors[lid] = Executor(self, lid)
             self._executors[lid].start()
+
+        self._units['tasker'].start()
 
         for unit in self._units.values():
             if unit.light:
                 msg = {'dst':unit.name, 'src':'core', 'cmd':'register', 'params':{}, 'async':False}
                 self.dispatch(msg)
         
-        #self._units['webui'].start()
         self._units['tasker'].logic.start()
 
     ''' ############################################
