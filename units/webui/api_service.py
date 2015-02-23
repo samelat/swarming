@@ -56,14 +56,15 @@ class APIService:
         self._lost_responses[channel] = 0
         '''
 
-        return {'status':0, 'channel':channel}
+        #return {'status':0, 'channel':channel}
+        return {'status':0}
 
     @cherrypy.expose
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     def response(self):
-        data = cherrypy.request.json
-        print('[webui.response] {0}'.format(data))
+        #data = cherrypy.request.json
+        #print('[webui.response] {0}'.format(data))
         '''
         _responses = self._webui.get_responses(data['channels'])
 
@@ -87,4 +88,5 @@ class APIService:
         print('[webui.deleting] Deleting old responses: {0}'.format(to_remove))
         '''
 
-        return {'status':0, 'responses':responses, 'channels':list(_responses.keys())}
+        return {'status':0}
+        #return {'status':0, 'responses':responses, 'channels':list(_responses.keys())}

@@ -10,6 +10,8 @@ class Container:
         self.requests = [{'method':'get', 'url':url}]
         self.filters = set()
 
+        self.filter = re.compile('\w+://[^?#]+')
+
     def __iter__(self):
         return self
 
@@ -22,12 +24,16 @@ class Container:
 
 
     def add_request(self, request):
-        url = urllib.parse.urljoin(self.root, request['url'])
+        match = self.filter.match(urllib.parse.urljoin(self.root, request['url']))
+        if not match:
+            return
 
-        if re.match(self.root, url):
+        url = match.group()
+        if re.match(self.root, url) and (url not in self.urls):
             request['url'] = url
             self.urls.add(url)
             self.requests.append(request)
+
 
     def add_filter(self, _filter):
         _cfilter = re.compile(_filter)

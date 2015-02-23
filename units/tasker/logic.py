@@ -1,5 +1,6 @@
 
 import time
+import json
 from threading import Lock
 from sqlalchemy import func
 
@@ -19,7 +20,7 @@ class Logic:
 
 
     def _schedule_task(self, task):
-        protocol = task['task']['resource']['protocol']
+        protocol = task['task']['protocol']
         message = {'dst':self._units[protocol], 'src':'tasker', 'async':False,
                    'cmd':'consume', 'params':task}
 
@@ -52,41 +53,6 @@ class Logic:
 
         #################################################
     '''
-    def _new_tasks(self):
-
-        self._db_mgr.session_lock.acquire()
-
-        # Resources without Task
-        resources = self._db_mgr.session.query(Resource).\
-                                         filter(~Task.resource.has(Resource.id)).\
-                                         all()
-
-        ''' For each resource does not has a Task, we create a new one if there
-            is a Unit that support its protocol.
-        '''
-        timestamp = self._db_mgr.timestamp()
-        new_tasks = [Task(resource=rsrc, timestamp=timestamp)
-                 for rsrc in resources if rsrc.protocol in self._units]
-        if not new_tasks:
-            self._db_mgr.session_lock.release()
-            return
-
-        self._db_mgr.session.add_all(new_tasks)
-        self._db_mgr.session.commit()
-
-        json_tasks = [task.to_json() for task in new_tasks]
-
-        self._db_mgr.session_lock.release()
-
-        for json_task in json_tasks:
-
-            print('[tasker.new_task] {0}'.format(json_task))
-
-
-    ''' #################################################
-
-        #################################################
-    '''
     def _ready_tasks(self):
 
         self._db_mgr.session_lock.acquire()
@@ -99,7 +65,18 @@ class Logic:
         if crawling_tasks:
             for task in crawling_tasks:
                 task.state = 'running'
-                response = self._schedule_task({'task':task.to_json()})
+
+                complements = {}
+                dependence = task.dependence
+                while dependence:
+                    complements.update(json.loads(dependence.complement.values))
+                    dependence = dependence.dependence
+
+                _task = {'task':task.to_json()}
+                if complements:
+                    _task['complements'] = complements
+
+                response = self._schedule_task(_task)
                 print('[logic.crawling_task] Schedule response: {0}'.format(response))
             self._db_mgr.session.commit()
 
@@ -121,11 +98,14 @@ class Logic:
                                                 filter_by(state = 'running').\
                                                 all()
 
+        running_tasks = set()
         self._tasker._resp_lock.acquire()
         for subtask in running_subtasks:
             if subtask.channel in self._tasker._responses:
                 del(self._tasker._responses[subtask.channel])
                 subtask.state = 'complete'
+            else:
+                running_tasks.add(subtask.task_id)
         self._tasker._resp_lock.release()
 
         self._db_mgr.session.commit()
@@ -153,6 +133,10 @@ class Logic:
 
             for task in forcing_tasks:
                 dictionaries = []
+
+                # This is only to update the task's state
+                if task.id not in running_tasks:
+                    task.state = 'ready'
 
                 # get last dictionary_task
                 last_subtask = self._db_mgr.session.query(DictionaryTask).\
@@ -242,8 +226,8 @@ class Logic:
                     ####################################
 
                 if not count:
-                    task.state = 'ready'
                     continue
+
                 task.state = 'running'
 
                 _dictionaries = []
@@ -252,7 +236,17 @@ class Logic:
                                           'passwords':list(dictionary['passwords']),
                                           'pairs':list(dictionary['pairs'])})
 
-                response = self._schedule_task({'task':task.to_json(), 'dictionaries':_dictionaries})
+                complements = {}
+                dependence = task.dependence
+                while dependence:
+                    complements.update(json.loads(dependence.complements.values))
+                    dependence = dependence.dependence
+
+                _task = {'task':task.to_json(), 'dictionaries':_dictionaries}
+                if complements:
+                    _task['complements'] = complements
+
+                response = self._schedule_task(_task)
                 print('[logic] Schedule response: {0}'.format(response))
 
                 new_subtask = DictionaryTask(index=index, current=current,
@@ -286,12 +280,8 @@ class Logic:
             stage = task.stage.split('.')
 
             # waiting.dependence
-            if stage[1] == 'dependence':
-                dependence = self._db_mgr.session.query(Resource).\
-                                                  filter_by(id=task.resource.dependence_id).\
-                                                  first()
-                if dependence.complete:
-                    task.stage = '.'.join(stage[2:])
+            if (stage[1] == 'dependence') and (task.dependence.complement):
+                task.stage = '.'.join(stage[2:])
 
             # waiting.time
             elif stage[1] == 'time':
@@ -337,7 +327,6 @@ class Logic:
 
             self._waiting_tasks()
 
-            self._new_tasks()
             self._ready_tasks()
             self._forcing_dictionary_tasks()
 

@@ -42,23 +42,23 @@ class Core(Unit):
         # HEAVY UNITS
         self._units['tasker'] = Tasker(self)
         self._units['tasker'].start()
-        #self._units['webui']  = WebUI(self)
+        #self._units['webui'] = WebUI(self)
 
         # LIGHT UNITS
         self._units['http'] = HTTP(self)
         self._units['http'].start()
-
+        
         # NEW LAYERS (EXECUTORS)
         for lid in range(0, self.layers):
             self._executors[lid] = Executor(self, lid)
             self._executors[lid].start()
 
-        #self._units['webui'].start()
         for unit in self._units.values():
             if unit.light:
                 msg = {'dst':unit.name, 'src':'core', 'cmd':'register', 'params':{}, 'async':False}
                 self.dispatch(msg)
-
+        
+        #self._units['webui'].start()
         self._units['tasker'].logic.start()
 
     ''' ############################################

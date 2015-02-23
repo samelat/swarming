@@ -45,7 +45,7 @@ class Messenger:
         self._halt = True
 
     def push(self, message):
-        print('[{0}.messenger] {1}'.format(self._owner.name, Message(message)))
+        # print('[{0}.messenger] {1}'.format(self._owner.name, Message(message)))
         try:
             _message = Message(message)
         except ValueError:

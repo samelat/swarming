@@ -15,29 +15,36 @@ class Knowledge:
         want to.
     '''
     def set(self, message):
-        params = message['params']
         #print('[knowledge] "set" message - {0}'.format(params))
 
-        values = {}
+        errors = 0
+        results_list = []
         self._db_mgr.session_lock.acquire()
-        for table, _values in params.items():
-            result = self._db_mgr.set(table, _values)
-            values[table] = result
+        for rows in message['params']:
+            results = {}
+            for table, row in rows.items():
+                result = self._db_mgr.set(table, row)
+                results[table] = result
+                if result['status'] < 0:
+                    errors += 1
+            results_list.append(results)
         self._db_mgr.session_lock.release()
 
-        return {'status':0, 'values':values}
+        return {'status':errors, 'results':results_list}
 
 
     def get(self, message):
-        params = message['params']
         #print('[knowledge] "get" message - {0}'.format(params))
 
-        values = {}
+        results = []
         self._db_mgr.session_lock.acquire()
-        for table, _values in params.items():
-            rows = self._db_mgr.get(table, _values)
-            values[table] = {table:rows}
+        for query in message['params']:
+            values = {}
+            for table, _values in params.items():
+                rows = self._db_mgr.get(table, _values)
+                values[table] = {table:rows}
+            results.append(values)
         self._db_mgr.session_lock.release()
 
-        return {'status':0, 'values':values}
+        return {'status':0, 'results':results}
 

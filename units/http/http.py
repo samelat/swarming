@@ -16,6 +16,8 @@ class HTTP(LightUnit):
     def __init__(self, core):
         super(HTTP, self).__init__(core)
 
+        self.url = None
+
         self.crackers = {'get':cracker.Get,
                          'post':cracker.Post,
                          'basic':cracker.BasicAuth}
@@ -23,6 +25,16 @@ class HTTP(LightUnit):
         self.stages['initial']  = self.http_initial_stage
         self.stages['crawling'] = self.http_crawling_stage
         self.stages['forcing.dictionary']  = self.http_forcing_stage
+
+
+    # This method exist to adapt the dependencies to Unit needs
+    def prepare(self):
+        if 'auth' in self.complements:
+            self.complements['auth'] = tuple(self.complements['auth'])
+
+        self.url = '{protocol}://{hostname}:{port}{path}'.format(**self.task)
+        if 'query' in self.task['attrs']:
+            self.url += self.task['attrs']['query']
         
 
     ''' ############################################
@@ -31,9 +43,7 @@ class HTTP(LightUnit):
     def http_initial_stage(self, message):
         print('[http] Initial Stage method')
 
-        task = message['params']['task']
-
-        values = {'task':{'id':task['id'], 'stage':'crawling', 'state':'ready'}}
+        values = {'task':{'id':self.task['id'], 'stage':'crawling', 'state':'ready'}}
 
         print('[http] setting initial task values')
         self.set_knowledge(values)
@@ -45,7 +55,7 @@ class HTTP(LightUnit):
     def http_forcing_stage(self, message):
         print('HTTP Forcing Stage method')
 
-        auth_scheme = message['params']['task']['resource']['attrs']['auth_scheme']
+        auth_scheme = self.task['attrs']['auth_scheme']
         try:
             _cracker = self.crackers[auth_scheme](self)
 
@@ -63,7 +73,7 @@ class HTTP(LightUnit):
         try:
             _crawler = crawler.Crawler(self)
             
-            result = _crawler.crawl(message['params']['task'])
+            result = _crawler.crawl()
         except KeyError:
             traceback.print_exc()
             return {'status':-1}

@@ -19,7 +19,7 @@ class ORM:
         self.session = Session()
         self.session_lock = lock
 
-        self.classes = [Unit, Resource, Task, Dictionary, Success]
+        self.classes = [Unit, Task, Dictionary, Success, Complement]
         self.tables = dict([(c.__tablename__, c) for c in self.classes])
 
 
@@ -29,12 +29,10 @@ class ORM:
 
     def set(self, table, values):
         cls = self.tables[table]
-        error, row = cls.from_json(values, self)
+        error, values = cls.from_json(values, self)
         self.session.commit()
 
-        if error < 0:
-            return error
-        return row.to_json(simple=True)
+        return {'status':error, 'values':values}
 
 
     def get(self, table, values):
@@ -86,7 +84,7 @@ class ORMCommon:
 
             if ('timestamp' in values) and (values['timestamp'] < row.timestamp):
                 # You have to refresh your reference.
-                return (-2, None)
+                return (-2, row.to_json())
 
             for attr in cls.attributes:
                 if attr in values:
@@ -101,7 +99,7 @@ class ORMCommon:
                                filter(*conditions).\
                                first()
             if row:
-                return (0, row)
+                return (0, {'id':row.id})
             to_set.update(row_attrs)
             row = cls()
             mgr.session.add(row)
@@ -113,7 +111,7 @@ class ORMCommon:
 
         mgr.session.flush()
 
-        return (0, row)
+        return (0, {'id':row.id})
 
     @staticmethod
     def get_conditions(to_set):
@@ -137,43 +135,47 @@ class Unit(ORMBase, ORMCommon):
     protocol = Column(String)
     timestamp = Column(Integer)
 
-    def to_json(self, simple=False):
-        if simple:
-            return {'id':self.id}
+    def to_json(self):
         return {'id':self.id,
                 'name':self.name,
-                'protocols':[protocol.to_json() for protocol in self.protocols]}
+                'protocol':self.protocol}
 
 
 ''' ################################################
     ################################################
 '''
-class Resource(ORMBase, ORMCommon):
-    __tablename__ = 'resource'
+class Task(ORMBase, ORMCommon):
+    __tablename__ = 'task'
 
-    attributes = ['protocol', 'hostname', 'port', 'path']
+    attributes = ['protocol', 'hostname', 'port', 'path', 'stage', 'state']
 
     id = Column(Integer, primary_key=True)
-    dependence_id = Column(Integer, ForeignKey('resource.id'))
+    dependence_id = Column(Integer, ForeignKey('task.id'))
 
+    # Task
+    stage = Column(String, default='initial') # (initial, crawling, forcing, waiting, complete)
+    state = Column(String, default='ready') # (ready, stopped, running)
+    timestamp = Column(Integer, default=0)
+
+    # Resource
     protocol = Column(String)
     hostname = Column(String)
     port = Column(Integer)
     path = Column(String, default='/')
     attrs = Column(String, default='{}')
-    complete = Column(Boolean, default=False) # DO NOT confuse with complete task stage.
 
-    timestamp = Column(Integer, default=0)
+    dependence = relationship('Task', remote_side=[id])
+    complement = relationship('Complement', uselist=False)
 
     @staticmethod
     def get_conditions(to_set):
         conditions = []
 
         if 'attrs' in to_set:
-            conditions.append(Resource.attrs==to_set['attrs'])
+            conditions.append(Task.attrs==to_set['attrs'])
 
         if 'dependence_id' in to_set:
-            conditions.append(Resource.dependence_id==to_set['dependence_id'])
+            conditions.append(Task.dependence_id==to_set['dependence_id'])
 
         return conditions
 
@@ -185,63 +187,99 @@ class Resource(ORMBase, ORMCommon):
             to_set['attrs'] = json.dumps(values['attrs'])
 
         if 'dependence' in values:
-            error, row = Resource.from_json(values['dependence'], mgr)
+            error, row = Task.from_json(values['dependence'], mgr)
             if error < 0:
                 return (error, None)
-            to_set['dependence_id'] = row.id
+            to_set['dependence_id'] = row['id']
 
         return (0, to_set)
 
 
-    def to_json(self, simple=False):
-        if simple:
-            return {'id':self.id}
+    def to_json(self):
         values = {'id':self.id,
                   'protocol':self.protocol,
                   'hostname':self.hostname,
                   'port':self.port,
                   'path':self.path,
                   'attrs':json.loads(self.attrs),
+                  'stage':self.stage,
+                  'state':self.state,
                   'timestamp':self.timestamp}
         if self.dependence_id:
-            values['dependence'] = {'id':self.dependence_id}
+            values['dependence'] = {'id':self.dependence.id}
+
+        if self.complement:
+            values['complement'] = self.complement.to_json()
+
         return values
 
 
 ''' ################################################
     ################################################
 '''
-class Task(ORMBase, ORMCommon):
-    __tablename__ = 'task'
+class Success(ORMBase, ORMCommon):
+    __tablename__ = 'success'
 
-    attributes = ['stage', 'state']
+    attributes = []
 
     id = Column(Integer, primary_key=True)
-    resource_id = Column(Integer, ForeignKey('resource.id'))
-    stage = Column(String, default='initial') # (initial, crawling, forcing, waiting, complete)
-    state = Column(String, default='ready') # (ready, stopped, running)
+    task_id = Column(Integer, ForeignKey('task.id'))
+
+    credentials = Column(String, nullable=False)
     timestamp = Column(Integer)
 
-    resource = relationship('Resource')
+    @staticmethod
+    def get_conditions(to_set):
+        return [(Success.credentials==to_set['credentials']),
+                (Success.task_id==to_set['task_id'])]
+
 
     @staticmethod
     def get_to_set(values, mgr):
         to_set = {}
-        if 'resource' in values:
-            error, row = Resource.from_json(values['resource'], mgr)
-            if error < 0:
-                return (error, None)
-            to_set['resource'] = row
-
+        to_set['task_id'] = values['task']['id']
+        to_set['credentials'] = json.dumps(values['credentials'])
         return (0, to_set)
 
-    def to_json(self, simple=False):
-        if simple:
-            return {'id':self.id, 'resource':self.resource.to_json(True)}
+
+    def to_json(self):
         return {'id':self.id,
-                'stage':self.stage,
-                'state':self.state,
-                'resource':self.resource.to_json()}
+                'credentials':json.loads(self.credentials),
+                'task':{'id':self.task_id}}
+
+
+''' ################################################
+    ################################################
+'''
+class Complement(ORMBase, ORMCommon):
+    __tablename__ = 'complement'
+
+    attributes = []
+
+    id = Column(Integer, primary_key=True)
+    task_id = Column(Integer, ForeignKey('task.id'))
+
+    values = Column(String, nullable=False)
+    timestamp = Column(Integer)
+
+    @staticmethod
+    def get_conditions(to_set):
+        return [(Complement.values==to_set['values']),
+                (Complement.task_id==to_set['task_id'])]
+
+
+    @staticmethod
+    def get_to_set(values, mgr):
+        to_set = {}
+        if 'task' in values:
+            to_set['task_id'] = values['task']['id']
+        to_set['values'] = json.dumps(values['values'])
+        return (0, to_set)
+
+
+    def to_json(self):
+        return {'id':self.id,
+                'values':json.loads(self.values)}
 
 
 ''' ################################################
@@ -253,42 +291,19 @@ class Dictionary(ORMBase, ORMCommon):
     attributes = ['username', 'password']
 
     id = Column(Integer, primary_key=True)
-    resource_id = Column(Integer, ForeignKey('resource.id'))
+    task_id = Column(Integer, ForeignKey('task.id'))
 
     username = Column(String)
     password = Column(String)
     timestamp = Column(Integer)
 
-    def to_json(self, simple=False):
-        if simple:
-            return {'id':self.id}
+    def to_json(self):
         values = {'id':self.id,
                   'username':self.username,
                   'password':self.password}
-        if self.resource_id:
-            values['resource'] = {'id':self.resource_id}
-
-
-''' ################################################
-    ################################################
-'''
-class Success(ORMBase, ORMCommon):
-    __tablename__ = 'success'
-
-    attributes = ['username', 'password']
-
-    id = Column(Integer, primary_key=True)
-    resource_id = Column(Integer, ForeignKey('resource.id'))
-
-    username = Column(String, nullable=False)
-    password = Column(String, nullable=False)
-    timestamp = Column(Integer)
-
-    def to_json(self, simple=False):
-        return {'id':self.id,
-                'username':self.username,
-                'password':self.password,
-                'resource':{'id':self.resource_id}}
+        if self.task_id:
+            values['task'] = {'id':self.task_id}
+        return values
 
 
 ''' ################################################
@@ -308,4 +323,3 @@ class DictionaryTask(ORMBase):
     timestamp = Column(Integer)
 
     task = relationship('Task')
-

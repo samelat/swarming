@@ -34,7 +34,7 @@ class Unit:
 
         if (channel not in self._responses) and (not block):
             self._resp_lock.release()
-            return None
+            return {'status':-1}
 
         #print('[{0}] waiting for response'.format(self.name))
         while channel not in self._responses:
@@ -50,21 +50,33 @@ class Unit:
 
     ''' The aim of these methods is to simplify the tasker knowledge accesses
     '''
-    def set_knowledge(self, values, block=True):
+    def set_knowledge(self, row=None, block=True, rows=[]):
         #print('[{0}] set_knowledge: {1}'.format(self.name, values))
+
+        _rows = []
+
+        if row:
+            _rows.insert(0, row)
+
+        if rows:
+            _rows.extend(rows)
+
+        if not _rows:
+            return {'status':-3}
+
         message = {'src':self.name, 'dst':'tasker', 'cmd':'set',
-                   'params':values}
+                   'params':_rows}
         result = self.core.dispatch(message)
         
         if not block:
             return result
 
         # print('[{0}] set_knowledge dispatch result: {1}'.format(self.name, result))
-        response = self.get_response(result['channel'], True)
+        responses = self.get_response(result['channel'], True)
 
         # print('[{0}] set_knowledge response: {1}'.format(self.name, response))
         
-        return response
+        return responses
 
         #return {'status':0}
 
@@ -129,7 +141,7 @@ class Unit:
 
 
     def dispatch(self, message):
-        print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
+        # print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
         if message['dst'] == self.name:
             return self.digest(message)
         else:

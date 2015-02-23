@@ -1,35 +1,46 @@
 
 import urllib.parse
 
+from units.http.crawler.spiders.spider import Spider
 
-class ErrorSpider:
+
+class ErrorSpider(Spider):
 
     def __init__(self, unit):
         self.unit = unit
 
-    def parse(self, request, response):
+
+    def accept(self, response, extra):
+        return True
+
+
+    def parse(self, request, response, extra):
 
         result = {}
 
         print('[spider.error] response status_code: {0}'.format(response.status_code))
 
-        if response.status_code in [401]:
+        # www-Authentication
+        if response.status_code == 401:
 
             _url = urllib.parse.urlparse(request['url'])
 
-            resource = self.unit.resource.copy()
-            del(resource['id'])
-            resource.update({'path': _url.path, 'attrs': {'auth_scheme':'basic'}})
-            response = self.unit.set_knowledge({'task':{'stage':'forcing.dictionary', 'resource':resource}})
+            crack_task = self.unit.task.copy()
+            del(crack_task['id'])
+            crack_task.update({'path': _url.path, 'attrs': {'auth_scheme':'basic'},
+                               'stage':'forcing.dictionary', 'state':'ready'})
 
-            print('[http.crawling] RESPONSE: {0}'.format(response))
+            crawl_task = self.unit.task.copy()
+            del(crawl_task['id'])
+            crawl_task.update({'path': _url.path, 'dependence':crack_task,
+                               'stage':'waiting.dependence.crawling', 'state':'ready'})
 
-            if response['status'] == 0:
-                resource = self.unit.resource.copy()
-                del(resource['id'])
-                resource.update({'path': _url.path, 'dependence':{'id':response['values']['task']['resource']['id']}})
-                self.unit.set_knowledge({'task':{'stage':'waiting.dependence.crawling', 'resource':resource}}, block=False)
+            self.unit.set_knowledge({'task':crawl_task}, block=False)
 
             result['filters'] = [urllib.parse.urljoin(request['url'], '.*')]
+
+        # Proxy Authentication
+        elif response.status_code == 407:
+            pass
 
         return result
