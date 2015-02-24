@@ -4,7 +4,7 @@ import random
 from units.http.http import HTTP
 from units.webui.webui import WebUI
 from units.modules.unit import Unit
-from units.tasker.tasker import Tasker
+from units.engine.engine import Engine
 from units.core.executor import Executor
 
 from units.modules.message import Message
@@ -16,25 +16,31 @@ class Core(Unit):
 
     def __init__(self):
         super(Core, self).__init__()
-        self.executors = {}
-        self.units = {}
+        # I have to change this to load the unit dinamicaly
+        self._unit_class = {'http':HTTP}
+
+        self._executors = {}
+        self._units = {}
+
         self.layer = 0
 
 
-    def add_unit(self, unit):
-        if unit.name not in self._units:
-            self.units[unit.name] = unit
-            self.units[unit.name].start()
-
-
-    def minimal(self):
+    def reset(self):
         self._executors = {}
         units = {}
-        for name, unit in self.units.items():
+        for name, unit in self._units.items():
             if not unit.light:
                 unit.minimal()
                 units[name] = unit
-        self.units = units
+        self._units = units
+
+
+    def add_unit(self, unit_name):
+        if unit_name not in self._units:
+            unit = self._unit_class[unit_name](self)
+            self._units[unit.name] = unit
+            self._units[unit.name].start()
+
 
     ''' ############################################
     '''
@@ -50,7 +56,7 @@ class Core(Unit):
             different layers.
         '''
         # HEAVY UNITS
-        self._units['tasker'] = Tasker(self)
+        self._units['engine'] = Engine(self)
 
         # LIGHT UNITS
         # self._units['http'] = HTTP(self)
@@ -61,16 +67,19 @@ class Core(Unit):
             self._executors[lid] = Executor(self, lid)
             self._executors[lid].start()
 
-        self._units['tasker'].start()
+        self._units['engine'].start()
 
+        '''
         for unit in self._units.values():
             if unit.light:
                 msg = {'dst':unit.name, 'src':'core', 'cmd':'register', 'params':{}, 'async':False}
                 self.dispatch(msg)
+        '''
         
-        self._units['tasker'].logic.start()
+        self._units['engine'].logic.start()
 
     ''' ############################################
+        Messages Handlers
     '''
     def forward(self, message):
 
@@ -94,6 +103,18 @@ class Core(Unit):
         
         message['jump'] = 'executor'
         return self._executors[message['layer']].dispatch(message)
+
+    ''' ############################################
+    '''
+    def digest(self, message):
+        #print('[{0}.digest] {1}'.format(self.name, tools.msg_to_str(message)))
+
+        if ('layer' not in message) and :
+            for executor in self._executors.values():
+                executor.dispatch(message)
+
+
+        return {'status':-1, 'error':'command not found'}
 
 
     ''' ############################################
@@ -148,3 +169,14 @@ class Core(Unit):
             result = self._executors[msg['layer']].dispatch(msg)
 
         return result
+
+
+    def manage(self, message):
+        if message['params']['action'] == 'load':
+            self.core.add_unit(message['params']['unit'])
+
+        elif message['params']['action'] == 'drop':
+            pass
+
+        elif message['params']['action'] == 'reload':
+            pass

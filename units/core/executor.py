@@ -37,10 +37,13 @@ class Executor(Unit):
     def _launcher(self):
         print('[executor] starting executor {0}...'.format(self.layer))
         self.core.layer = self.layer
-        self.core.minimal()
+        self.core.reset()
+
+        self.add_cmd_handler('manage', self.manage)
 
         self._sync_msgs = queue.Queue()
         self._messenger.start()
+
         self._handler()
 
     def start(self):

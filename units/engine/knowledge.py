@@ -1,11 +1,11 @@
 
-from units.tasker.orm import *
+from units.engine.orm import *
 
 
 class Knowledge:
 
-    def __init__(self, tasker, db_mgr):
-        self._tasker = tasker
+    def __init__(self, engine, db_mgr):
+        self._engine = engine
         self._db_mgr = db_mgr
 
     ''' ############################################

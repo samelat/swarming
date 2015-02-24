@@ -20,7 +20,7 @@ class Unit:
         self.halt = False
 
 
-    def minimal(self):
+    def reset(self):
         pass
     
 
@@ -69,8 +69,7 @@ class Unit:
         if not _rows:
             return {'status':-3}
 
-        message = {'src':self.name, 'dst':'tasker', 'cmd':'set',
-                   'params':_rows}
+        message = {'src':self.name, 'dst':'engine', 'cmd':'set', 'params':_rows}
         result = self.core.dispatch(message)
         
         if not block:
@@ -87,7 +86,7 @@ class Unit:
 
 
     def get_knowledge(self, values, block=True):
-        message = {'src':self.name, 'dst':'tasker', 'cmd':'get',
+        message = {'src':self.name, 'dst':'engine', 'cmd':'get',
                    'params':{'unit':values}}
         result = self.core.dispatch(message)
         '''

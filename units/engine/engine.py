@@ -2,20 +2,20 @@
 from threading import Lock
 from multiprocessing import Process
 
-from units.tasker.orm import ORM
+from units.engine.orm import ORM
 from units.modules.unit import Unit
 from units.modules.messenger import Messenger
 
-from units.tasker.logic import Logic
-from units.tasker.knowledge import Knowledge
+from units.engine.tasker import Tasker
+from units.engine.knowledge import Knowledge
 
 
-class Tasker(Unit):
+class Engine(Unit):
 
-    name = 'tasker'
+    name = 'engine'
 
     def __init__(self, core):
-        super(Tasker, self).__init__(core)
+        super(Engine, self).__init__(core)
         self._messenger = Messenger(self)
 
         self.knowledge = None
@@ -33,10 +33,10 @@ class Tasker(Unit):
 
     '''
     def start(self):
-        print('[tasker] Starting')
+        print('[engine] Starting')
         lock = Lock()
         self.knowledge = Knowledge(self, ORM(lock))
-        self.logic = Logic(self, ORM(lock))
+        self.logic = Tasker(self, ORM(lock))
         self.uiapi = None
 
         self.add_cmd_handler('get', self.knowledge.get)

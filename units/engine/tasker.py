@@ -4,13 +4,13 @@ import json
 from threading import Lock
 from sqlalchemy import func
 
-from units.tasker.orm import *
+from units.engine.orm import *
 
 
-class Logic:
+class Tasker:
 
-    def __init__(self, tasker, db_mgr):
-        self._tasker = tasker
+    def __init__(self, engine, db_mgr):
+        self._engine = engine
         self._db_mgr = db_mgr
         self._cycle_delay = 10
         self._units = {}
@@ -21,13 +21,13 @@ class Logic:
 
     def _schedule_task(self, task):
         protocol = task['task']['protocol']
-        message = {'dst':self._units[protocol], 'src':'tasker', 'async':False,
+        message = {'dst':self._units[protocol], 'src':'engine', 'async':False,
                    'cmd':'consume', 'params':task}
 
-        schedule_msg = {'dst':'core', 'src':'tasker', 'cmd':'schedule', 'params':{}}
+        schedule_msg = {'dst':'core', 'src':'engine', 'cmd':'schedule', 'params':{}}
         schedule_msg['params']['message'] = message
 
-        return self._tasker.core.dispatch(schedule_msg)
+        return self._engine.core.dispatch(schedule_msg)
 
 
     ''' #################################################
@@ -44,7 +44,7 @@ class Logic:
 
         self._db_mgr.session_lock.release()
 
-        print('[tasker.protocol_units] {0}'.format(protocol_units))
+        print('[engine.protocol_units] {0}'.format(protocol_units))
 
         return protocol_units
 
@@ -99,14 +99,14 @@ class Logic:
                                                 all()
 
         running_tasks = set()
-        self._tasker._resp_lock.acquire()
+        self._engine._resp_lock.acquire()
         for subtask in running_subtasks:
-            if subtask.channel in self._tasker._responses:
-                del(self._tasker._responses[subtask.channel])
+            if subtask.channel in self._engine._responses:
+                del(self._engine._responses[subtask.channel])
                 subtask.state = 'complete'
             else:
                 running_tasks.add(subtask.task_id)
-        self._tasker._resp_lock.release()
+        self._engine._resp_lock.release()
 
         self._db_mgr.session.commit()
 
@@ -315,13 +315,13 @@ class Logic:
     '''
     def start(self):
 
-        print('[tasker] starting logic')
+        print('[engine] starting logic')
         self._restart_tasks()
 
-        while not self._tasker.halt:
+        while not self._engine.halt:
 
             print('#######################################################')
-            print('[tasker] logic main loop')
+            print('[engine] Tasker main loop')
             # Get units per protocol
             self._units = self._get_protocol_units()
 
