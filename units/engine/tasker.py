@@ -74,7 +74,7 @@ class Tasker:
                     _task['complements'] = complements
 
                 response = self._dispatch_task(_task)
-                print('[logic.crawling_task] Dispatch response: {0}'.format(response))
+                print('[tasker.crawling_task] Dispatch response: {0}'.format(response))
 
                 if response['status'] < 0:
                     task.state = 'stopped'
@@ -247,7 +247,7 @@ class Tasker:
                 if complements:
                     _task['complements'] = complements
 
-                response = self._Dispatch_task(_task)
+                response = self._dispatch_task(_task)
                 print('[tasker] Dispatch response: {0}'.format(response))
 
                 new_subtask = DictionaryTask(index=index, current=current,

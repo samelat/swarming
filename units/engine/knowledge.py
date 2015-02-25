@@ -15,7 +15,7 @@ class Knowledge:
         want to.
     '''
     def set(self, message):
-        #print('[knowledge] "set" message - {0}'.format(params))
+        print('[knowledge] "set" message - {0}'.format(message['params']))
 
         errors = 0
         results_list = []
@@ -29,6 +29,8 @@ class Knowledge:
                     errors += 1
             results_list.append(results)
         self._db_mgr.session_lock.release()
+
+        print('[knowledge] saliendo de "set" - {1} - {0}'.format(results_list, errors))
 
         return {'status':errors, 'results':results_list}
 

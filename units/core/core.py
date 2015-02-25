@@ -52,11 +52,12 @@ class Core(Unit):
         self._condition.release()
 
 
-    def lighten(self):
+    def clean(self):
+        self._accesses = 0
         self.executors = {}
         units = {}
         for name, unit in self.units.items():
-            unit.lighten()
+            unit.clean()
             units[name] = unit
         self.units = units
 
@@ -129,12 +130,15 @@ class Core(Unit):
         self.acquire()
 
         if (message['dst'] in self.units):
+            if 'layer' not in message:
+                message['layer'] = self.layer
             result = self.units[message['dst']].dispatch(message)
         elif self.layer == 0:
             if not self.executors:
                 result = {'status':-2, 'msg':'No layers with Executors'}
             else:
-                message['layer'] = random.randint(1, len(self.executors))
+                if 'layer' not in message:
+                    message['layer'] = random.randint(1, len(self.executors))
                 result = self.executors[message['layer']].dispatch(message)
         else:
             result = {'status':-1, 'msg':'Destination {0} unknown in layer {1}.'.format(message['dst'], self.layer)}
@@ -147,7 +151,7 @@ class Core(Unit):
     ''' ############################################
     '''
     def digest(self, message):
-        #print('[{0}.digest] {1}'.format(self.name, tools.msg_to_str(message)))
+        print('[{0}.digest] {1}'.format(self.name, message))
 
         if (self.layer == 0) and ('layer' in message) and (message['layer'] != 0):
             self.acquire()
@@ -174,9 +178,7 @@ class Core(Unit):
 
     def control(self, message):
 
-        print('[core.control.before:{0}] {1}'.format(self.layer, message))
         self.acquire(True)
-        print('[core.control:after:{0}] {1}'.format(self.layer, message))
 
         params = message['params']
         if params['action'] == 'load':

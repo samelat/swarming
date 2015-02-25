@@ -24,7 +24,7 @@ class Messenger:
                 message = self._messages.get(timeout=1)
             except queue.Empty:
                 continue
-            #print('[{0}.messenger] new message: {1}'.format(self._owner.name, Message(message)))
+            print('[{0}.messenger.handler] new message: {1}'.format(self._owner.name, Message(message)))
             if message['dst'] == self._owner.name:
                 result = self._owner.digest(message)
             else:
@@ -32,6 +32,8 @@ class Messenger:
             
             if result['status'] <= 0:
                 response = Message(message).make_response(result)
+                print('[messenger] dispatching response message {0}'.format(message))
+                print('[messenger] dispatching response {0}'.format(response))
                 if response:
                     self._owner.core.dispatch(response)
 
@@ -45,7 +47,7 @@ class Messenger:
         self._halt = True
 
     def push(self, message):
-        # print('[{0}.messenger] {1}'.format(self._owner.name, Message(message)))
+        print('[{0}.messenger.push] {1}'.format(self._owner.name, Message(message)))
         try:
             _message = Message(message)
         except ValueError:

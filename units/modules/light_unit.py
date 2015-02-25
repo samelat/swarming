@@ -24,11 +24,6 @@ class LightUnit(Unit):
         return {'status':0}
 
 
-    def start(self):
-        print('[{0}] Starting'.format(self.name))
-        #self.register()
-
-
     # Once the message was received, this method is called
     def prepare(self):
         pass

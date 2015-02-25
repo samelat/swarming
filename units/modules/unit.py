@@ -25,7 +25,7 @@ class Unit:
         return {'status':-1, 'msg':'Not implemented'}
 
 
-    def lighten(self):
+    def clean(self):
         pass
     
 
@@ -150,8 +150,7 @@ class Unit:
 
 
     def dispatch(self, message):
-        print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
-
+        # print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
         if message['dst'] == self.name:
             return self.digest(message)
         else:

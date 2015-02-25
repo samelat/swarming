@@ -23,7 +23,7 @@ class Engine(Unit):
         self.uiapi = None
 
 
-    def lighten(self):
+    def clean(self):
         self.knowledge = None
         self.tasker = None
         self.uiapi = None
@@ -48,7 +48,6 @@ class Engine(Unit):
         # Create 3 executor layers
         message = {'dst':'core', 'src':'engine', 'cmd':'control',
                    'params':{'action':'load', 'unit':'executor'}}
-
         for i in range(0, 3):
             result = self.core.dispatch(message)
             print('[engine.start] Starting executor, result: {0}'.format(result))
@@ -56,11 +55,19 @@ class Engine(Unit):
         # Load HTTP in the 3 layers
         message = {'dst':'core', 'src':'engine', 'cmd':'control',
                    'params':{'action':'load', 'unit':'http'}}
-
         for lid in range(1, 4):
             message['layer'] = lid
             result = self.core.dispatch(message)
             print('[engine.start] Starting http, result: {0}'.format(result))
+            response = self.get_response(result['channel'], True)
+            print('[engine.start] Unit http, ready: {0}'.format(response))
+
+        # Register HTTP Unit (Just the unit knows its protocols)
+        message = {'dst':'http', 'src':'engine', 'cmd':'register', 'params':{}, 'async':False}
+        result = self.core.dispatch(message)
+        response = self.get_response(result['channel'], True)
+
+        print('[core.start] Unit Register Response: {0}'.format(response))
 
 
     def dispatch(self, message):
