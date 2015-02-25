@@ -1,5 +1,6 @@
 
 import random
+from threading import Condition
 
 from units.http.http import HTTP
 from units.webui.webui import WebUI
@@ -17,26 +18,53 @@ class Core(Unit):
     def __init__(self):
         super(Core, self).__init__()
         # I have to change this to load the unit dinamicaly
-        self._unit_class = {'http':HTTP}
+        self._unit_class = {'executor':Executor,
+                            'http':HTTP}
+        self._condition = Condition()
+        self._accesses = 0
 
-        self.units = {'executors':{}}
+        self.units = {}
+        self.executors = {}
 
         self.layer = 0
 
 
+    def acquire(self, modify=False):
+        self._condition.acquire()
+        if modify:
+            while self._accesses != 0:
+                self._condition.wait()
+            self._accesses = -1
+        else:
+            while self._accesses < 0:
+                self._condition.wait()
+            self._accesses += 1
+        self._condition.release()
+
+
+    def release(self, modify=False):
+        self._condition.acquire()
+        if modify:
+            self._accesses = 0
+        else:
+            self._accesses -= 1
+        self._condition.notify_all()
+        self._condition.release()
+
+
     def lighten(self):
+        self.executors = {}
         units = {}
         for name, unit in self.units.items():
-            if not unit.light:
-                unit.lighten()
-                units[name] = unit
+            unit.lighten()
+            units[name] = unit
         self.units = units
 
 
     ''' ############################################
     '''
     def start(self):
-        self.add_cmd_handler('control', self.manage)
+        self.add_cmd_handler('control', self.control)
 
         ''' TODO: It is better if we take the list of
             modules to load from a config file or something
@@ -98,16 +126,22 @@ class Core(Unit):
         return self._executors[message['layer']].dispatch(message)
         '''
 
+        self.acquire()
+
         if (message['dst'] in self.units):
-            return self.units[message['dst']].dispatch(message)
+            result = self.units[message['dst']].dispatch(message)
         elif self.layer == 0:
-            if not self.units['executors']:
-                return {'status':-2, 'msg':'No layers with Executors'}
+            if not self.executors:
+                result = {'status':-2, 'msg':'No layers with Executors'}
+            else:
+                message['layer'] = random.randint(1, len(self.executors))
+                result = self.executors[message['layer']].dispatch(message)
+        else:
+            result = {'status':-1, 'msg':'Destination {0} unknown in layer {1}.'.format(message['dst'], self.layer)}
 
-            message['layer'] = random.randint(1, len(self.units['executors'])
-            return self.units['executors'][message['layer']].dispatch(message)
+        self.release()
 
-        return {'status':-1, 'msg':'Destination {0} unknown in layer {1}.'.format(message['dst'], self.layer)}
+        return result
         
 
     ''' ############################################
@@ -116,9 +150,14 @@ class Core(Unit):
         #print('[{0}.digest] {1}'.format(self.name, tools.msg_to_str(message)))
 
         if (self.layer == 0) and ('layer' in message) and (message['layer'] != 0):
-            return self.units['executors'][message['layer']].dispatch(message)
+            self.acquire()
+            result = self.executors[message['layer']].dispatch(message)
+            self.release()
 
-        return super(Core, self).digest(message)
+        else:
+            result = super(Core, self).digest(message)
+
+        return result
 
 
     ''' ############################################
@@ -134,14 +173,22 @@ class Core(Unit):
         return {'status':0}
 
     def control(self, message):
+
+        print('[core.control.before:{0}] {1}'.format(self.layer, message))
+        self.acquire(True)
+        print('[core.control:after:{0}] {1}'.format(self.layer, message))
+
         params = message['params']
         if params['action'] == 'load':
-            result = self._unit_class[params['dst']].build(self)
+            result = self._unit_class[params['unit']].build(self)
+            print('[core.control:{0}] result: {1}'.format(self.layer, result))
 
         elif params['action'] == 'drop':
             result = {'status':-1}
 
         elif params['action'] == 'reload':
             result = {'status':-1}
+        
+        self.release(True)
 
         return result

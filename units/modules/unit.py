@@ -22,9 +22,7 @@ class Unit:
 
     @classmethod
     def build(cls, core):
-        if cls.name not in core.units:
-            core.units[cls.name] = cls(core)
-            core.units[cls.name].start()
+        return {'status':-1, 'msg':'Not implemented'}
 
 
     def lighten(self):
@@ -33,7 +31,7 @@ class Unit:
 
     # Start all the things the unit needs
     def start(self):
-        pass
+        print('[{0}.start] Starting ...'.format(self.name))
 
 
     def add_cmd_handler(self, command, handler):
@@ -152,7 +150,7 @@ class Unit:
 
 
     def dispatch(self, message):
-        # print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
+        print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
 
         if message['dst'] == self.name:
             return self.digest(message)

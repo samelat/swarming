@@ -19,13 +19,14 @@ class Executor(Unit):
         self._sync_msgs = None
         self._process = None
 
+
     def _handler(self):
         while not self.halt:
             try:
                 message = self._sync_msgs.get(timeout=1)
             except queue.Empty:
                 continue
-            #print('[executor.async] new message: {0}'.format(message))
+            print('[executor.async] new message: {0}'.format(message))
             result = self.core.dispatch(message)
 
             if result['status'] <= 0:
@@ -36,10 +37,9 @@ class Executor(Unit):
 
     def _launcher(self):
         print('[executor] starting executor {0}...'.format(self.layer))
+        self.core._accesses = 0
         self.core.layer = self.layer
         self.core.lighten()
-
-        self.add_cmd_handler('manage', self.manage)
 
         self._sync_msgs = queue.Queue()
         self._messenger.start()
@@ -49,14 +49,18 @@ class Executor(Unit):
 
     @classmethod
     def build(cls, core):
-        lid = len(core.units['executor']) + 1
-        core.units['executor'][lid] = Executor(core, lid)
-        core.units['executor'][lid].start()
+        if core.layer == 0:
+            lid = len(core.executors) + 1
+            core.executors[lid] = Executor(core, lid)
+            core.executors[lid].start()
+            return {'status':0}
+        return {'status':-1}
 
 
     def start(self):
         self._process = Process(target=self._launcher)
         self._process.start()
+
 
     def forward(self, message):
         if ('async' in message) and not message['async']:
@@ -65,8 +69,11 @@ class Executor(Unit):
         else:
             return self.core.dispatch(message)
 
+
     def dispatch(self, message):
+        print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
         return self._messenger.push(message)
+
 
     ''' ############################################
         Command Handlers

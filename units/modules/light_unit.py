@@ -19,9 +19,9 @@ class LightUnit(Unit):
 
     @classmethod
     def build(cls, core):
-        lid = len(core.units['executor']) + 1
-        core.units['executor'][lid] = Executor(core, lid)
-        core.units['executor'][lid].start()
+        core.units[cls.name] = cls(core)
+        core.units[cls.name].start()
+        return {'status':0}
 
 
     def start(self):

@@ -45,6 +45,24 @@ class Engine(Unit):
 
         self._messenger.start()
 
+        # Create 3 executor layers
+        message = {'dst':'core', 'src':'engine', 'cmd':'control',
+                   'params':{'action':'load', 'unit':'executor'}}
+
+        for i in range(0, 3):
+            result = self.core.dispatch(message)
+            print('[engine.start] Starting executor, result: {0}'.format(result))
+
+        # Load HTTP in the 3 layers
+        message = {'dst':'core', 'src':'engine', 'cmd':'control',
+                   'params':{'action':'load', 'unit':'http'}}
+
+        for lid in range(1, 4):
+            message['layer'] = lid
+            result = self.core.dispatch(message)
+            print('[engine.start] Starting http, result: {0}'.format(result))
+
+
     def dispatch(self, message):
         result = self._messenger.push(message)
         return result
