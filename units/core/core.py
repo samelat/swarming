@@ -19,33 +19,24 @@ class Core(Unit):
         # I have to change this to load the unit dinamicaly
         self._unit_class = {'http':HTTP}
 
-        self._executors = {}
-        self._units = {}
+        self.units = {'executors':{}}
 
         self.layer = 0
 
 
-    def reset(self):
-        self._executors = {}
+    def lighten(self):
         units = {}
-        for name, unit in self._units.items():
+        for name, unit in self.units.items():
             if not unit.light:
-                unit.minimal()
+                unit.lighten()
                 units[name] = unit
-        self._units = units
-
-
-    def add_unit(self, unit_name):
-        if unit_name not in self._units:
-            unit = self._unit_class[unit_name](self)
-            self._units[unit.name] = unit
-            self._units[unit.name].start()
+        self.units = units
 
 
     ''' ############################################
     '''
-    def start(self, layers):
-        self.add_cmd_handler('schedule', self.schedule)
+    def start(self):
+        self.add_cmd_handler('control', self.manage)
 
         ''' TODO: It is better if we take the list of
             modules to load from a config file or something
@@ -56,27 +47,29 @@ class Core(Unit):
             different layers.
         '''
         # HEAVY UNITS
-        self._units['engine'] = Engine(self)
+        self.units['engine'] = Engine(self)
 
         # LIGHT UNITS
-        # self._units['http'] = HTTP(self)
-        # self._units['http'].start()
+        # self.units['http'] = HTTP(self)
+        # self.units['http'].start()
         
         # NEW LAYERS (EXECUTORS)
-        for lid in range(0, layers):
+        '''
+        for lid in range(1, layers):
             self._executors[lid] = Executor(self, lid)
             self._executors[lid].start()
+        '''
 
-        self._units['engine'].start()
+        self.units['engine'].start()
 
         '''
-        for unit in self._units.values():
+        for unit in self.units.values():
             if unit.light:
                 msg = {'dst':unit.name, 'src':'core', 'cmd':'register', 'params':{}, 'async':False}
                 self.dispatch(msg)
         '''
         
-        self._units['engine'].logic.start()
+        self.units['engine'].logic.start()
 
     ''' ############################################
         Messages Handlers
@@ -88,33 +81,44 @@ class Core(Unit):
         ''' This condition is for cases where one unit send
             a message to another one in the same layer.
         '''
-        if not 'layer' in message:
-            message['layer'] = self.layer
 
+        '''
         if not 'jump' in message:
             message['jump'] = message['src']
 
+
         if message['layer'] == self.layer:
-            if self._units[message['dst']].light and (message['jump'] != 'executor'):
+            if self.units[message['dst']].light and (message['jump'] != 'executor'):
                 message['jump'] = 'executor'
                 return self._executors[self.layer].dispatch(message)
             else:
-                return self._units[message['dst']].dispatch(message)
+                return self.units[message['dst']].dispatch(message)
         
         message['jump'] = 'executor'
         return self._executors[message['layer']].dispatch(message)
+        '''
+
+        if (message['dst'] in self.units):
+            return self.units[message['dst']].dispatch(message)
+        elif self.layer == 0:
+            if not self.units['executors']:
+                return {'status':-2, 'msg':'No layers with Executors'}
+
+            message['layer'] = random.randint(1, len(self.units['executors'])
+            return self.units['executors'][message['layer']].dispatch(message)
+
+        return {'status':-1, 'msg':'Destination {0} unknown in layer {1}.'.format(message['dst'], self.layer)}
+        
 
     ''' ############################################
     '''
     def digest(self, message):
         #print('[{0}.digest] {1}'.format(self.name, tools.msg_to_str(message)))
 
-        if ('layer' not in message) and :
-            for executor in self._executors.values():
-                executor.dispatch(message)
+        if (self.layer == 0) and ('layer' in message) and (message['layer'] != 0):
+            return self.units['executors'][message['layer']].dispatch(message)
 
-
-        return {'status':-1, 'error':'command not found'}
+        return super(Core, self).digest(message)
 
 
     ''' ############################################
@@ -128,55 +132,16 @@ class Core(Unit):
     def response(self, message):
         print('[core:{0}] Response: {1}'.format(self.layer, message))
         return {'status':0}
-        
-    def schedule(self, message):
-        #print('[core.schedule] message: {0}'.format(message))
+
+    def control(self, message):
         params = message['params']
-        
-        ''' This is called, for example when a layer should be
-            discharged, to flush all the pending messages to
-            the layer 0.
-        '''
-        '''
-        if 'layer' in params:
-            try:
-                layer = params['layer']
-                for msg in params['message']:
-                    msg['layer'] = layer
-                    self._executors[layer].dispatch(msg)
-            except KeyError:
-                return {'error':'-1', 'msg':'Layer {0} does not exist'.format(layer)}
-        else:
-        '''
-        ''' If we have to schedule messages from a leyer 
-            higher than 0, first we forward the schedule message to
-            the layer 0 to make the layer digest it. This is because
-            the 'layers' variable would be only updated in layer 0, not
-            necessarily in all layers. For example, when you append new
-            layers, these are copies of layer 0, so just layer 0 and new others
-            known the real number of working layers.
-        '''
-        msg = params['message']
-        if self.layer:
-            result = self._executors[0].dispatch(message)
+        if params['action'] == 'load':
+            result = self._unit_class[params['dst']].build(self)
 
-        elif ('layer' in msg) and (msg['layer'] >= self.layers):
-            return {'status':-1}
+        elif params['action'] == 'drop':
+            result = {'status':-1}
 
-        else:
-            msg['layer'] = random.randint(0, self.layers - 1)
-            msg['jump']  = 'executor'
-            result = self._executors[msg['layer']].dispatch(msg)
+        elif params['action'] == 'reload':
+            result = {'status':-1}
 
         return result
-
-
-    def manage(self, message):
-        if message['params']['action'] == 'load':
-            self.core.add_unit(message['params']['unit'])
-
-        elif message['params']['action'] == 'drop':
-            pass
-
-        elif message['params']['action'] == 'reload':
-            pass

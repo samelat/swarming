@@ -23,11 +23,6 @@ class Message:
                 conn_info += '|'
             conn_info += 'channel:{0}'.format(self.raw['channel'])
 
-        if 'jump' in self.raw:
-            if conn_info:
-                conn_info += '|'
-            conn_info += 'jump:{0}'.format(self.raw['jump'])
-
         return '[{src}]-----[{0}]--({cmd}|{params})----->[{dst}]'.format(conn_info, **self.raw)
 
 

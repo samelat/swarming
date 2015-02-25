@@ -19,15 +19,12 @@ class Tasker:
         self.dictionary_limit = 3
 
 
-    def _schedule_task(self, task):
+    def _dispatch_task(self, task):
         protocol = task['task']['protocol']
         message = {'dst':self._units[protocol], 'src':'engine', 'async':False,
                    'cmd':'consume', 'params':task}
 
-        schedule_msg = {'dst':'core', 'src':'engine', 'cmd':'schedule', 'params':{}}
-        schedule_msg['params']['message'] = message
-
-        return self._engine.core.dispatch(schedule_msg)
+        return self._engine.core.dispatch(message)
 
 
     ''' #################################################
@@ -76,8 +73,12 @@ class Tasker:
                 if complements:
                     _task['complements'] = complements
 
-                response = self._schedule_task(_task)
-                print('[logic.crawling_task] Schedule response: {0}'.format(response))
+                response = self._dispatch_task(_task)
+                print('[logic.crawling_task] Dispatch response: {0}'.format(response))
+
+                if response['status'] < 0:
+                    task.state = 'stopped'
+
             self._db_mgr.session.commit()
 
         self._db_mgr.session_lock.release()
@@ -246,8 +247,8 @@ class Tasker:
                 if complements:
                     _task['complements'] = complements
 
-                response = self._schedule_task(_task)
-                print('[logic] Schedule response: {0}'.format(response))
+                response = self._Dispatch_task(_task)
+                print('[tasker] Dispatch response: {0}'.format(response))
 
                 new_subtask = DictionaryTask(index=index, current=current,
                                              channel=response['channel'],

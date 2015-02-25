@@ -20,7 +20,14 @@ class Unit:
         self.halt = False
 
 
-    def reset(self):
+    @classmethod
+    def build(cls, core):
+        if cls.name not in core.units:
+            core.units[cls.name] = cls(core)
+            core.units[cls.name].start()
+
+
+    def lighten(self):
         pass
     
 
@@ -146,6 +153,7 @@ class Unit:
 
     def dispatch(self, message):
         # print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
+
         if message['dst'] == self.name:
             return self.digest(message)
         else:

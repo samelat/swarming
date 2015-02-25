@@ -3,4 +3,4 @@
 from units.core.core import Core
 
 core = Core()
-core.start(3)
+core.start()

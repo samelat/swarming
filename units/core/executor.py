@@ -37,7 +37,7 @@ class Executor(Unit):
     def _launcher(self):
         print('[executor] starting executor {0}...'.format(self.layer))
         self.core.layer = self.layer
-        self.core.reset()
+        self.core.lighten()
 
         self.add_cmd_handler('manage', self.manage)
 
@@ -45,6 +45,14 @@ class Executor(Unit):
         self._messenger.start()
 
         self._handler()
+
+
+    @classmethod
+    def build(cls, core):
+        lid = len(core.units['executor']) + 1
+        core.units['executor'][lid] = Executor(core, lid)
+        core.units['executor'][lid].start()
+
 
     def start(self):
         self._process = Process(target=self._launcher)

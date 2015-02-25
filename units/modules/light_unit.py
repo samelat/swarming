@@ -17,6 +17,13 @@ class LightUnit(Unit):
         self.add_cmd_handler('register', self.register)
 
 
+    @classmethod
+    def build(cls, core):
+        lid = len(core.units['executor']) + 1
+        core.units['executor'][lid] = Executor(core, lid)
+        core.units['executor'][lid].start()
+
+
     def start(self):
         print('[{0}] Starting'.format(self.name))
         #self.register()

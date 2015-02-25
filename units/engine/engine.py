@@ -23,7 +23,7 @@ class Engine(Unit):
         self.uiapi = None
 
 
-    def minimal(self):
+    def lighten(self):
         self.knowledge = None
         self.tasker = None
         self.uiapi = None
@@ -41,6 +41,7 @@ class Engine(Unit):
 
         self.add_cmd_handler('get', self.knowledge.get)
         self.add_cmd_handler('set', self.knowledge.set)
+        self.add_cmd_handler('schedule', self.schedule)
 
         self._messenger.start()
 
@@ -54,3 +55,15 @@ class Engine(Unit):
     def halt(self, message):
         self.halt = True
         self._messenger.halt()
+
+
+    def schedule(self, message):
+        #print('[core.schedule] message: {0}'.format(message))
+        
+        ''' This is called, for example when a layer should be
+            discharged, to flush all the pending messages to
+            lower layers.
+        '''
+        self.core.dispatch(message['params'])
+
+        return result
