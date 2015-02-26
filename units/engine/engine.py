@@ -6,6 +6,7 @@ from units.engine.orm import ORM
 from units.modules.unit import Unit
 from units.modules.messenger import Messenger
 
+from units.uiapi.uiapi import UIApi
 from units.engine.tasker import Tasker
 from units.engine.knowledge import Knowledge
 
@@ -37,7 +38,8 @@ class Engine(Unit):
         lock = Lock()
         self.knowledge = Knowledge(self, ORM(lock))
         self.logic = Tasker(self, ORM(lock))
-        self.uiapi = None
+        self.uiapi = UIApi(self)
+        self.uiapi.start()
 
         self.add_cmd_handler('get', self.knowledge.get)
         self.add_cmd_handler('set', self.knowledge.set)

@@ -1,44 +1,59 @@
 
 import os
 import cherrypy
-from cherrypy.process import servers
+from threading import Thread
 
+from units.modules.unit import Unit
 from units.modules.message import Message
+from units.modules.messenger import Messenger
 
 
-class APIService:
+class UIApi:
 
-    def __init__(self, webui):
-        self._webui = webui
-        # cherrypy fix
-        servers.wait_for_occupied_port = self.__fake_wait_for_occupied_port
-        self._lost_responses = {}
+    name = 'uiapi'
 
-    def __fake_wait_for_occupied_port(self, host, port):
-        return
+    def __init__(self, engine):
+        self._engine = engine
+        self._thread = None
 
-    def start(self):
-        cherrypy.config.update("units/webui/server.conf")
-        #cherrypy.config.update({ "environment": "embedded" })
+
+    ''' ############################################
+    '''
+    def _launcher(self):
+        
+        cherrypy.config.update('units/uiapi/server.conf')
+        cherrypy.config.update({'engine.autoreload_on': False,
+                                'environment': 'embedded'})
 
         conf = {
-            '/':{
+            '/static':{
                 'tools.staticdir.root': os.path.abspath(os.getcwd()),
                 'tools.staticdir.on': True,
-                'tools.staticdir.dir': 'units/webui/html'
+                'tools.staticdir.dir': 'units/uiapi/html'
             }
         }
+        
         cherrypy.quickstart(self, '/', conf)
+
+
+    def start(self):
+        print('[webui] Starting')
+        self._thread = Thread(target=self._launcher)
+        self._thread.start()
+
 
     ''' ############################################
     '''
     @cherrypy.expose
     def default(self, *args,**kwargs):
-        raise cherrypy.HTTPRedirect("/index.html")
+        raise cherrypy.HTTPRedirect("/static/index.html")
 
+    '''
     @cherrypy.expose
     def halt(self):
         cherrypy.engine.exit()
+    '''
+
 
     @cherrypy.expose
     @cherrypy.tools.json_in()
@@ -59,6 +74,7 @@ class APIService:
         #return {'status':0, 'channel':channel}
         return {'status':0}
 
+    
     @cherrypy.expose
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()

@@ -3,7 +3,6 @@ import random
 from threading import Condition
 
 from units.http.http import HTTP
-from units.webui.webui import WebUI
 from units.modules.unit import Unit
 from units.engine.engine import Engine
 from units.core.executor import Executor
