@@ -1,6 +1,7 @@
 
 import os
 import cherrypy
+from cherrypy.process import servers
 from threading import Thread
 
 from units.modules.unit import Unit
@@ -21,6 +22,8 @@ class UIApi:
     '''
     def _launcher(self):
         
+        # cherrypy fix
+        servers.wait_for_occupied_port = self.__fake_wait_for_occupied_port
         cherrypy.config.update('units/uiapi/server.conf')
         cherrypy.config.update({'engine.autoreload_on': False,
                                 'environment': 'embedded'})
@@ -36,6 +39,10 @@ class UIApi:
         cherrypy.quickstart(self, '/', conf)
 
 
+    def __fake_wait_for_occupied_port(self, host, port):
+        return
+
+
     def start(self):
         print('[webui] Starting')
         self._thread = Thread(target=self._launcher)
@@ -48,11 +55,10 @@ class UIApi:
     def default(self, *args,**kwargs):
         raise cherrypy.HTTPRedirect("/static/index.html")
 
-    '''
+
     @cherrypy.expose
     def halt(self):
         cherrypy.engine.exit()
-    '''
 
 
     @cherrypy.expose
