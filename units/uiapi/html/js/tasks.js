@@ -1,7 +1,9 @@
 
 function Tasks () {
 
-    this.timestamp = 0;
+    this.start = function() {
+        alert("TASKS LOADED!!!");
+    };
 
     this.update_tasks = function() {
         
@@ -71,7 +73,3 @@ function Tasks () {
         $('#newLogin').modal('hide');
     };*/
 };
-
-var tasks = new Tasks();
-messenger.update = tasks.update;
-messenger.start();

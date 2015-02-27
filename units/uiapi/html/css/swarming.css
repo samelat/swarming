@@ -1,0 +1,20 @@
+.table .list-unstyled {
+    margin-bottom: 0px;
+}
+
+.table .progress {
+    margin-bottom: 0px;
+}
+
+.progress .stopped {
+    background-color: #D8D8D8;
+}
+
+.progress .running {
+    background-color: #01DF01;
+}
+
+textarea {
+    resize: vertical;
+    font-family: Monospace;
+}
