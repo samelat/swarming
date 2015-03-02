@@ -2,7 +2,7 @@
 import time
 import traceback
 
-from units.modules.light_unit import LightUnit
+from modules.light_unit import LightUnit
 
 from units.http import cracker
 from units.http.crawler import crawler

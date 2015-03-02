@@ -1,10 +1,10 @@
 
 import queue
-from multiprocessing import Queue
 from threading import Thread
+from multiprocessing import Queue
 
-from units.modules.unit import Unit
-from units.modules.message import Message
+from modules.unit import Unit
+from modules.message import Message
 
 
 class Messenger:

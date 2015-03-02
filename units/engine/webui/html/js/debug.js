@@ -5,4 +5,7 @@ function Debug () {
         alert("DEBUG LOADED!!!");
     };
     
+    this.update = function() {
+
+    };
 };

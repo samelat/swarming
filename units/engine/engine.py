@@ -1,11 +1,11 @@
 
 from multiprocessing import Process
 
-from units.engine.orm import ORM
-from units.modules.unit import Unit
-from units.modules.messenger import Messenger
+from modules.unit import Unit
+from modules.messenger import Messenger
 
-from units.uiapi.uiapi import UIApi
+from units.engine.orm import ORM
+from units.engine.webui import WebUI
 from units.engine.tasker import Tasker
 from units.engine.knowledge import Knowledge
 
@@ -20,13 +20,13 @@ class Engine(Unit):
 
         self.knowledge = None
         self.tasker = None
-        self.uiapi = None
+        self.webui = None
 
 
     def clean(self):
         self.knowledge = None
         self.tasker = None
-        self.uiapi = None
+        self.webui = None
 
 
     ''' ############################################
@@ -36,8 +36,8 @@ class Engine(Unit):
         print('[engine] Starting')
         self.knowledge = Knowledge(self)
         self.logic = Tasker(self)
-        self.uiapi = UIApi(self)
-        self.uiapi.start()
+        self.webui = WebUI(self)
+        self.webui.start()
 
         self.add_cmd_handler('get', self.knowledge.get)
         self.add_cmd_handler('set', self.knowledge.set)

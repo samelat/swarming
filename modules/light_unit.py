@@ -1,5 +1,5 @@
 
-from units.modules.unit import Unit
+from modules.unit import Unit
 
 
 class LightUnit(Unit):

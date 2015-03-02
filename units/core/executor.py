@@ -2,9 +2,9 @@
 import queue
 from multiprocessing import Process
 
-from units.modules.unit import Unit
-from units.modules.message import Message
-from units.modules.messenger import Messenger
+from modules.unit import Unit
+from modules.message import Message
+from modules.messenger import Messenger
 
 
 class Executor(Unit):

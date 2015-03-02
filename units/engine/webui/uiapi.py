@@ -1,59 +1,14 @@
 
-import os
 import cherrypy
-from cherrypy.process import servers
-from threading import Thread
 from urllib.parse import urlparse
-
-from units.modules.unit import Unit
-from units.modules.message import Message
-from units.modules.messenger import Messenger
 
 from units.engine.orm import *
 
 
 class UIApi:
 
-    name = 'uiapi'
-
-    def __init__(self, engine):
-        self._engine = engine
-        self._db_mgr = None
-        self._thread = None
-
-
-    ''' ############################################
-    '''
-    def _launcher(self):
-
+    def __init__(self):
         self._db_mgr = ORM()
-        print('[AAAAAAAAAA] {0}'.format(self._db_mgr.session_lock))
-        
-        # cherrypy fix
-        servers.wait_for_occupied_port = self.__fake_wait_for_occupied_port
-        cherrypy.config.update('units/uiapi/server.conf')
-        cherrypy.config.update({'engine.autoreload_on': False})
-
-        conf = {
-            '/static':{
-                'tools.staticdir.root': os.path.abspath(os.getcwd()),
-                'tools.staticdir.on': True,
-                'tools.staticdir.dir': 'units/uiapi/html'
-            }
-        }
-        
-        cherrypy.quickstart(self, '/', conf)
-
-
-    def __fake_wait_for_occupied_port(self, host, port):
-        return
-
-
-    def start(self):
-        print('[webui] Starting')
-        self._thread = Thread(target=self._launcher)
-        self._thread.start()
-
 
     ''' ############################################
     '''
@@ -119,5 +74,43 @@ class UIApi:
             self._db_mgr.session_lock.release()
 
             return result
+
+        return {'status':-2, 'msg':'Unknown action'}
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_in()
+    @cherrypy.tools.json_out()
+    def dictionary(self):
+        print('[uiapi.dictionary] JSON: {0}'.format(cherrypy.request.json))
+        data = cherrypy.request.json
+        if 'action' not in data:
+            return {'status':-1, 'msg':'You have to specify an action'} 
+
+        #####################################################
+        if data['action'] == 'get':
+            self._db_mgr.session_lock.acquire()
+
+            query = self._db_mgr.session.query(Dictionary)
+
+            if 'limit' in data:
+                query = query.limit(data['limit'])
+                if 'offset' in data:
+                    query = query.offset(data['offset'])
+
+            dictionaries = query.all()
+            rows = [task.to_json() for dictionary in dictionaries]
+
+            size = self._db_mgr.session.query(Dictionary).count()
+
+            self._db_mgr.session_lock.release()
+
+            return {'status':0, 'size':size, 'rows':rows}
+
+        #####################################################
+        elif data['action'] == 'add':
+            print('SETTING VALUES: {0}'.format(data['values']))
+
+            return {'status':0}
 
         return {'status':-2, 'msg':'Unknown action'}

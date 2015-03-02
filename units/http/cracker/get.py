@@ -1,7 +1,7 @@
 
 import requests
 
-from units.modules.dictionary import Dictionary
+from modules.dictionary import Dictionary
 
 
 class Get:

@@ -7,4 +7,7 @@ function Main () {
         
     };
     
+    this.update = function() {
+
+    };
 };

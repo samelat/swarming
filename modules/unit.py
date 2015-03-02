@@ -1,7 +1,7 @@
 
 from threading import Condition
 
-from units.modules.message import Message
+from modules.message import Message
 
 
 class Unit:

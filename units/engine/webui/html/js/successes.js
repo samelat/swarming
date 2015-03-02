@@ -5,4 +5,7 @@ function Successes () {
         alert("SUCCESSES LOADED!!!");
     };
     
+    this.update = function() {
+
+    };
 };

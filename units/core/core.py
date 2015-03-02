@@ -2,12 +2,12 @@
 import random
 from threading import Condition
 
+from modules.unit import Unit
+from modules.message import Message
+
 from units.http.http import HTTP
-from units.modules.unit import Unit
 from units.engine.engine import Engine
 from units.core.executor import Executor
-
-from units.modules.message import Message
 
 
 class Core(Unit):
