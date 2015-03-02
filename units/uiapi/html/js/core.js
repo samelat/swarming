@@ -1,16 +1,27 @@
 
 function Core () {
 
-    this.module = null;
-    this.modules = {'main':Main, 'tasks':Tasks};
+    this.interval_id = null;
+    this.modules = {'main':Main, 'task':Task, 'dictionaries':Dictionaries, 'debug':Debug, 'successes':Successes};
 
-    this.load = function(tag) {
+    this.start = function(){
+        this.load('main');
+
+        this.interval_id = window.setInterval(function(){
+            module.update();
+        }, 16000);
+    };
+
+    this.load = function(name) {
+
+        if(!(name in this.modules))
+            name = 'main';
 
         $.ajax({
             type: "get",
-            url: tag.name + '.html',
+            url: name + '.html',
             error: function() {
-                console.log('[app.core] Page not found: ' + tag.name + '.html');
+                console.log('[app.core] Page not found: ' + name + '.html');
             },
             success: function(result) {
                 
@@ -19,14 +30,12 @@ function Core () {
             }
         });
 
-        $(tag).addClass('active');
-        //alert(JSON.stringify(this.modules));
-        //this.module = new this.modules[tag.name]();
-        //this.module.start();
+        module = new this.modules[name]();
+        module.start();
     };
 };
 
+var module = null;
+
 var core = new Core();
-main = $('#side-menu li a[name="main"]');
-//alert(main.get(0));
-core.load(main);
+core.start();

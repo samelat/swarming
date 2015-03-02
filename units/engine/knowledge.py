@@ -4,9 +4,9 @@ from units.engine.orm import *
 
 class Knowledge:
 
-    def __init__(self, engine, db_mgr):
+    def __init__(self, engine):
         self._engine = engine
-        self._db_mgr = db_mgr
+        self._db_mgr = ORM()
 
     ''' ############################################
         These set and get methods are just to keep an abstract

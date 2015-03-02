@@ -6,12 +6,43 @@
     margin-bottom: 0px;
 }
 
+.progress {
+    border-radius: 16px;
+    height: 16px;
+}
+
 .progress .stopped {
-    background-color: #D8D8D8;
+    background-color: #58ACFA;
+}
+
+.progress .stopped {
+    /*background-color: #D8D8D8;*/
+    background-color: #FA5858;
+}
+
+.progress .ready {
+    background-color: #F3F781;
 }
 
 .progress .running {
-    background-color: #01DF01;
+    background-color: #2EFE2E;
+}
+
+.no-padding {
+   padding: 0 !important;
+   margin: 0 !important;
+}
+
+.row > .top-margin-16 {
+    margin-top: 16px;
+}
+/*
+.row > div > button {
+    margin-top: 25px;
+}*/
+
+.no-right-padding > div {
+    padding-right: 0px;
 }
 
 textarea {

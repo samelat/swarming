@@ -3,10 +3,13 @@ import os
 import cherrypy
 from cherrypy.process import servers
 from threading import Thread
+from urllib.parse import urlparse
 
 from units.modules.unit import Unit
 from units.modules.message import Message
 from units.modules.messenger import Messenger
+
+from units.engine.orm import *
 
 
 class UIApi:
@@ -15,18 +18,21 @@ class UIApi:
 
     def __init__(self, engine):
         self._engine = engine
+        self._db_mgr = None
         self._thread = None
 
 
     ''' ############################################
     '''
     def _launcher(self):
+
+        self._db_mgr = ORM()
+        print('[AAAAAAAAAA] {0}'.format(self._db_mgr.session_lock))
         
         # cherrypy fix
         servers.wait_for_occupied_port = self.__fake_wait_for_occupied_port
         cherrypy.config.update('units/uiapi/server.conf')
-        cherrypy.config.update({'engine.autoreload_on': False,
-                                'environment': 'embedded'})
+        cherrypy.config.update({'engine.autoreload_on': False})
 
         conf = {
             '/static':{
@@ -64,51 +70,54 @@ class UIApi:
     @cherrypy.expose
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
-    def request(self):
-        '''
-        channel = tools.gen_token()
-        message = cherrypy.request.json
-        message['channel'] = channel
-        message['src'] = self._webui.name
+    def task(self):
+        print('[uiapi.task] JSON: {0}'.format(cherrypy.request.json))
+        data = cherrypy.request.json
+        if 'action' not in data:
+            return {'status':-1, 'msg':'You have to specify an action'} 
 
-        self._webui.register_resp(channel)
-        self._webui.dispatch(message)
+        #####################################################
+        if data['action'] == 'get':
+            self._db_mgr.session_lock.acquire()
 
-        self._lost_responses[channel] = 0
-        '''
+            query = self._db_mgr.session.query(Task)
 
-        #return {'status':0, 'channel':channel}
-        return {'status':0}
+            if 'limit' in data:
+                query = query.limit(data['limit'])
+                if 'offset' in data:
+                    query = query.offset(data['offset'])
 
-    
-    @cherrypy.expose
-    @cherrypy.tools.json_in()
-    @cherrypy.tools.json_out()
-    def response(self):
-        #data = cherrypy.request.json
-        #print('[webui.response] {0}'.format(data))
-        '''
-        _responses = self._webui.get_responses(data['channels'])
+            tasks = query.all()
+            rows = [task.to_json() for task in tasks]
 
-        responses = {}
-        for channel in _responses:
-            try:
-                responses[channel] = _responses[channel]['params']
-                del(self._lost_responses[channel])
-            except KeyError:
-                print('[webui.error] Response Channel {0} does not exits'.format(channel))
+            size = self._db_mgr.session.query(Task).count()
 
-        # With this we ensure that the ignored responses will be deleted
-        to_remove = []
-        for channel, count in self._lost_responses.items():
-            self._lost_responses[channel] += 1
-            if count > 3:
-                to_remove.append(channel)
-        self._webui.get_responses(to_remove)
-        for channel in to_remove:
-            del(self._lost_responses[channel])
-        print('[webui.deleting] Deleting old responses: {0}'.format(to_remove))
-        '''
+            self._db_mgr.session_lock.release()
 
-        return {'status':0}
-        #return {'status':0, 'responses':responses, 'channels':list(_responses.keys())}
+            return {'status':0, 'size':size, 'rows':rows}
+
+        #####################################################
+        elif data['action'] == 'add':
+            print('SETTING VALUES: {0}'.format(data['values']))
+            values = data['values']
+
+            uri = urlparse(values['uri'])
+
+            task = {}
+            task['protocol'] = uri.scheme
+            task['hostname'] = uri.hostname
+            task['port'] = uri.port
+            task['path'] = uri.path
+            task['stage'] = values['stage']
+            task['state'] = values['state']
+
+            if 'attrs' in values:
+                task['attrs'] = values['attrs']
+
+            self._db_mgr.session_lock.acquire()
+            result = self._db_mgr.set('task', task)
+            self._db_mgr.session_lock.release()
+
+            return result
+
+        return {'status':-2, 'msg':'Unknown action'}

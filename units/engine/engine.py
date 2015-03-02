@@ -1,5 +1,4 @@
 
-from threading import Lock
 from multiprocessing import Process
 
 from units.engine.orm import ORM
@@ -35,9 +34,8 @@ class Engine(Unit):
     '''
     def start(self):
         print('[engine] Starting')
-        lock = Lock()
-        self.knowledge = Knowledge(self, ORM(lock))
-        self.logic = Tasker(self, ORM(lock))
+        self.knowledge = Knowledge(self)
+        self.logic = Tasker(self)
         self.uiapi = UIApi(self)
         self.uiapi.start()
 

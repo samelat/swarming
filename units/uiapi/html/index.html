@@ -209,32 +209,32 @@
                 <div class="sidebar-nav navbar-collapse">
                     <ul class="nav" id="side-menu">
                         <li>
-                            <a name="main" onclick="core.load(this)">
+                            <a name="main" onclick="menu.sb_click(this)">
                                 <i class="fa fa-home fa-fw"></i>
                                 Main
                             </a>
                         </li>
                         <li>
-                            <a name="successes" onclick="core.load(this)">
+                            <a name="successes" onclick="menu.sb_click(this)">
                                 <i class="fa fa-star fa-fw"></i>
                                 Successes
                             </a>
                         </li>
                         <li>
-                            <a name="dictionaries" onclick="core.load(this)">
+                            <a name="dictionaries" onclick="menu.sb_click(this)">
                                 <i class="fa fa-book fa-fw"></i>
                                 Dictionaries
                             </a>
                         </li>
                         <li>
-                            <a name="tasks" onclick="core.load(this)">
+                            <a name="task" onclick="menu.sb_click(this)">
                                 <i class="fa fa-tasks fa-fw"></i>
                                 Tasks
                             </a>
                         </li>
                         <li class="divider"></li>
                         <li>
-                            <a name="debug" onclick="core.load(this)">
+                            <a name="debug" onclick="menu.sb_click(this)">
                                 <i class="fa fa-bug fa-fw"></i>
                                 Debug
                             </a>
@@ -263,6 +263,9 @@
     <!-- Bootstrap Core JavaScript -->
     <script src="js/lib/bootstrap.min.js"></script>
 
+    <!-- Mustache Templates -->
+    <script src="js/lib/mustache.js"></script>
+
     <!-- Metis Menu Plugin JavaScript -->
     <script src="js/plugins/metisMenu/metisMenu.min.js"></script>
 
@@ -276,8 +279,12 @@
 
     <!-- Swarming UI JavaScript -->
     <script src="js/main.js"></script>
-    <script src="js/tasks.js"></script>
+    <script src="js/task.js"></script>
+    <script src="js/debug.js"></script>
+    <script src="js/successes.js"></script>
+    <script src="js/dictionaries.js"></script>
 
+    <script src="js/menu.js"></script>
     <script src="js/core.js"></script>
 
 </body>

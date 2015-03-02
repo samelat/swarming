@@ -1,0 +1,120 @@
+<div class="row">
+    <div class="col-lg-12">
+        <h1 class="page-header">Tasks</h1>
+    </div>
+    <!-- /.col-lg-12 -->
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                Tasks Table
+            </div>
+            <!-- /.panel-heading -->
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <p>
+                        <div class="btn-group">
+                            <button class="btn btn-info btn-xs" data-toggle="modal" data-target="#add_task">
+                                <i class="fa fa-plus fa-fw"></i>
+                            </button>
+                            <button class="btn btn-info btn-xs">
+                                <i class="fa fa-refresh fa-fw"></i>
+                            </button>
+                        </div>
+                    </p>
+                    <table class="table table-striped table-bordered table-hover" id="task-table">
+                        <thead>
+                            <tr>
+                                <th class="col-lg-1">#</th>
+                                <th>URI</th>
+                                <th class="col-lg-1">Complete</th>
+                                <th class="col-lg-2">Stage</th>
+                                <th class="col-lg-1">State</th>
+                                <th>Attributes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center" id="pagination_bar">
+                    <!-- /.table-responsive -->
+                </div>
+            </div>
+        </div>
+        <!-- /.panel -->
+    </div>
+    <!-- /.col-lg-12 -->
+</div>
+<!-- /.row -->
+
+<!-- Modal -->
+<div class="modal fade" id="add_task" tabindex="-1" role="dialog" aria-labelledby="newResourceLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+            <div class="modal-content col-sm-8">
+                <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">New Task</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <label>URI:</label>
+                            <input type="text" name="uri" class="form-control" placeholder="http://127.0.0.1:8080/">
+                        </div>
+                        <div class="col-sm-7 top-margin-16">
+                            <label>Stage:</label>
+                            <select class="form-control" name="stage">
+                                <option>initial</option>
+                                <option>cracking</option>
+                                <option>crawling</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-5 top-margin-16">
+                            <label>State:</label>
+                            <select class="form-control" name="state">
+                                <option>ready</option>
+                                <option>stopped</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-12">
+                            <hr>
+                            <label>Attributes</label>
+                            <div class="row no-right-padding">
+                                <div class="col-sm-5">
+                                    <input type="text" name="key" class="form-control input-sm" placeholder="Key">
+                                </div>
+                                <div class="col-sm-5">
+                                    <input type="text" name="value" class="form-control input-sm" placeholder="Value">
+                                </div>
+                                <div class="col-sm-2">
+                                    <button class="btn btn-primary btn-sm" onclick="module.add_attr()">
+                                        <i class="fa fa-plus fa-fw"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <table class="table table-striped" id="attr_table">
+                                <thead>
+                                    <tr>
+                                        <th class="col-lg-9">Entry</th>
+                                        <th class="col-lg-2">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="module.add_task()">Agregar</button>
+                </div>
+            </div>
+        </div>
+</div>

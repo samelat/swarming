@@ -1,8 +1,10 @@
 
 function Main () {
 
+    this.name = 'main';
+
     this.start = function() {
-        alert("MAIN LOADED!!!");
+        
     };
     
 };
