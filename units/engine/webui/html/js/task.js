@@ -20,11 +20,11 @@ function Task () {
 
     this.update = function() {
 
-        data = {'action':'get', 'limit':this.limit, 'offset':(this.index * this.limit)};
+        data = {'entity':'task', 'limit':this.limit, 'offset':(this.index * this.limit)};
 
         $.ajax({
             type: 'POST',
-            url: '/task',
+            url: '/api/get',
             data: JSON.stringify(data),
             contentType: 'application/json',
             dataType: 'json',
@@ -133,11 +133,29 @@ function Task () {
         var state = $('.row select[name="state"]').val();
         var stage = $('.row select[name="stage"]').val();
 
-        var data = {'action':'add', 'values':{'uri':uri, 'stage':stage, 'state':state}};
+        // ... "http", "127.0.0.1", "9090", "/index.php", "var1=val1&var2=val2&var3=val3"]
+        values = {};
+        split = /([^:]+):\/\/([^:\/]+):?(\d*)([^\?]+)\??([^#]*)/i.exec(uri);
+        values['protocol'] = split[1];
+        values['hostname'] = split[2];
+
+        if(split[3].length > 0)
+            values['port'] = parseInt(split[3]);
+
+        if(split[4].length > 0)
+            values['path'] = split[4];
+
+        if(split[5].length > 0)
+            attrs['query'] = split[5];
+
+        values['stage'] = stage;
+        values['state'] = state;
+
+        var data = {'entity':'task', 'values':values};
 
         $.ajax({
             type: 'POST',
-            url: '/task',
+            url: '/api/set',
             data: JSON.stringify(data),
             contentType: 'application/json',
             dataType: 'json',

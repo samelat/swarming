@@ -25,15 +25,26 @@ class WebUI:
         cherrypy.config.update('units/engine/webui/server.conf')
         cherrypy.config.update({'engine.autoreload_on': False})
 
-        conf = {
-            '/static':{
+        static_conf = {
+            '/ui':{
                 'tools.staticdir.root': os.path.abspath(os.getcwd()),
                 'tools.staticdir.on': True,
                 'tools.staticdir.dir': 'units/engine/webui/html'
             }
         }
         
-        cherrypy.quickstart(UIApi(), '/', conf)
+        cherrypy.tree.mount(self, '/', static_conf)
+        cherrypy.tree.mount(UIApi(), '/api')
+
+        cherrypy.engine.start()
+        cherrypy.engine.block()
+
+
+    ''' ############################################
+    '''
+    @cherrypy.expose
+    def default(self, *args,**kwargs):
+        raise cherrypy.HTTPRedirect("/ui/index.html")
 
 
     def __fake_wait_for_occupied_port(self, host, port):

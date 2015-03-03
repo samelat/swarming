@@ -30,23 +30,23 @@ class ORM:
         self.session_lock = ORM._singleton_session_lock
 
         self.classes = [Unit, Task, Dictionary, Success, Complement]
-        self.tables = dict([(c.__tablename__, c) for c in self.classes])
+        self.entities = dict([(c.__tablename__, c) for c in self.classes])
 
 
     def timestamp(self):
         return int(time.time() * 1000)
 
 
-    def set(self, table, values):
-        cls = self.tables[table]
+    def set(self, entity, values):
+        cls = self.entities[entity]
         error, values = cls.from_json(values, self)
         self.session.commit()
 
         return {'status':error, 'values':values}
 
 
-    def get(self, table, values):
-        cls = self.tables[table]
+    def get(self, entity, values):
+        cls = self.entities[entity]
 
         timestamp = 0
         if 'timestamp' in values:
