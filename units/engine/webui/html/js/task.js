@@ -14,10 +14,6 @@ function Task () {
         this.update();
     };
 
-    this.send = function(data) {
-
-    };
-
     this.update = function() {
 
         data = {'entity':'task', 'limit':this.limit, 'offset':(this.index * this.limit)};

@@ -36,6 +36,11 @@
 .row > .top-margin-16 {
     margin-top: 16px;
 }
+
+.row > .bottom-margin {
+    margin-bottom: 10px;
+}
+
 /*
 .row > div > button {
     margin-top: 25px;
