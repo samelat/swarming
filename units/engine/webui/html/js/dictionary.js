@@ -106,29 +106,53 @@ function Dictionary () {
 
     this.add_entry = function() {
 
-        var attrs = {};
-        $('#attr_table tbody .pair').each(function(index, tag){
-            var tmp = JSON.parse(tag.innerText);
-            $.extend(attrs, tmp);
-        });
+        template = '<tr>' +
+                   '    <td class="pair">{{username}}</td>' +
+                   '    <td class="pair">{{password}}</td>' +
+                   '    <td></td>' +
+                   '    <td></td>' +
+                   '</tr>';
 
-        keywords = {};
-        if($('#null_username').prop("checked"))
-            keywords.username = $('#username');
+        if(this.values == undefined)
+            this.values = [];
 
-        if($('#null_password').prop("checked"))
-            keywords.password = $('#password');
+        var keywords = {};
+        if(!$('#null_username').prop("checked"))
+            keywords.username = $('#username').val();
+        else
+            keywords.username = null;
 
-        var data = {'entity':'dictionary', 'values':values};
+        if(!$('#null_password').prop("checked"))
+            keywords.password = $('#password').val();
+        else
+            keywords.password = null;
+
+        if(!(('username' in keywords) || ('password' in keywords)))
+            return;
+
+        this.values.push({'dictionary':keywords});
 
         console.log('[dictionary.add_entry] ' + JSON.stringify(keywords));
 
-        return;
+        html = Mustache.to_html(template, keywords);
+
+        console.log(html);
+
+        $('#entries_table tbody').append(html);
+
+    };
+
+    this.add_entries = function() {
+
+        console.log('SENDING!!!');
+
+        if((this.values == undefined) || (this.values.length == 0))
+            return;
 
         $.ajax({
             type: 'POST',
             url: '/api/set',
-            data: JSON.stringify(data),
+            data: JSON.stringify(this.values),
             contentType: 'application/json',
             dataType: 'json',
             success: function(response) {

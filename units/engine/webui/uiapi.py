@@ -51,16 +51,19 @@ class UIApi:
     def set(self):
         print('[uiapi.set] JSON: {0}'.format(cherrypy.request.json))
 
-        data = cherrypy.request.json
-
-        try:
-            entity = data['entity']
-            values = data['values']
-        except KeyError:
-            return {'status':-1, 'msg':'Malformed data [{0}]'.format(data)}
-
+        errors = 0
+        results_list = []
         self._db_mgr.session_lock.acquire()
-        result = self._db_mgr.set(entity, values)
+        for rows in cherrypy.request.json:
+            results = {}
+            for table, row in rows.items():
+                result = self._db_mgr.set(table, row)
+                results[table] = result
+                if result['status'] < 0:
+                    errors += 1
+            results_list.append(results)
         self._db_mgr.session_lock.release()
 
-        return result
+        print('[knowledge] saliendo de "set" - {1} - {0}'.format(results_list, errors))
+
+        return {'status':errors, 'results':results_list}

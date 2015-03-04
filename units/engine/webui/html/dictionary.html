@@ -69,7 +69,7 @@
                     </div>
                     <div class="row">
                         <div class="btn-group col-sm-12 bottom-margin">
-                            <button class="btn btn-info btn-xs" data-toggle="modal" data-target="#add_dictionary">
+                            <button class="btn btn-info btn-xs" data-toggle="modal" onclick="module.add_entry()">
                                 <i class="fa fa-plus fa-fw"></i>
                             </button>
                             <button class="btn btn-info btn-xs">
@@ -99,10 +99,11 @@
                     </div>
                 <div class="row">
                     <div class="col-sm-12">
-                    <table class="table table-striped" id="attr_table">
+                    <table class="table table-striped" id="entries_table">
                         <thead>
                             <tr>
-                                <th class="col-sm-9">Keywords</th>
+                                <th class="col-sm-4">Username</th>
+                                <th class="col-sm-4">Password</th>
                                 <th class="col-sm-1">Task</th>
                                 <th class="col-sm-2">Action</th>
                             </tr>
@@ -115,7 +116,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary btn-sm" onclick="module.add_entry()">Agregar</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="module.add_entries()">Agregar</button>
             </div>
         </div>
     </div>
