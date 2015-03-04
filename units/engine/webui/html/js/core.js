@@ -2,7 +2,7 @@
 function Core () {
 
     this.interval_id = null;
-    this.modules = {'main':Main, 'task':Task, 'dictionary':Dictionary, 'debug':Debug, 'successes':Successes};
+    this.modules = {'main':Main, 'task':Task, 'dictionary':Dictionary, 'debug':Debug, 'success':Success};
 
     this.start = function(){
         this.load('main');

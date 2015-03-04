@@ -1,7 +1,7 @@
 
-function Task () {
+function Success () {
 
-    this.name = 'task';
+    this.name = 'success';
     this.limit = 10;
     this.index = 0;
 
@@ -16,7 +16,7 @@ function Task () {
 
     this.update = function() {
 
-        data = {'entity':'task', 'limit':this.limit, 'offset':(this.index * this.limit)};
+        data = {'entity':'success', 'limit':this.limit, 'offset':(this.index * this.limit)};
 
         $.ajax({
             type: 'POST',
@@ -26,31 +26,23 @@ function Task () {
             dataType: 'json',
 
             error: function() {
-                console.log('[task.update] request error');
+                console.log('[success.update] request error');
             },
 
             success: function(result) {
 
-                console.log('task size: ' + result.size);
+                console.log('success size: ' + result.size);
 
-                var table = $('#task-table tbody');
+                var table = $('#success-table tbody');
                 table.html('');
 
                 $.each(result.rows, function(index, row){
                     console.log('row[' + index + ']: ' + JSON.stringify(row));
 
-                    template = '<tr class="{{state}}">' +
+                    template = '<tr>' +
                                '    <td>{{id}}</td>' +
-                               '    <td>{{protocol}}://{{hostname}}:{{port}}{{path}}</td>' +
-                               '    <td>' +
-                               '        <div class="progress">' +
-                               '            <div class="progress-bar {{state}}" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 74%">' +
-                               '            </div>' +
-                               '        </div>' +
-                               '    </td>' +
-                               '    <td>{{stage}}</td>' +
-                               '    <td>{{state}}</td>' +
-                               '    <td></td>' +
+                               '    <td>{{credentials}}</td>' +
+                               '    <td>{{task.id}}</td>' +
                                '</tr>';
 
                     html = Mustache.to_html(template, row);
