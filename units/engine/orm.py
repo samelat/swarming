@@ -226,6 +226,8 @@ class Success(ORMBase, ORMCommon):
     credentials = Column(String, nullable=False)
     timestamp = Column(Integer)
 
+    task = relationship('Task', uselist=False)
+
     @classmethod
     def get_to_set(cls, values, mgr):
         to_set = {}
@@ -236,7 +238,7 @@ class Success(ORMBase, ORMCommon):
     def to_json(self):
         return {'id':self.id,
                 'credentials':json.loads(self.credentials),
-                'task':{'id':self.task_id}}
+                'task':{'id':self.task_id, 'stage':self.task.stage}}
 
 
 ''' ################################################

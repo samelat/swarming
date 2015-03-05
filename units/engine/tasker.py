@@ -15,6 +15,8 @@ class Tasker:
         self._cycle_delay = 10
         self._units = {}
 
+        self._running_forcing_dictionary = {}
+
         # Forcing Dictionary
         self.dictionary_limit = 3
 
@@ -93,6 +95,7 @@ class Tasker:
     '''
     def _forcing_dictionary_tasks(self):
 
+        '''
         self._db_mgr.session_lock.acquire()
 
         running_subtasks = self._db_mgr.session.query(DictionaryTask).\
@@ -110,8 +113,7 @@ class Tasker:
         self._engine._resp_lock.release()
 
         self._db_mgr.session.commit()
-
-        #self._db_mgr.session_lock.release()
+        '''
 
         #################################################################
         #################################################################

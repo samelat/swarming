@@ -18,4 +18,11 @@ class Joomla(Spider):
             print('[crawler.spider.app] ES UN JODIDO JOOMLA!!!: {0}'.format(request['url']))
             result['filters'] = [urllib.parse.urljoin(response.url, '.*')]
 
+            crack_task = self.unit.task.copy()
+            del(crack_task['id'])
+            crack_task.update({'path': _url.path, 'attrs': {'auth_scheme':'post'},
+                               'stage':'forcing.dictionary', 'state':'ready'})
+
+            self.unit.set_knowledge({'task':crawl_task}, block=False)
+
         return result

@@ -39,6 +39,11 @@ function Success () {
                 $.each(result.rows, function(index, row){
                     console.log('row[' + index + ']: ' + JSON.stringify(row));
 
+                    if(row.task.stage == 'forcing.dictionary') {
+                        template = 'Username: "{{username}}" - Password: "{{password}}"';
+                        row.credentials = Mustache.to_html(template, row.credentials);
+                    }
+
                     template = '<tr>' +
                                '    <td>{{id}}</td>' +
                                '    <td>{{credentials}}</td>' +
@@ -47,6 +52,7 @@ function Success () {
 
                     html = Mustache.to_html(template, row);
                     table.append(html);
+
                 });
 
                 pages = Math.ceil(result.size / module.limit);
@@ -89,67 +95,5 @@ function Success () {
                     $('#pagination_bar').html('');
             }
         });
-    };
-
-    this.add_attr = function() {
-
-        template = '<tr>' +
-                   '    <td class="pair">{"{{key}}":{{value}}}</td>' +
-                   '    <td></td>' +
-                   '</tr>';
-
-        var key = $('.row input[name="key"]').val();
-        var value = $('.row input[name="value"]').val();
-
-        if((key.length == 0) || (value.length == 0))
-            return;
-
-        html = Mustache.to_html(template, {"key":key, "value":value});
-
-        $('#attr_table tbody').append(html);
-    };
-
-    this.add_task = function() {
-
-        var attrs = {};
-        $('#attr_table tbody .pair').each(function(index, tag){
-            var tmp = JSON.parse(tag.innerText);
-            $.extend(attrs, tmp);
-        });
-
-        var uri = $('.row input[name="uri"]').val();
-        var state = $('.row select[name="state"]').val();
-        var stage = $('.row select[name="stage"]').val();
-
-        // ... "http", "127.0.0.1", "9090", "/index.php", "var1=val1&var2=val2&var3=val3"]
-        values = {};
-        split = /([^:]+):\/\/([^:\/]+)(?::(\d+))?([^\?]+)?(?:\?([^#]+))?/i.exec(uri);
-        values['protocol'] = split[1];
-        values['hostname'] = split[2];
-
-        if(split[3] != undefined)
-            values['port'] = parseInt(split[3]);
-
-        if(split[4] != undefined)
-            values['path'] = split[4];
-
-        if(split[5] != undefined)
-            attrs['query'] = split[5];
-
-        values['stage'] = stage;
-        values['state'] = state;
-
-        $.ajax({
-            type: 'POST',
-            url: '/api/set',
-            data: JSON.stringify([{'task':values}]),
-            contentType: 'application/json',
-            dataType: 'json',
-            success: function(response) {
-                        console.log('[ADD_TASK.RESPONSE] ' + JSON.stringify(response));
-                     }
-        });
-
-        //console.log(JSON.stringify(attrs));
     };
 };
