@@ -15,7 +15,8 @@ class Tasker:
         self._cycle_delay = 10
         self._units = {}
 
-        self._running_forcing_dictionary = {}
+        self._forcing_dictionary_channels = {}
+        self._ready_task_channels = {}
 
         # Forcing Dictionary
         self.dictionary_limit = 3
@@ -56,6 +57,20 @@ class Tasker:
 
         self._db_mgr.session_lock.acquire()
 
+        self._engine._resp_lock.acquire()
+        for channel in list(self._ready_task_channels.keys()):
+            if channel in self._engine._responses:
+                task_id = self._ready_task_channels[channel]
+                task = self._db_mgr.session.query(Task).\
+                                            filter_by(id=task_id).first()
+                task.state = 'complete'
+                self._db_mgr.session.commit()
+
+        self._engine._resp_lock.release()
+
+        #################################################################
+        #################################################################
+
         crawling_tasks = self._db_mgr.session.query(Task).\
                                               filter_by(state = 'ready').\
                                               filter(Task.stage.like('crawling')|Task.stage.like('initial')).\
@@ -80,40 +95,38 @@ class Tasker:
 
                 if response['status'] < 0:
                     task.state = 'stopped'
+                elif task.stage != 'initial':
+                    self._ready_task_channels[response['channel']] = task.id
 
             self._db_mgr.session.commit()
 
         self._db_mgr.session_lock.release()
 
 
-    ''' TODO: ###########################################
-        Este metodo deberia buscar todas las relaciones
-        faltantes entre tablas como 'dictionary' y las
-        'tasks' que las utilicen, para crear asi nuevos
-        mensajes de trabajo a realizar.
+    ''' #################################################
+
         #################################################
     '''
     def _forcing_dictionary_tasks(self):
 
-        '''
         self._db_mgr.session_lock.acquire()
-
-        running_subtasks = self._db_mgr.session.query(DictionaryTask).\
-                                                filter_by(state = 'running').\
-                                                all()
 
         running_tasks = set()
         self._engine._resp_lock.acquire()
-        for subtask in running_subtasks:
-            if subtask.channel in self._engine._responses:
-                del(self._engine._responses[subtask.channel])
+        for channel in list(self._forcing_dictionary_channels.keys()):
+            subtask_id, task_id = self._forcing_dictionary_channels[channel]
+            if channel in self._engine._responses:
+                response = self._engine._responses[channel]
+                del(self._engine._responses[channel])
+                del(self._forcing_dictionary_channels[channel])
+                subtask = self._db_mgr.session.query(DictionaryTask).\
+                                               filter_by(id=subtask_id).first()
                 subtask.state = 'complete'
             else:
-                running_tasks.add(subtask.task_id)
+                running_tasks.add(task_id)
         self._engine._resp_lock.release()
 
         self._db_mgr.session.commit()
-        '''
 
         #################################################################
         #################################################################
@@ -125,14 +138,6 @@ class Tasker:
                                      all()
 
         if forcing_tasks:
-
-            '''
-            last_dict_entry = self._db_mgr.session.query(func.max(Dictionary.id),
-                                                         Dictionary.username,
-                                                         Dictionary.password).one()
-            if not last_dict_entry:
-                return []
-            '''
 
             for task in forcing_tasks:
                 dictionaries = []
@@ -253,13 +258,13 @@ class Tasker:
                 print('[tasker] Dispatch response: {0}'.format(response))
 
                 new_subtask = DictionaryTask(index=index, current=current,
-                                             channel=response['channel'],
                                              state='running', timestamp=self._db_mgr.timestamp())
+                
                 new_subtask.task = task
                 self._db_mgr.session.add(new_subtask)
+                self._db_mgr.session.commit()
 
-            # ???????????????????
-            self._db_mgr.session.commit()
+                self._forcing_dictionary_channels[response['channel']] = (new_subtask.id, task.id)
 
         self._db_mgr.session_lock.release()
 
@@ -304,7 +309,7 @@ class Tasker:
     def _restart_tasks(self):
         self._db_mgr.session_lock.acquire()
         tasks = self._db_mgr.session.query(Task).\
-                                     filter(Task.state != 'stopped', Task.stage != 'complete').\
+                                     filter(Task.state != 'stopped', Task.state != 'complete').\
                                      all()
         for task in tasks:
             task.state = 'ready'

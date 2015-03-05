@@ -158,8 +158,8 @@ class Task(ORMBase, ORMCommon):
     dependence_id = Column(Integer, ForeignKey('task.id'))
 
     # Task
-    stage = Column(String, default='initial') # (initial, crawling, forcing, waiting, complete)
-    state = Column(String, default='ready') # (ready, stopped, running)
+    stage = Column(String, default='initial') # (initial, crawling, forcing, waiting)
+    state = Column(String, default='ready') # (ready, stopped, running, complete)
     timestamp = Column(Integer, default=0)
 
     # Resource
@@ -311,7 +311,7 @@ class DictionaryTask(ORMBase):
 
     index = Column(Integer)
     current = Column(Integer)
-    channel = Column(Integer)
+    # channel = Column(Integer)
     state = Column(String, default='stopped') # (stopped, running, complete)
     timestamp = Column(Integer)
 

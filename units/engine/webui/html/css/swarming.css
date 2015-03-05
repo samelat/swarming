@@ -7,25 +7,37 @@
 }
 
 .progress {
-    border-radius: 16px;
     height: 16px;
 }
-
-.progress .stopped {
-    background-color: #58ACFA;
+/* ###################### */
+.progress.stopped {
+    background-color: #E38986;
 }
 
-.progress .stopped {
-    /*background-color: #D8D8D8;*/
-    background-color: #FA5858;
+.progress-bar.stopped {
+    background-color: #CF0000;
 }
-
-.progress .ready {
+/* ###################### */
+.progress.ready {
+    background: #F3F781;
     background-color: #F3F781;
 }
 
-.progress .running {
+.progress-bar.ready {
+    background-color: #6C1600;
+}
+/* ###################### */
+.progress.running {
+    background: #31CD17;
     background-color: #2EFE2E;
+}
+
+.progress-bar.running {
+    background-color: #6C1600;
+}
+/* ###################### */
+.progress-bar.complete {
+    background-color: #7AAB1C;
 }
 
 .no-padding {
