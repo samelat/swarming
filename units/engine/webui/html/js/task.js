@@ -2,7 +2,7 @@
 function Task () {
 
     this.name = 'task';
-    this.limit = 10;
+    this.limit = 4;
     this.index = 0;
 
     this.start = function() {
@@ -46,13 +46,15 @@ function Task () {
                     }
 
                     row.stage_name = row.stage.split('.')[0];
+                    
+                    row.percentage = (row.done/(row.done+row.remaining))*100;
 
                     template = '<tr>' +
                                '    <td>{{id}}</td>' +
                                '    <td>{{protocol}}://{{hostname}}:{{port}}{{path}}</td>' +
                                '    <td>' +
                                '        <div class="progress {{stage_name}}">' +
-                               '            <div class="progress-bar {{stage_name}} {{striped}}" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 74%">' +
+                               '            <div class="progress-bar {{stage_name}} {{striped}}" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: {{percentage}}%">' +
                                '            </div>' +
                                '        </div>' +
                                '    </td>' +

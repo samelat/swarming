@@ -18,10 +18,10 @@ class Crawler:
 
 
     def get_done_work(self):
-        return self.container.remaining()
+        return self.container.done()
 
     def get_remaining_work(self):
-        return self.container.done()
+        return self.container.remaining()
 
     def crawl(self):
 

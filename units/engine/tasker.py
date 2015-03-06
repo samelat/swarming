@@ -313,6 +313,10 @@ class Tasker:
                                      all()
         for task in tasks:
             task.state = 'ready'
+            if task.stage != 'cracking':
+                task.done = 0
+                task.remaining = 0
+
         self._db_mgr.session.commit()
         self._db_mgr.session_lock.release()
 

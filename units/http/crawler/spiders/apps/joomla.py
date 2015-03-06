@@ -18,6 +18,10 @@ class Joomla(Spider):
             print('[crawler.spider.app] ES UN JODIDO JOOMLA!!!: {0}'.format(request['url']))
             result['filters'] = [urllib.parse.urljoin(response.url, '.*')]
 
+            joomla_root = re.findall('(.+)media/system/js/core\.js', response.url)
+            if joomla_root:
+                pass
+
             '''
             crack_task = self.unit.task.copy()
             del(crack_task['id'])

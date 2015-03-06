@@ -208,6 +208,8 @@ class Task(ORMBase, ORMCommon):
                   'attrs':json.loads(self.attrs),
                   'stage':self.stage,
                   'state':self.state,
+                  'done':self.done,
+                  'remaining':self.remaining,
                   'timestamp':self.timestamp}
         if self.dependence_id:
             values['dependence'] = {'id':self.dependence.id}
