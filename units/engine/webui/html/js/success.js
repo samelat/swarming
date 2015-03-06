@@ -39,7 +39,7 @@ function Success () {
                 $.each(result.rows, function(index, row){
                     console.log('row[' + index + ']: ' + JSON.stringify(row));
 
-                    if(row.task.stage == 'forcing.dictionary') {
+                    if(row.task.stage == 'cracking.dictionary') {
                         template = 'Username: "{{username}}" - Password: "{{password}}"';
                         row.credentials = Mustache.to_html(template, row.credentials);
                     }

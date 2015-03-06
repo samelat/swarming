@@ -24,7 +24,7 @@ class HTTP(LightUnit):
 
         self.stages['initial']  = self.http_initial_stage
         self.stages['crawling'] = self.http_crawling_stage
-        self.stages['forcing.dictionary']  = self.http_forcing_stage
+        self.stages['cracking.dictionary']  = self.http_cracking_stage
 
 
     # This method exist to adapt the dependencies to Unit needs
@@ -52,7 +52,7 @@ class HTTP(LightUnit):
 
     ''' 
     '''
-    def http_forcing_stage(self, message):
+    def http_cracking_stage(self, message):
         print('HTTP Forcing Stage method')
 
         auth_scheme = self.task['attrs']['auth_scheme']
@@ -78,7 +78,7 @@ class HTTP(LightUnit):
             traceback.print_exc()
             return {'status':-1}
 
-        # new_task = {'task':{'stage':'forcing.dictionary', 'state':'stopped'}}
+        # new_task = {'task':{'stage':'cracking.dictionary', 'state':'stopped'}}
         # new_task['task']['resource'] = {'service':{'id':1}, 'attrs':{'auth_scheme':'basic'}, 'path':'/'}
 
         # self.set_knowledge(new_task, True)

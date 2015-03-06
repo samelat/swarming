@@ -16,8 +16,6 @@ function Task () {
 
     this.update = function() {
 
-        return;
-
         data = {'entity':'task', 'limit':this.limit, 'offset':(this.index * this.limit)};
 
         $.ajax({
@@ -41,12 +39,20 @@ function Task () {
                 $.each(result.rows, function(index, row){
                     console.log('row[' + index + ']: ' + JSON.stringify(row));
 
-                    template = '<tr class="{{state}}">' +
+                    if(row.state != 'complete') {
+                        row.striped = 'progress-bar-striped';
+                        if(row.state == 'running')
+                            row.striped += ' active';
+                    }
+
+                    row.stage_name = row.stage.split('.')[0];
+
+                    template = '<tr>' +
                                '    <td>{{id}}</td>' +
                                '    <td>{{protocol}}://{{hostname}}:{{port}}{{path}}</td>' +
                                '    <td>' +
-                               '        <div class="progress">' +
-                               '            <div class="progress-bar {{state}}" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 74%">' +
+                               '        <div class="progress {{stage_name}}">' +
+                               '            <div class="progress-bar {{stage_name}} {{striped}}" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 74%">' +
                                '            </div>' +
                                '        </div>' +
                                '    </td>' +

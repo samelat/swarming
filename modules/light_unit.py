@@ -1,4 +1,6 @@
 
+import time
+
 from modules.unit import Unit
 
 
@@ -12,6 +14,7 @@ class LightUnit(Unit):
         self.task = None
         self.stages = {}
         self.complements = {}
+        self.timestamp = time.time()
 
         self.add_cmd_handler('consume', self.consume)
         self.add_cmd_handler('register', self.register)
@@ -27,6 +30,20 @@ class LightUnit(Unit):
     # Once the message was received, this method is called
     def prepare(self):
         pass
+
+    def sync(self, component):
+        timestamp = time.time()
+        if timestamp > (self.timestamp + 4.0):
+            self.timestamp = timestamp
+
+            done = component.get_done_work()
+            remaining = component.get_remaining_work()
+
+            print('[!!!!!!!!!!!!!!!!!!!] {0} - {1}'.format(done, remaining))
+
+            self.set_knowledge({'task':{'id':self.task['id'],
+                                        'done':done,
+                                        'remaining':remaining}})
 
 
     def success(self, credentials, complement):
@@ -46,6 +63,9 @@ class LightUnit(Unit):
             if 'complements' in message['params']:
                 self.complements = message['params']['complements']
 
+            self.task['done'] = 0
+            self.task['remaining'] = 0
+
             self.prepare()
 
             stage = self.task['stage']
@@ -55,7 +75,7 @@ class LightUnit(Unit):
 
         return result
 
-    ''' 
+    ''' ##########################################
     '''
     # TODO: Move this method to LightUnit
     def register(self, message):

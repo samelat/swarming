@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 from units.http.crawler.container import Container
 from units.http.crawler import spiders
 
+import time
+
 class Crawler:
 
     def __init__(self, unit):
@@ -14,6 +16,12 @@ class Crawler:
                         spiders.AppSpider(unit)]
         self.container = None
 
+
+    def get_done_work(self):
+        return self.container.remaining()
+
+    def get_remaining_work(self):
+        return self.container.done()
 
     def crawl(self):
 
@@ -54,7 +62,9 @@ class Crawler:
                     for dictionary in result['dictionaries']:
                         print('[http.crawler] new dictionary: {0}'.format(dictionary))
 
-        #print('[wdh]??????????????????????????')
-        #self.unit.set_knowledge({'task':{'id':self.unit.task['id'], 'stage':'complete'}})
+            time.sleep(1)
+            self.unit.sync(self)
+
+        self.unit.sync(self)
 
         return {'status':0}

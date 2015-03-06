@@ -152,13 +152,14 @@ class Unit(ORMBase, ORMCommon):
 class Task(ORMBase, ORMCommon):
     __tablename__ = 'task'
 
-    attributes = ['protocol', 'hostname', 'port', 'path', 'stage', 'state']
+    attributes = ['protocol', 'hostname', 'port', 'path',
+                  'stage',    'state',    'done', 'remaining']
 
     id = Column(Integer, primary_key=True)
     dependence_id = Column(Integer, ForeignKey('task.id'))
 
     # Task
-    stage = Column(String, default='initial') # (initial, crawling, forcing, waiting)
+    stage = Column(String, default='initial') # (initial, crawling, cracking, waiting)
     state = Column(String, default='ready') # (ready, stopped, running, complete)
     timestamp = Column(Integer, default=0)
 
@@ -169,13 +170,18 @@ class Task(ORMBase, ORMCommon):
     path = Column(String, default='/')
     attrs = Column(String, default='{}')
 
+    # Work
+    done = Column(Integer, default=0)
+    remaining = Column(Integer, default=0)
+
     dependence = relationship('Task', remote_side=[id])
     complement = relationship('Complement', uselist=False)
 
     @classmethod
     def get_conditions(cls, to_set):
         return [getattr(cls, attr)==to_set[attr] for attr in to_set.keys()
-                                                 if  attr not in ['state', 'stage']]
+                                                 if  attr not in ['state', 'stage',
+                                                                  'done',  'remaining']]
 
     @classmethod
     def get_to_set(cls, values, mgr):

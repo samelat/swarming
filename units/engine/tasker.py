@@ -15,7 +15,7 @@ class Tasker:
         self._cycle_delay = 10
         self._units = {}
 
-        self._forcing_dictionary_channels = {}
+        self._cracking_dictionary_channels = {}
         self._ready_task_channels = {}
 
         # Forcing Dictionary
@@ -107,18 +107,18 @@ class Tasker:
 
         #################################################
     '''
-    def _forcing_dictionary_tasks(self):
+    def _cracking_dictionary_tasks(self):
 
         self._db_mgr.session_lock.acquire()
 
         running_tasks = set()
         self._engine._resp_lock.acquire()
-        for channel in list(self._forcing_dictionary_channels.keys()):
-            subtask_id, task_id = self._forcing_dictionary_channels[channel]
+        for channel in list(self._cracking_dictionary_channels.keys()):
+            subtask_id, task_id = self._cracking_dictionary_channels[channel]
             if channel in self._engine._responses:
                 response = self._engine._responses[channel]
                 del(self._engine._responses[channel])
-                del(self._forcing_dictionary_channels[channel])
+                del(self._cracking_dictionary_channels[channel])
                 subtask = self._db_mgr.session.query(DictionaryTask).\
                                                filter_by(id=subtask_id).first()
                 subtask.state = 'complete'
@@ -131,15 +131,15 @@ class Tasker:
         #################################################################
         #################################################################
         
-        forcing_tasks = self._db_mgr.session.query(Task).\
-                                     filter((Task.state == 'running')|
-                                            (Task.state == 'ready')).\
-                                     filter_by(stage = 'forcing.dictionary').\
-                                     all()
+        cracking_tasks = self._db_mgr.session.query(Task).\
+                                              filter((Task.state == 'running')|
+                                                     (Task.state == 'ready')).\
+                                              filter_by(stage = 'cracking.dictionary').\
+                                              all()
 
-        if forcing_tasks:
+        if cracking_tasks:
 
-            for task in forcing_tasks:
+            for task in cracking_tasks:
                 dictionaries = []
 
                 # This is only to update the task's state
@@ -171,7 +171,7 @@ class Tasker:
                                                              order_by(Dictionary.id.asc()).\
                                                              filter(Dictionary.id > current).first()
                         if not current_entry:
-                            print('[forcing.dictionary] {0}'.format(dictionary))
+                            print('[cracking.dictionary] {0}'.format(dictionary))
                             dictionaries.append(dictionary)
                             break
 
@@ -187,7 +187,7 @@ class Tasker:
                        ((current_entry.password == None) ^ (last_entry.password == None)) and\
                        (dictionary['passwords'] and dictionary['usernames']):
                             print('##############################################')
-                            print('[forcing.dictionary] {0}'.format(dictionary))
+                            print('[cracking.dictionary] {0}'.format(dictionary))
                             dictionaries.append(dictionary)
                             dictionary = {'usernames':set(), 'passwords':set(), 'pairs':set()}
 
@@ -227,7 +227,7 @@ class Tasker:
                     index = current
 
                     if count > self.dictionary_limit:
-                        print('[forcing.dictionary] limited - {0}'.format(dictionary))
+                        print('[cracking.dictionary] limited - {0}'.format(dictionary))
                         dictionaries.append(dictionary)
                         break
 
@@ -264,7 +264,7 @@ class Tasker:
                 self._db_mgr.session.add(new_subtask)
                 self._db_mgr.session.commit()
 
-                self._forcing_dictionary_channels[response['channel']] = (new_subtask.id, task.id)
+                self._cracking_dictionary_channels[response['channel']] = (new_subtask.id, task.id)
 
         self._db_mgr.session_lock.release()
 
@@ -337,6 +337,6 @@ class Tasker:
             self._waiting_tasks()
 
             self._ready_tasks()
-            self._forcing_dictionary_tasks()
+            self._cracking_dictionary_tasks()
 
             time.sleep(self._cycle_delay)

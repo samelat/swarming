@@ -6,7 +6,7 @@ class Container:
 
     def __init__(self, url):
         self.root = url
-        self.urls = {url}
+        self.seen_urls = {url}
         self.requests = [{'method':'get', 'url':url}]
         self.filters = set()
 
@@ -18,9 +18,19 @@ class Container:
 
     def __next__(self):
         try:
-            return self.requests.pop()
+            request = self.requests.pop()
+            self.seen_urls.add(request['url'])
+            return request
         except:
             raise StopIteration
+
+
+    def remaining(self):
+        return len(self.requests)
+
+
+    def done(self):
+        return len(self.seen_urls)
 
 
     def add_request(self, request):
@@ -29,9 +39,13 @@ class Container:
             return
 
         url = match.group()
-        if re.match(self.root, url) and (url not in self.urls):
+        if re.match(self.root, url) and (url not in self.seen_urls):
+
+            for _filter in self.filters:
+                if _filter.match(url):
+                    return
+
             request['url'] = url
-            self.urls.add(url)
             self.requests.append(request)
 
 
