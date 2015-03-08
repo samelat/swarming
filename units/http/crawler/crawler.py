@@ -20,8 +20,8 @@ class Crawler:
     def get_done_work(self):
         return self.container.done()
 
-    def get_remaining_work(self):
-        return self.container.remaining()
+    def get_total_work(self):
+        return self.container.total()
 
     def crawl(self):
 
@@ -65,6 +65,6 @@ class Crawler:
             time.sleep(1)
             self.unit.sync(self)
 
-        self.unit.sync(self)
+        self.unit.sync(self, True)
 
         return {'status':0}

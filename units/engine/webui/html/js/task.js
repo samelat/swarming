@@ -2,7 +2,7 @@
 function Task () {
 
     this.name = 'task';
-    this.limit = 4;
+    this.limit = 10;
     this.index = 0;
 
     this.start = function() {
@@ -47,7 +47,7 @@ function Task () {
 
                     row.stage_name = row.stage.split('.')[0];
                     
-                    row.percentage = (row.done/(row.done+row.remaining))*100;
+                    row.percentage = (row.done/row.total)*100;
 
                     template = '<tr>' +
                                '    <td>{{id}}</td>' +

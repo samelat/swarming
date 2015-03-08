@@ -114,7 +114,7 @@ class Tasker:
         running_tasks = set()
         self._engine._resp_lock.acquire()
         for channel in list(self._cracking_dictionary_channels.keys()):
-            subtask_id, task_id = self._cracking_dictionary_channels[channel]
+            subtask_id, task_id, count = self._cracking_dictionary_channels[channel]
             if channel in self._engine._responses:
                 response = self._engine._responses[channel]
                 del(self._engine._responses[channel])
@@ -122,6 +122,10 @@ class Tasker:
                 subtask = self._db_mgr.session.query(DictionaryTask).\
                                                filter_by(id=subtask_id).first()
                 subtask.state = 'complete'
+
+                task = self._db_mgr.session.query(Task).\
+                                            filter_by(id=task_id).first()
+                task.done += count
             else:
                 running_tasks.add(task_id)
         self._engine._resp_lock.release()
@@ -158,6 +162,16 @@ class Tasker:
                 else:
                     index = last_subtask.index
                     current = last_subtask.current
+
+                # Update remaining Work
+                cunms = self._db_mgr.session.query(Dictionary.id).\
+                                             filter_by(password=None).count()
+                cpwds = self._db_mgr.session.query(Dictionary.id).\
+                                             filter_by(username=None).count()
+                cprs  = self._db_mgr.session.query(Dictionary).\
+                                             filter(Dictionary.username!=None,
+                                                    Dictionary.password!=None).count()
+                task.total = (cunms * cpwds) + cprs
 
                 count = 0
                 current_entry = None
@@ -264,7 +278,7 @@ class Tasker:
                 self._db_mgr.session.add(new_subtask)
                 self._db_mgr.session.commit()
 
-                self._cracking_dictionary_channels[response['channel']] = (new_subtask.id, task.id)
+                self._cracking_dictionary_channels[response['channel']] = (new_subtask.id, task.id, count)
 
         self._db_mgr.session_lock.release()
 
@@ -315,7 +329,7 @@ class Tasker:
             task.state = 'ready'
             if task.stage != 'cracking':
                 task.done = 0
-                task.remaining = 0
+                task.total = 0
 
         self._db_mgr.session.commit()
         self._db_mgr.session_lock.release()

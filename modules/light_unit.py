@@ -31,19 +31,19 @@ class LightUnit(Unit):
     def prepare(self):
         pass
 
-    def sync(self, component):
+    def sync(self, component, force=False):
         timestamp = time.time()
-        if timestamp > (self.timestamp + 4.0):
+        if force or (timestamp > (self.timestamp + 4.0)):
             self.timestamp = timestamp
 
             done = component.get_done_work()
-            remaining = component.get_remaining_work()
+            total = component.get_total_work()
 
-            print('[!!!!!!!!!!!!!!!!!!!] {0} - {1}'.format(done, remaining))
+            print('[!!!!!!!!!!!!!!!!!!!] {0} - {1}'.format(done, total))
 
             self.set_knowledge({'task':{'id':self.task['id'],
                                         'done':done,
-                                        'remaining':remaining}})
+                                        'total':total}})
 
 
     def success(self, credentials, complement):
@@ -64,7 +64,7 @@ class LightUnit(Unit):
                 self.complements = message['params']['complements']
 
             self.task['done'] = 0
-            self.task['remaining'] = 0
+            self.task['total'] = 0
 
             self.prepare()
 

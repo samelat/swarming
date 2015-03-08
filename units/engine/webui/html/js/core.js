@@ -9,7 +9,7 @@ function Core () {
 
         this.interval_id = window.setInterval(function(){
             module.update();
-        }, 16000);
+        }, 4000);
     };
 
     this.load = function(name) {

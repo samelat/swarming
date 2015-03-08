@@ -153,7 +153,7 @@ class Task(ORMBase, ORMCommon):
     __tablename__ = 'task'
 
     attributes = ['protocol', 'hostname', 'port', 'path',
-                  'stage',    'state',    'done', 'remaining']
+                  'stage',    'state',    'done', 'total']
 
     id = Column(Integer, primary_key=True)
     dependence_id = Column(Integer, ForeignKey('task.id'))
@@ -172,7 +172,7 @@ class Task(ORMBase, ORMCommon):
 
     # Work
     done = Column(Integer, default=0)
-    remaining = Column(Integer, default=0)
+    total = Column(Integer, default=0)
 
     dependence = relationship('Task', remote_side=[id])
     complement = relationship('Complement', uselist=False)
@@ -181,7 +181,7 @@ class Task(ORMBase, ORMCommon):
     def get_conditions(cls, to_set):
         return [getattr(cls, attr)==to_set[attr] for attr in to_set.keys()
                                                  if  attr not in ['state', 'stage',
-                                                                  'done',  'remaining']]
+                                                                  'done',  'total']]
 
     @classmethod
     def get_to_set(cls, values, mgr):
@@ -209,7 +209,7 @@ class Task(ORMBase, ORMCommon):
                   'stage':self.stage,
                   'state':self.state,
                   'done':self.done,
-                  'remaining':self.remaining,
+                  'total':self.total,
                   'timestamp':self.timestamp}
         if self.dependence_id:
             values['dependence'] = {'id':self.dependence.id}

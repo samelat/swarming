@@ -21,12 +21,12 @@ class Container:
             request = self.requests.pop()
             self.seen_urls.add(request['url'])
             return request
-        except:
+        except IndexError:
             raise StopIteration
 
 
-    def remaining(self):
-        return len(self.requests)
+    def total(self):
+        return (len(self.requests) + len(self.seen_urls))
 
 
     def done(self):
@@ -51,6 +51,6 @@ class Container:
 
     def add_filter(self, _filter):
         _cfilter = re.compile(_filter)
-        if not _cfilter in self.filters:
+        if _cfilter not in self.filters:
             self.filters.add(_cfilter)
-            self.requests = [request for request in self.requests if not re.match(_cfilter, request['url'])]
+            self.requests = [request for request in self.requests if not _cfilter.match(request['url'])]
