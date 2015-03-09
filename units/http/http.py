@@ -61,6 +61,7 @@ class HTTP(LightUnit):
 
             result = _cracker.crack(message['params']['dictionaries'])
         except KeyError:
+            traceback.print_exc()
             return {'status':-1, 'error':'Unknown Authentication Scheme "{0}"'.format(auth_scheme)}
 
         return result

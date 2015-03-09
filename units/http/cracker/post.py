@@ -1,5 +1,6 @@
 
 import requests
+from bs4 import BeautifulSoup
 from urllib.parse import urlencode
 
 from modules.dictionary import Dictionary
@@ -39,24 +40,27 @@ class Post:
             bs = BeautifulSoup(response.text)
 
             form = bs.find_all('form')[attrs['form']['index']]
-            inputs = form.find_all('input')
+            map(lambda i: i.attrs)
+            inputs = [inp in form.find_all('input', {'name':True}) if ]
+            fields = [() for inp in form.find_all('input', {'name':True})]
 
             for _input in inputs:
-                attrs = _input.attrs.copy()
-                if 'type' not in attrs:
-                    attrs['type'] == 'text'
+                if 'type' not in _input.attrs:
+                    _input.attrs['type'] == 'text'
                 try:
-                    if (attrs['type'] == 'text') and not (('value' in attrs) and attrs['value']):
-                        usr_field = attrs['name']
+                    if (_input.attrs['type'] == 'text') and not (('value' in _input.attrs) and _input.attrs['value']):
+                        usr_field = _input.attrs['name']
 
-                    elif (attrs['type'] == 'password') and not (('value' in attrs) and attrs['value']):
-                        pwd_field = attrs['name']
+                    elif (_input.attrs['type'] == 'password') and not (('value' in _input.attrs) and _input.attrs['value']):
+                        pwd_field = _input.attrs['name']
 
-                    elif attrs['type'] == 'hidden':
-                        fields[attrs['name']] = attrs['value']
+                    elif _input.attrs['type'] == 'hidden':
+                        fields[_input.attrs['name']] = _input.attrs['value']
 
                 except:
                     continue
+
+        print('[cracking.attrs] {0}'.format(attrs))
 
         if 'usr_field' in attrs['form']:
             usr_field = attrs['usr_field']
@@ -82,12 +86,30 @@ class Post:
 
                 response = requester.request(**request)
 
-                # Detectar si se logeo o no.
+                # Detect if the login was successful
+                bs = BeautifulSoup(response.text)
+
+                success = False
+                if 'fail' in attrs:
+                    pass
+                else:
+                    try:
+                        form = bs.find_all('form')[0]
+
+                        inputs = form.find_all('input', attrs={'name':usr_field})
+                        inputs.extend(form.find_all('input', attrs={'name':pwd_field}))
+
+                        if len(inputs) < 2:
+                            success = True
+
+                    except IndexError:
+                        success = True
+
+                if success:
+                    self.unit.success({'username':username, 'password':password},
+                                      {})
 
                 if ('update' in attrs['form']) and attrs['form']['update']:
                     pass
-
-
-        time.sleep(5)
 
         return {'status':0}
