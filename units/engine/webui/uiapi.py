@@ -8,6 +8,7 @@ class UIApi:
 
     def __init__(self):
         self._db_mgr = ORM()
+        print('[UUUUUUUUUU] {0}'.format(self._db_mgr.session_lock))
 
     @cherrypy.expose
     def halt(self):

@@ -16,7 +16,6 @@ class Crawler:
                         spiders.AppSpider(unit)]
         self.container = None
 
-
     def get_done_work(self):
         return self.container.done()
 
@@ -24,6 +23,8 @@ class Crawler:
         return self.container.total()
 
     def crawl(self):
+
+        print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
 
         self.container = Container(self.unit.url)
         session = requests.Session()

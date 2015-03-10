@@ -7,6 +7,7 @@ class Knowledge:
     def __init__(self, engine):
         self._engine = engine
         self._db_mgr = ORM()
+        print('[KKKKKKKKKKK] {0}'.format(self._db_mgr.session_lock))
 
     ''' ############################################
         These set and get methods are just to keep an abstract

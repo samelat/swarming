@@ -15,6 +15,8 @@ class Post:
 
         print('[<#########>] {0}'.format(self.unit.task))
 
+        print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
+
         attrs = self.unit.task['attrs']
 
         request = {'method':'POST', 'url':self.unit.url}
@@ -86,7 +88,8 @@ class Post:
                     if not (form and\
                        form.find('input', attrs={'name':usr_field}) and\
                        form.find('input', attrs={'name':pwd_field})):
-                        self.unit.success({'username':username, 'password':password}, request['data'])
+                        self.unit.success({'username':username, 'password':password},
+                                          {'data':request['data']})
 
                 if ('reload' in attrs['form']) and (attrs['form']['reload']):
                     request['data'] = dict([(inp.attrs['name'], inp.attrs['value']) 

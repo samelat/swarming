@@ -12,6 +12,8 @@ class BasicAuth:
 
     def crack(self, dictionaries):
 
+        print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
+
         request = {'method':'get', 'url':self.unit.url}
         request.update(self.unit.complements)
 

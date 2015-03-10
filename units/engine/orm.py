@@ -15,18 +15,23 @@ ORMBase = declarative_base()
 
 class ORM:
 
+    _singleton_session = None
     _singleton_session_lock = None
 
     def __init__(self):
-
-        if ORM._singleton_session_lock is None:
-            ORM._singleton_session_lock = Lock()
 
         self._engine = create_engine('sqlite:///context.db', echo=False,
                                      connect_args={'check_same_thread':False})
         ORMBase.metadata.create_all(self._engine)
         Session.configure(bind=self._engine)
-        self.session = Session()
+
+        if ORM._singleton_session is None:
+            ORM._singleton_session = Session()
+
+        if ORM._singleton_session_lock is None:
+            ORM._singleton_session_lock = Lock()
+
+        self.session = ORM._singleton_session
         self.session_lock = ORM._singleton_session_lock
 
         self.classes = [Unit, Task, Dictionary, Success, Complement]
