@@ -133,16 +133,18 @@ class ORMCommon:
 class Unit(ORMBase, ORMCommon):
     __tablename__ = 'unit'
 
-    attributes = ['name', 'protocol']
+    attributes = ['name', 'protocol', 'port']
 
     id = Column(Integer, primary_key=True)
-    name = Column(String)
-    protocol = Column(String)
+    name = Column(String, nullable=False)
+    port = Column(Integer, nullable=False)
+    protocol = Column(String, nullable=False)
     timestamp = Column(Integer)
 
     def to_json(self):
         return {'id':self.id,
                 'name':self.name,
+                'port':self.port,
                 'protocol':self.protocol}
 
 

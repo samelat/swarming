@@ -11,7 +11,8 @@ from units.http.crawler import crawler
 class HTTP(LightUnit):
 
     name = 'http'
-    protocols = ['http', 'https']
+    protocols = [('http', 80),
+                 ('https', 443)]
 
     def __init__(self, core):
         super(HTTP, self).__init__(core)

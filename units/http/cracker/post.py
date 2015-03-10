@@ -40,25 +40,15 @@ class Post:
             bs = BeautifulSoup(response.text)
 
             form = bs.find_all('form')[attrs['form']['index']]
-            map(lambda i: i.attrs)
-            inputs = [inp in form.find_all('input', {'name':True}) if ]
-            fields = [() for inp in form.find_all('input', {'name':True})]
 
-            for _input in inputs:
-                if 'type' not in _input.attrs:
-                    _input.attrs['type'] == 'text'
-                try:
-                    if (_input.attrs['type'] == 'text') and not (('value' in _input.attrs) and _input.attrs['value']):
-                        usr_field = _input.attrs['name']
+            for inp in form.find_all('input', {'name':True, 'value':True}):
+                fields[inp.attrs['name']] = inp.attrs['value']
 
-                    elif (_input.attrs['type'] == 'password') and not (('value' in _input.attrs) and _input.attrs['value']):
-                        pwd_field = _input.attrs['name']
+            for inp in form.find_all('input', {'type':False}):
+                inp.attrs['type'] = 'text'
 
-                    elif _input.attrs['type'] == 'hidden':
-                        fields[_input.attrs['name']] = _input.attrs['value']
-
-                except:
-                    continue
+            usr_field = form.find('input', {'name':True, 'type':'text'}).attrs['name']
+            pwd_field = form.find('input', {'name':True, 'type':'password'}).attrs['name']
 
         print('[cracking.attrs] {0}'.format(attrs))
 
@@ -85,31 +75,21 @@ class Post:
                 request['data'][pwd_field] = password
 
                 response = requester.request(**request)
-
-                # Detect if the login was successful
                 bs = BeautifulSoup(response.text)
 
-                success = False
+                # Detect if the login was successful
                 if 'fail' in attrs:
+                    # This will be a complex structure
                     pass
                 else:
-                    try:
-                        form = bs.find_all('form')[0]
+                    form = bs.find('form')
+                    if not (form and\
+                       form.find('input', attrs={'name':usr_field}) and\
+                       form.find('input', attrs={'name':pwd_field})):
+                        self.unit.success({'username':username, 'password':password}, request['data'])
 
-                        inputs = form.find_all('input', attrs={'name':usr_field})
-                        inputs.extend(form.find_all('input', attrs={'name':pwd_field}))
-
-                        if len(inputs) < 2:
-                            success = True
-
-                    except IndexError:
-                        success = True
-
-                if success:
-                    self.unit.success({'username':username, 'password':password},
-                                      {})
-
-                if ('update' in attrs['form']) and attrs['form']['update']:
-                    pass
+                if ('reload' in attrs['form']) and (attrs['form']['reload']):
+                    request['data'] = dict([(inp.attrs['name'], inp.attrs['value']) 
+                                            for inp in form.find_all('input', {'type':'hidden'})])
 
         return {'status':0}

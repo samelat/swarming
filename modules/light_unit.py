@@ -80,7 +80,9 @@ class LightUnit(Unit):
     # TODO: Move this method to LightUnit
     def register(self, message):
 
-        support = [{'unit':{'name':self.name, 'protocol':protocol}} for protocol in self.protocols]
+        support = [{'unit':{'name':self.name, 
+                            'protocol':protocol,
+                            'port':port}} for protocol, port in self.protocols]
         result = self.set_knowledge(rows=support)
 
         #print('[{0}.register] REGISTRATION RESULT: {1}'.format(self.name, result))
