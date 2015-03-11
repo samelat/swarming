@@ -13,22 +13,50 @@ class Joomla(Spider):
 
         result = {}
 
-        if extra['bs'].find_all('meta', attrs={'name':'generator'}, content=re.compile('^Joomla! ')):
+        # First Joomla checking
+        if not extra['bs'].find_all('meta', attrs={'name':'generator'}, content=re.compile('^Joomla! ')):
+            return result
 
-            print('[crawler.spider.app] ES UN JODIDO JOOMLA!!!: {0}'.format(request['url']))
-            result['filters'] = [urllib.parse.urljoin(response.url, '.*')]
+        # Second Joomla checking and Joomla root path taking
+        joomla_root = None
+        scripts = extra['bs'].find_all('script', attrs={'type':'text/javascript', 'src':True})
 
-            joomla_root = re.findall('(.+)media/system/js/core\.js', response.url)
-            if joomla_root:
-                pass
+        for script in scripts:
+            matches = re.findall('(.+)media/system/js/', scripts.attrs['src'])
+            if matches:
+                joomla_root = matches[0]
+                break
 
-            '''
-            crack_task = self.unit.task.copy()
-            del(crack_task['id'])
-            crack_task.update({'path': _url.path, 'attrs': {'auth_scheme':'post'},
-                               'stage':'cracking.dictionary', 'state':'ready'})
+        if not joomla_root:
+            return result
 
-            self.unit.set_knowledge({'task':crawl_task}, block=False)
-            '''
+        print('[crawler.spider.app] ES UN JODIDO JOOMLA!!!: {0}'.format(request['url']))
+
+        # Create the filters
+        result['filters'] = [urllib.parse.urljoin(response.url, joomla_root) + '.*']
+
+        # Search for the login form. If this page is the main one, form may not exist.
+        form_index = 0
+        forms = extra['bs'].find_all('script', attrs={'type':'text/javascript', 'src':True})
+        for form in forms:
+            if form.find('input', attrs={'type':'password'}) and\
+               form.find('input', attrs={'type':'text'})):
+                break
+            form_index += 1
+
+        if form_index == len(forms):
+            return result
+
+        # Create the new Joomla Cracking Task
+        crack_task = self.unit.task.copy()
+        del(crack_task['id'])
+
+        attrs = {'auth_scheme':'post',
+                 'form':{'index':form_index}}
+
+        crack_task.update({'path': joomla_root, 'attrs': attrs,
+                           'stage':'cracking.dictionary', 'state':'ready'})
+
+        self.unit.set_knowledge({'task':crawl_task}, block=False)
 
         return result
