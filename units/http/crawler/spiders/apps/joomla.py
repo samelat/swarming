@@ -22,7 +22,7 @@ class Joomla(Spider):
         scripts = extra['bs'].find_all('script', attrs={'type':'text/javascript', 'src':True})
 
         for script in scripts:
-            matches = re.findall('(.+)media/system/js/', scripts.attrs['src'])
+            matches = re.findall('(.+)media/system/js/', script.attrs['src'])
             if matches:
                 joomla_root = matches[0]
                 break
@@ -35,19 +35,19 @@ class Joomla(Spider):
         # Create the filters
         result['filters'] = [urllib.parse.urljoin(response.url, joomla_root) + '.*']
 
-        # Search for the login form. If this page is the main one, form may not exist.
+        # Search for the login form. If this page is not Administrator panel, form may not exist.
         form_index = 0
-        forms = extra['bs'].find_all('script', attrs={'type':'text/javascript', 'src':True})
+        forms = extra['bs'].find_all('form', attrs={'action':True})
         for form in forms:
             if form.find('input', attrs={'type':'password'}) and\
-               form.find('input', attrs={'type':'text'})):
+               form.find('input', attrs={'type':'text'}):
                 break
             form_index += 1
 
         if form_index == len(forms):
             return result
 
-        # Create the new Joomla Cracking Task
+        # Create a new Joomla Cracking Task
         crack_task = self.unit.task.copy()
         del(crack_task['id'])
 
@@ -57,6 +57,6 @@ class Joomla(Spider):
         crack_task.update({'path': joomla_root, 'attrs': attrs,
                            'stage':'cracking.dictionary', 'state':'ready'})
 
-        self.unit.set_knowledge({'task':crawl_task}, block=False)
+        self.unit.set_knowledge({'task':crack_task}, block=False)
 
         return result

@@ -261,7 +261,7 @@ class Tasker:
                 complements = {}
                 dependence = task.dependence
                 while dependence:
-                    complements.update(json.loads(dependence.complements.values))
+                    complements.update(json.loads(dependence.complement.values))
                     dependence = dependence.dependence
 
                 _task = {'task':task.to_json(), 'dictionaries':_dictionaries}
