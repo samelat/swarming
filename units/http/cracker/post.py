@@ -27,7 +27,9 @@ class Post:
             requester = requests
         else:
             requester = requests.Session()
+            ######################################
             response = requester.request(method='get', url=self.unit.url)
+            ######################################
 
         if 'form' not in attrs:
             return {'status':-1, 'msg':'No "form" attribute'}
