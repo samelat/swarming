@@ -28,7 +28,8 @@ class ErrorSpider(Spider):
             crack_task = self.unit.task.copy()
             del(crack_task['id'])
             crack_task.update({'path': _url.path, 'attrs': {'auth_scheme':'basic'},
-                               'stage':'cracking.dictionary', 'state':'ready'})
+                               'stage':'cracking.dictionary', 'state':'ready',
+                               'description':'HTTP Basic Auth'})
 
             crawl_task = self.unit.task.copy()
             del(crawl_task['id'])

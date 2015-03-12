@@ -50,6 +50,7 @@ class Joomla(Spider):
         # Create a new Joomla Cracking Task
         crack_task = self.unit.task.copy()
         del(crack_task['id'])
+        crack_task['description'] = 'Joomla! Client Form'
 
         attrs = {'auth_scheme':'post',
                  'form':{'index':form_index}}

@@ -160,7 +160,8 @@ class Task(ORMBase, ORMCommon):
     __tablename__ = 'task'
 
     attributes = ['protocol', 'hostname', 'port', 'path',
-                  'stage',    'state',    'done', 'total']
+                  'stage',    'state',    'done', 'total',
+                  'description']
 
     id = Column(Integer, primary_key=True)
     dependence_id = Column(Integer, ForeignKey('task.id'))
@@ -168,6 +169,7 @@ class Task(ORMBase, ORMCommon):
     # Task
     stage = Column(String, default='initial') # (initial, crawling, cracking, waiting)
     state = Column(String, default='ready') # (ready, stopped, running, complete)
+    description = Column(String, default='')
     timestamp = Column(Integer, default=0)
 
     # Resource
@@ -217,6 +219,7 @@ class Task(ORMBase, ORMCommon):
                   'state':self.state,
                   'done':self.done,
                   'total':self.total,
+                  'description':self.description,
                   'timestamp':self.timestamp}
         if self.dependence_id:
             values['dependence'] = {'id':self.dependence.id}

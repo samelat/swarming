@@ -58,6 +58,7 @@ function Task () {
                                '            </div>' +
                                '        </div>' +
                                '    </td>' +
+                               '    <td>{{description}}</td>' +
                                '    <td>{{stage}}</td>' +
                                '    <td>{{state}}</td>' +
                                '    <td></td>' +

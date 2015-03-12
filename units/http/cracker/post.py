@@ -19,28 +19,28 @@ class Post:
 
         attrs = self.unit.task['attrs']
 
-        request = {'method':'POST', 'url':self.unit.url}
-        request.update(self.unit.complements)
-
-        response = None
-        if ('session' in attrs) and not attrs['session']:
-            requester = requests
-        else:
-            requester = requests.Session()
-            ######################################
-            response = requester.request(method='get', url=self.unit.url)
-            ######################################
-
         if 'form' not in attrs:
             return {'status':-1, 'msg':'No "form" attribute'}
 
-        # Getting indexed form
+        if ('session' in attrs) and not attrs['session']:
+            requester = requests
+        else:
+            attrs['session'] = True
+            requester = requests.Session()
+
+        # First request to take all info we need to continue (cookies for example)
+        response = None
+        if attrs['session'] and ('index' in attrs['form']):
+            request = {'method':'get', 'url':self.unit.url}
+            request.update(self.unit.complements)
+            response = requester.request(**request)
+
+        # Get indexed form
         fields = {}
         usr_field = None
         pwd_field = None
         if 'index' in attrs['form']:
-            if not response:
-                response = requester.request(method='get', url=self.unit.url)
+
             bs = BeautifulSoup(response.text)
 
             form = bs.find_all('form')[attrs['form']['index']]
@@ -70,7 +70,8 @@ class Post:
             fields.update(attrs['form']['fields'])
 
         # Start cracking
-        request['data'] = fields
+        request = {'method':'get', 'url':self.unit.url, 'data':fields}
+        request.update(self.unit.complements)
         for dictionary in dictionaries:
             for username, password in Dictionary(**dictionary).pairs():
                 print('[http] Forcing Username: {0} - Password: {1}'.format(username, password))
