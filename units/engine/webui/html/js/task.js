@@ -16,6 +16,8 @@ function Task () {
 
     this.update = function() {
 
+        return;
+
         data = {'entity':'task', 'limit':this.limit, 'offset':(this.index * this.limit)};
 
         $.ajax({
