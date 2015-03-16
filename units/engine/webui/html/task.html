@@ -1,12 +1,12 @@
 <div class="row">
-    <div class="col-lg-12">
+    <div class="col-lg-24">
         <h1 class="page-header">Tasks</h1>
     </div>
     <!-- /.col-lg-12 -->
 </div>
 
 <div class="row">
-    <div class="col-lg-12">
+    <div class="col-lg-24">
         <div class="panel panel-default">
             <div class="panel-heading">
                 Tasks Table
@@ -29,88 +29,15 @@
                             <tr>
                                 <th class="col-lg-1">#</th>
                                 <th>URI</th>
-                                <th class="col-lg-1">%</th>
+                                <th class="col-lg-3">Done</th>
                                 <th>Description</th>
-                                <th class="col-lg-2">Stage</th>
-                                <th class="col-lg-1">State</th>
-                                <th>Attributes</th>
+                                <th class="col-lg-4">Stage</th>
+                                <th class="col-lg-2">State</th>
+                                <th class="col-lg-2">Information</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>http://192.168.2.3:8090/</td>
-                                <td>
-                                    <div class="progress crawling">
-                                        <div class="progress-bar crawling " role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
-                                        </div>
-                                    </div>
-                                </td>
-                                <td></td>
-                                <td>crawling</td>
-                                <td>complete</td>
-                                <td></td>
-                            </tr>
-
-                            <tr>
-                                <td>2</td>
-                                <td>http://192.168.2.3:8090/joomla15/</td>
-                                <td>
-                                    <div class="progress cracking">
-                                        <div class="progress-bar cracking progress-bar-striped" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>Joomla! Client Form</td>
-                                <td>cracking.dictionary</td>
-                                <td>ready</td>
-                                <td></td>
-                            </tr>
-
-                            <tr>
-                                <td>3</td>
-                                <td>http://192.168.2.3:8090/joomla/</td>
-                                <td>
-                                    <div class="progress cracking">
-                                        <div class="progress-bar cracking progress-bar-striped" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>HTTP Basic Auth</td>
-                                <td>cracking.dictionary</td>
-                                <td>ready</td>
-                                <td></td>
-                            </tr>
-
-                            <tr>
-                                <td>4</td>
-                                <td>http://192.168.2.3:8090/joomla/</td>
-                                <td>
-                                    <div class="progress crawling">
-                                        <div class="progress-bar crawling " role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
-                                        </div>
-                                    </div>
-                                </td>
-                                <td></td>
-                                <td>crawling</td>
-                                <td>complete</td>
-                                <td></td>
-                            </tr>
-
-                            <tr>
-                                <td>5</td>
-                                <td>http://192.168.2.3:8090/joomla/</td>
-                                <td>
-                                    <div class="progress cracking">
-                                        <div class="progress-bar cracking progress-bar-striped" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>Joomla! Client Form</td>
-                                <td>cracking.dictionary</td>
-                                <td>ready</td>
-                                <td></td>
-                            </tr>
+                            
                         </tbody>
                     </table>
                 </div>
@@ -127,7 +54,7 @@
 <!-- Modal -->
 <div class="modal fade" id="add_task" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-md">
-        <div class="modal-content col-sm-8">
+        <div class="modal-content col-lg-16">
             <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">
                 <span aria-hidden="true">&times;</span>
@@ -137,11 +64,11 @@
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-sm-12">
+                    <div class="col-lg-24">
                         <label>URI:</label>
                         <input type="text" name="uri" class="form-control" placeholder="http://127.0.0.1:8080/">
                     </div>
-                    <div class="col-sm-7 top-margin-16">
+                    <div class="col-lg-14 top-margin-16">
                         <label>Stage:</label>
                         <select class="form-control" name="stage">
                             <option>initial</option>
@@ -149,24 +76,24 @@
                             <option>crawling</option>
                         </select>
                     </div>
-                    <div class="col-sm-5 top-margin-16">
+                    <div class="col-lg-10 top-margin-16">
                         <label>State:</label>
                         <select class="form-control" name="state">
                             <option>ready</option>
                             <option>stopped</option>
                         </select>
                     </div>
-                    <div class="col-sm-12">
+                    <div class="col-lg-24">
                         <hr>
                         <label>Attributes</label>
                         <div class="row no-right-padding">
-                            <div class="col-sm-5">
+                            <div class="col-lg-10">
                                 <input type="text" name="key" class="form-control input-sm" placeholder="Key">
                             </div>
-                            <div class="col-sm-5">
+                            <div class="col-lg-10">
                                 <input type="text" name="value" class="form-control input-sm" placeholder="Value">
                             </div>
-                            <div class="col-sm-2">
+                            <div class="col-lg-4">
                                 <button class="btn btn-primary btn-sm" onclick="module.add_attr()">
                                     <i class="fa fa-plus fa-fw"></i>
                                 </button>
@@ -175,8 +102,8 @@
                         <table class="table table-striped" id="attr_table">
                             <thead>
                                 <tr>
-                                    <th class="col-lg-9">Entry</th>
-                                    <th class="col-lg-2">Action</th>
+                                    <th class="col-lg-18">Entry</th>
+                                    <th class="col-lg-4">Action</th>
                                 </tr>
                             </thead>
                             <tbody>

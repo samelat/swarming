@@ -16,8 +16,6 @@ function Task () {
 
     this.update = function() {
 
-        return;
-
         data = {'entity':'task', 'limit':this.limit, 'offset':(this.index * this.limit)};
 
         $.ajax({
@@ -48,6 +46,11 @@ function Task () {
                     }
 
                     row.stage_name = row.stage.split('.')[0];
+                    if(row.stage_name == 'cracking')
+                        if('complement' in row)
+                            row.lock = 'unlock';
+                        else
+                            row.lock = 'lock';
                     
                     row.percentage = (row.done/row.total)*100;
 
@@ -57,13 +60,21 @@ function Task () {
                                '    <td>' +
                                '        <div class="progress {{stage_name}}">' +
                                '            <div class="progress-bar {{stage_name}} {{striped}}" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: {{percentage}}%">' +
+                               '                {{percentage}}%' +
                                '            </div>' +
                                '        </div>' +
                                '    </td>' +
                                '    <td>{{description}}</td>' +
                                '    <td>{{stage}}</td>' +
                                '    <td>{{state}}</td>' +
-                               '    <td></td>' +
+                               '    <td>' +
+                               '    {{#dependence}}' +
+                               '        <i class="fa fa-link fa-fw" title="Task #{{dependence.id}}"></i>' +
+                               '    {{/dependence}}' +
+                               '    {{#lock}}' +
+                               '        <i class="fa fa-{{lock}} fa-fw"></i>' +
+                               '    {{/lock}}' +
+                               '    </td>' +
                                '</tr>';
 
                     html = Mustache.to_html(template, row);

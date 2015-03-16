@@ -15,6 +15,7 @@ function Dictionary () {
     };
 
     this.update = function() {
+        
         data = {'entity':'dictionary', 'limit':this.limit, 'offset':(this.index * this.limit)};
 
         $.ajax({

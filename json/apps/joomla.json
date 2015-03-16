@@ -1,0 +1,11 @@
+{
+    "description":"Joomla! Client Form",
+
+    "check":{"tag":{"name":"meta", "attrs":{"name":"generator"}},
+             "attr":"content",
+             "regex":"^Joomla! "},
+
+    "path":{"tag":{"name":"script", "attrs":{"type":"text/javascript"}},
+            "attr":"src",
+            "regex":"(.+)media/system/js/"}
+}

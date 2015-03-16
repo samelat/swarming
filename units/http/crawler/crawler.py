@@ -1,7 +1,7 @@
 
 import requests
-from bs4 import BeautifulSoup
 
+from units.http.tools import HTML
 from units.http.crawler.container import Container
 from units.http.crawler import spiders
 
@@ -43,7 +43,7 @@ class Crawler:
 
             extra = {'content-type':response.headers['content-type'].split(';')[0]}
             if 'text/html' == extra['content-type']:
-                extra['bs'] = BeautifulSoup(response.text)
+                extra['html'] = HTML(response.text)
 
             for spider in self.spiders:
                 if not spider.accept(response, extra):

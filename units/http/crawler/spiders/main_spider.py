@@ -13,7 +13,7 @@ class MainSpider(Spider):
 
         result = {'requests':[]}
 
-        a_tags = extra['bs'].find_all('a')
+        a_tags = extra['html'].find_all('a')
         for tag in a_tags:
             if tag.has_attr('href'):
                 result['requests'].append({'method':'get', 'url':tag.attrs['href']})
