@@ -1,0 +1,25 @@
+{
+    "description":"WordPress Client Form",
+
+    "resources":[
+        {"condition":{"tag":{"name":"meta", "attrs":{"name":"generator"}},
+                      "attr":"content",
+                      "regex":"^WordPress "},
+
+         "path":{"tag":{"name":"link", "attrs":{"rel":"pingback"}},
+                 "attr":"href",
+                 "regex":"(.+)xmlrpc\\.php"},
+
+         "seeds":["wp-login.php"]
+        },
+
+        {"condition":{"tag":{"name":"link", "attrs":{"rel":"stylesheet"}},
+                      "attr":"href",
+                      "regex":".*\\/wp\\-admin\\/css\\/"},
+
+         "path":{"tag":{"name":"form", "attrs":{"id":"loginform"}},
+                 "attr":"action",
+                 "regex":"(.+)wp\\-login\\.php"}
+        }
+    ]
+}

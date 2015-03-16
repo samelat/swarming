@@ -5,7 +5,7 @@ import urllib
 class Container:
 
     def __init__(self, url):
-        self.root = url
+        self.root = urllib.parse.urljoin(url, '/')
         self.seen_urls = {url}
         self.requests = [{'method':'get', 'url':url}]
         self.filters = set()
@@ -19,14 +19,13 @@ class Container:
     def __next__(self):
         try:
             request = self.requests.pop()
-            self.seen_urls.add(request['url'])
             return request
         except IndexError:
             raise StopIteration
 
 
     def total(self):
-        return (len(self.requests) + len(self.seen_urls))
+        return (len(self.seen_urls) - len(self.requests))
 
 
     def done(self):
@@ -34,7 +33,7 @@ class Container:
 
 
     def add_request(self, request):
-        match = self.filter.match(urllib.parse.urljoin(self.root, request['url']))
+        match = self.filter.match(request['url'])
         if not match:
             return
 
@@ -44,6 +43,8 @@ class Container:
             for _filter in self.filters:
                 if _filter.match(url):
                     return
+
+            self.seen_urls.add(url)
 
             request['url'] = url
             self.requests.append(request)

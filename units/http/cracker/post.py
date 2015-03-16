@@ -28,9 +28,9 @@ class Post:
             attrs['session'] = True
             requester = requests.Session()
 
-        # First request to take all info we need to continue (cookies for example)
+        # First request to take all info we need to continue.
         response = None
-        if attrs['session'] and ('index' in attrs['form']):
+        if attrs['session'] or ('index' in attrs['form']):
             request = {'method':'get', 'url':self.unit.url}
             request.update(self.unit.complements)
             response = requester.request(**request)
@@ -48,15 +48,17 @@ class Post:
             return {'status':-2, 'msg':'Incomplete form tag information'}
 
         # Start cracking
-        fields = login_form['fields'].copy()
-        request = {'method':'get', 'url':self.unit.url, 'data':fields}
+        request = {'method':'get', 'url':self.unit.url, 'data':{}}
         request.update(self.unit.complements)
+        if 'fields' in login_form:
+            request['data'].update(login_form['fields'])
+
         for dictionary in dictionaries:
             for username, password in Dictionary(**dictionary).pairs():
                 print('[http] Forcing Username: {0} - Password: {1}'.format(username, password))
 
-                request['data'][usr_field] = username
-                request['data'][pwd_field] = password
+                request['data'][login_form['usr_field']] = username
+                request['data'][login_form['pwd_field']] = password
 
                 response = requester.request(**request)
                 html = HTML(response.text)
@@ -66,13 +68,8 @@ class Post:
                     # This will be a complex structure
                     pass
                 else:
-                    forms = html.find_all('form')
-                    for form in forms:
-                        if form.find('input', attrs={'name':login_form['fields']['usr_field']}) and\
-                           form.find('input', attrs={'name':login_form['fields']['pwd_field']}):
-                            continue
-                    
-                    self.unit.success({'username':username, 'password':password},
+                    if login_form not in html:
+                        self.unit.success({'username':username, 'password':password},
                                           {'data':request['data']})
 
                 if ('reload' in attrs['form']) and (attrs['form']['reload']):

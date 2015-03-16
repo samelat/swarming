@@ -1,17 +1,18 @@
 
 import re
+import urllib
 from bs4 import BeautifulSoup
 
 
 class HTML(BeautifulSoup):
 
-    def __contains__(self, form):
-    
-        index = 0    
+    def __contains__(self, login_form):
+        # Maybe we sould control action field too
+
+        index = 0
         for form in self.find_all('form'):
-            if form.find('input', attrs={'name':form['usr_field']}) and\
-               form.find('input', attrs={'name':form['pwd_field']}) and\
-               index == form['index']:
+            if form.find('input', attrs={'name':login_form['usr_field']}) and\
+               form.find('input', attrs={'name':login_form['pwd_field']}):
                 return True
         return False
 
@@ -30,8 +31,8 @@ class HTML(BeautifulSoup):
             if not (usr_field and pwd_field):
                 continue
 
-            json_form = {'usr_field':usr_field.name,
-                         'pwd_field':pwd_field.name,
+            json_form = {'usr_field':usr_field.attrs['name'],
+                         'pwd_field':pwd_field.attrs['name'],
                          'fields':{}}
 
             for inp in form.find_all('input', attrs={'name':True, 'value':True}):
@@ -43,19 +44,19 @@ class HTML(BeautifulSoup):
         return results
 
     def check(self, tag, attr, regex):
-        if attr not in tag:
-            tag[attr] = re.compile(regex)
+        if attr not in tag['attrs']:
+            tag['attrs'][attr] = re.compile(regex)
 
         return bool(self.find(**tag))
 
 
     # Tag Format Example: {'name':'script', 'attrs':{'type':'text/javascript'}}
     def get_root_path(self, tag, attr, regex):
-        if attr not in tag:
-            tag[attr] = re.compile(regex)
+        if attr not in tag['attrs']:
+            tag['attrs'][attr] = re.compile(regex)
 
         bs_tag = self.find(**tag)
         if bs_tag:
-            return tag[attr].findall(bs_tag.attrs[attr])[0]
+            return urllib.parse.urlparse(tag['attrs'][attr].findall(bs_tag.attrs[attr])[0]).path
         return None
 

@@ -30,7 +30,7 @@ class AppSpider(Spider):
 
         for file_name in os.listdir(json_path):
             try:
-                name, extension = file_name.split('.')
+                name, extension = file_name.rsplit('.', 1)
             except:
                 continue
 
@@ -51,25 +51,42 @@ class AppSpider(Spider):
 
     def parse(self, request, response, extra):
 
-        result = {'requests':[], 'filters':[], 'dictionaries':[]}
+        result = {'requests':[]}
 
         for app_name, app in self.apps.items():
             # STEP #1
             # First Joomla checking
-            if not extra['html'].check(**app['check']):
+
+            resource = None
+            for rsrc in app['resources']:
+                if extra['html'].check(**rsrc['condition']):
+                    resource = rsrc
+                    break
+
+            if not resource:
                 continue
 
             # STEP #2
             # Second Joomla checking and Joomla root path taking
-            root_path = extra['html'].get_root_path(**app['path'])
+            root_path = extra['html'].get_root_path(**resource['path'])
             if not root_path:
                 continue
 
             print('[crawler.spider.app] ES UN JODIDO {0}!!!: {1}'.format(app_name, request['url']))
+            print('[ROOT_PATH] {0}'.format(root_path))
 
             # STEP #3
             # Create the filters
-            result['filters'] = [urllib.parse.urljoin(response.url, root_path) + '.*']
+            if 'seeds' in resource:
+                regex = '(?!{0})'.format('|'.join(re.escape(path) for path in resource['seeds']))
+
+                for seed in resource['seeds']:
+                    result['requests'].append({'method':'get',
+                                               'url':urllib.parse.urljoin(response.url, root_path + seed)})
+            else:
+                regex = '.*'
+            
+            result['filters'] = [urllib.parse.urljoin(response.url, root_path + regex)]
 
             # STEP #4
             # Search for the login form. If this page is not Administrator panel, form may not exist.
@@ -89,9 +106,6 @@ class AppSpider(Spider):
 
             self.unit.set_knowledge({'task':crack_task}, block=False)
 
-            if 'filters' in result:
-                for _filter in result['filters']:
-                    if re.match(_filter, request['url']):
-                        break
+            break
 
         return result
