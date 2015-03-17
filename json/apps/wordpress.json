@@ -1,5 +1,5 @@
 {
-    "description":"WordPress Client Form",
+    "description":"WordPress Login Form",
 
     "resources":[
         {"condition":{"tag":{"name":"meta", "attrs":{"name":"generator"}},

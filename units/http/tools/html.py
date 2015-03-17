@@ -9,8 +9,9 @@ class HTML(BeautifulSoup):
     def __contains__(self, login_form):
         # Maybe we sould control action field too
 
-        index = 0
+        print('[HTML-IN] login_form: {0}'.format(login_form))
         for form in self.find_all('form'):
+            print(form)
             if form.find('input', attrs={'name':login_form['usr_field']}) and\
                form.find('input', attrs={'name':login_form['pwd_field']}):
                 return True
