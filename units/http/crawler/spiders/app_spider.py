@@ -68,8 +68,14 @@ class AppSpider(Spider):
 
             # STEP #2
             # Second Joomla checking and Joomla root path taking
-            root_path = extra['html'].get_root_path(**resource['path'])
-            if not root_path:
+            if isinstance(resource['path'], dict):
+                root_path = extra['html'].get_root_path(**resource['path'])
+                if not root_path:
+                    continue
+            elif isinstance(resource['path'], str):
+                root_path = resource['path']
+            else:
+                print('[ERROR] Unknown template "path" type')
                 continue
 
             print('[crawler.spider.app] ES UN JODIDO {0}!!!: {1}'.format(app_name, request['url']))

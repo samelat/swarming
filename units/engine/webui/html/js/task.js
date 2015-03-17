@@ -52,7 +52,10 @@ function Task () {
                         else
                             row.lock = 'lock';
                     
-                    row.percentage = (row.done/row.total)*100;
+                    
+                    row.percentage = 0;
+                    if(row.total > 0)
+                        row.percentage = Math.round((row.done/row.total)*100);
 
                     template = '<tr>' +
                                '    <td>{{id}}</td>' +

@@ -1,0 +1,12 @@
+{
+    "description":"WordPress Login Form",
+
+    "resources":[
+        {"condition":{"tag":{"name":"body"},
+                      "attr":"onload",
+                      "regex":"^squirrelmail\\_"},
+
+         "path":"../"
+        }
+    ]
+}

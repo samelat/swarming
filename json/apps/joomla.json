@@ -11,15 +11,6 @@
                  "regex":"(.+)media\\/system\\/js\\/"},
 
          "seeds":["administrator/"]
-        },
-
-        {"condition":{"tag":{"name":"meta", "attrs":{"name":"generator"}},
-                      "attr":"content",
-                      "regex":"^Joomla! "},
-
-         "path":{"tag":{"name":"script", "attrs":{"type":"text/javascript"}},
-                 "attr":"src",
-                 "regex":"(.+)media\\/system\\/js\\/"}
         }
     ]
 }

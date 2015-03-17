@@ -1,0 +1,18 @@
+{
+    "description":"Moodle Login Form",
+
+    "attempts":10,
+
+    "resources":[
+        {"condition":{"tag":{"name":"meta", "attrs":{"name":"keywords"}},
+                      "attr":"content",
+                      "regex":"^moodle, "},
+
+         "path":{"tag":{"name":"script", "attrs":{"type":"text/javascript"}},
+                 "attr":"src",
+                 "regex":"(.+)lib\\/javascript"},
+
+         "seeds":["login/index.php"]
+        }
+    ]
+}
