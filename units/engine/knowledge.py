@@ -7,7 +7,6 @@ class Knowledge:
     def __init__(self, engine):
         self._engine = engine
         self._db_mgr = ORM()
-        print('[KKKKKKKKKKK] {0}'.format(self._db_mgr.session_lock))
 
     ''' ############################################
         These set and get methods are just to keep an abstract
@@ -16,7 +15,6 @@ class Knowledge:
         want to.
     '''
     def set(self, message):
-        print('[knowledge] "set" message - {0}'.format(message['params']))
 
         errors = 0
         results_list = []
@@ -31,13 +29,10 @@ class Knowledge:
             results_list.append(results)
         self._db_mgr.session_lock.release()
 
-        print('[knowledge] saliendo de "set" - {1} - {0}'.format(results_list, errors))
-
         return {'status':errors, 'results':results_list}
 
 
     def get(self, message):
-        #print('[knowledge] "get" message - {0}'.format(params))
 
         results = []
         self._db_mgr.session_lock.acquire()

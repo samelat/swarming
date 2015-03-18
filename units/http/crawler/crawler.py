@@ -24,16 +24,12 @@ class Crawler:
 
     def crawl(self):
 
-        print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
-
         self.container = Container(self.unit.url)
         session = requests.Session()
         
         for request in self.container:
 
             request.update(self.unit.complements)
-
-            print('[CRAWLER] next url: {0}'.format(request['url']))
 
             try:
                 response = session.request(**request)

@@ -13,10 +13,6 @@ class Post:
 
     def crack(self, dictionaries):
 
-        print('[<#########>] {0}'.format(self.unit.task))
-
-        print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
-
         attrs = self.unit.task['attrs']
 
         if 'form' not in attrs:

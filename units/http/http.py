@@ -42,7 +42,6 @@ class HTTP(LightUnit):
         Command & Stage handlers
     '''
     def http_initial_stage(self, message):
-        print('[http] Initial Stage method')
 
         values = {'task':{'id':self.task['id'], 'stage':'crawling', 'state':'ready'}}
 
@@ -54,7 +53,6 @@ class HTTP(LightUnit):
     ''' 
     '''
     def http_cracking_stage(self, message):
-        print('HTTP Forcing Stage method')
 
         auth_scheme = self.task['attrs']['auth_scheme']
         try:
@@ -70,7 +68,6 @@ class HTTP(LightUnit):
     ''' 
     '''
     def http_crawling_stage(self, message):
-        print('HTTP Crawling Stage method')
 
         try:
             _crawler = crawler.Crawler(self)
@@ -79,16 +76,5 @@ class HTTP(LightUnit):
         except KeyError:
             traceback.print_exc()
             return {'status':-1}
-
-        # new_task = {'task':{'stage':'cracking.dictionary', 'state':'stopped'}}
-        # new_task['task']['resource'] = {'service':{'id':1}, 'attrs':{'auth_scheme':'basic'}, 'path':'/'}
-
-        # self.set_knowledge(new_task, True)
-
-        #values = {'task':{'id':task['id'], 'state':'complete'}}
-
-        #self.set_knowledge(values, True)
-
-        #return {'status':0, 'values':result}
 
         return {'status':0}

@@ -8,7 +8,6 @@ class UIApi:
 
     def __init__(self):
         self._db_mgr = ORM()
-        print('[UUUUUUUUUU] {0}'.format(self._db_mgr.session_lock))
 
     @cherrypy.expose
     def halt(self):
@@ -19,7 +18,7 @@ class UIApi:
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     def get(self):
-        print('[uiapi.get] JSON: {0}'.format(cherrypy.request.json))
+
         data = cherrypy.request.json
 
         try:
@@ -50,7 +49,6 @@ class UIApi:
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     def set(self):
-        print('[uiapi.set] JSON: {0}'.format(cherrypy.request.json))
 
         errors = 0
         results_list = []
@@ -64,7 +62,5 @@ class UIApi:
                     errors += 1
             results_list.append(results)
         self._db_mgr.session_lock.release()
-
-        print('[knowledge] saliendo de "set" - {1} - {0}'.format(results_list, errors))
 
         return {'status':errors, 'results':results_list}

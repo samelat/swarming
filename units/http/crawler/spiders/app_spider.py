@@ -77,9 +77,6 @@ class AppSpider(Spider):
                 print('[ERROR] Unknown template "path" type')
                 continue
 
-            print('[crawler.spider.app] ES UN JODIDO {0}!!!: {1}'.format(app_name, request['url']))
-            print('[ROOT_PATH] {0}'.format(root_path))
-
             # STEP #3
             # Create the filters
             if 'seeds' in resource:

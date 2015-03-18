@@ -44,8 +44,6 @@ class Tasker:
 
         self._db_mgr.session_lock.release()
 
-        print('[engine.protocol_units] {0}'.format(protocol_units))
-
         return protocol_units
 
 
@@ -91,7 +89,6 @@ class Tasker:
                     _task['complements'] = complements
 
                 response = self._dispatch_task(_task)
-                print('[tasker.crawling_task] Dispatch response: {0}'.format(response))
 
                 if response['status'] < 0:
                     task.state = 'stopped'
@@ -185,7 +182,6 @@ class Tasker:
                                                              order_by(Dictionary.id.asc()).\
                                                              filter(Dictionary.id > current).first()
                         if not current_entry:
-                            print('[cracking.dictionary] {0}'.format(dictionary))
                             dictionaries.append(dictionary)
                             break
 
@@ -200,8 +196,6 @@ class Tasker:
                     if last_entry and\
                        ((current_entry.password == None) ^ (last_entry.password == None)) and\
                        (dictionary['passwords'] and dictionary['usernames']):
-                            print('##############################################')
-                            print('[cracking.dictionary] {0}'.format(dictionary))
                             dictionaries.append(dictionary)
                             dictionary = {'usernames':set(), 'passwords':set(), 'pairs':set()}
 
@@ -241,7 +235,6 @@ class Tasker:
                     index = current
 
                     if count > self.dictionary_limit:
-                        print('[cracking.dictionary] limited - {0}'.format(dictionary))
                         dictionaries.append(dictionary)
                         break
 
@@ -269,7 +262,6 @@ class Tasker:
                     _task['complements'] = complements
 
                 response = self._dispatch_task(_task)
-                print('[tasker] Dispatch response: {0}'.format(response))
 
                 new_subtask = DictionaryTask(index=index, current=current,
                                              state='running', timestamp=self._db_mgr.timestamp())
@@ -346,9 +338,6 @@ class Tasker:
 
         while not self._engine.halt:
 
-            print('#######################################################')
-            print('[BBBBBBBBBB] {0}'.format(self._db_mgr.session_lock))
-            print('[engine] Tasker main loop')
             # Get units per protocol
             self._units = self._get_protocol_units()
 

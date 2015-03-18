@@ -52,6 +52,5 @@ class WebUI:
 
 
     def start(self):
-        print('[webui] Starting')
         self._thread = Thread(target=self._launcher)
         self._thread.start()
