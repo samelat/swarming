@@ -1,8 +1,8 @@
 {
-    "description":"WordPress Login Form",
+    "description":"Squirrel Login Form",
 
     "resources":[
-        {"condition":{"tag":{"name":"body"},
+        {"condition":{"tag":{"name":"body", "attrs":{}},
                       "attr":"onload",
                       "regex":"^squirrelmail\\_"},
 

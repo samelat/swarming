@@ -1,4 +1,6 @@
 
+import urllib
+
 from units.http.crawler.spiders.spider import Spider
 
 
@@ -16,6 +18,7 @@ class MainSpider(Spider):
         a_tags = extra['html'].find_all('a')
         for tag in a_tags:
             if tag.has_attr('href'):
-                result['requests'].append({'method':'get', 'url':tag.attrs['href']})
+                url = urllib.parse.urljoin(response.url, tag.attrs['href'])
+                result['requests'].append({'method':'get', 'url':url})
 
         return result

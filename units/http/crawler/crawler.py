@@ -51,6 +51,8 @@ class Crawler:
 
                 result = spider.parse(request, response, extra)
 
+                print(result)
+
                 if 'requests' in result:
                     for _request in result['requests']:
                         self.container.add_request(_request)

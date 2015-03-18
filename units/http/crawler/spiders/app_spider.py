@@ -4,7 +4,6 @@ import re
 import json
 import urllib.parse
 
-from units.http.crawler.spiders import apps
 from units.http.crawler.spiders.spider import Spider
 
 ''' ##################################
@@ -84,7 +83,7 @@ class AppSpider(Spider):
             # STEP #3
             # Create the filters
             if 'seeds' in resource:
-                regex = '(?!{0})'.format('|'.join(re.escape(path) for path in resource['seeds']))
+                regex = '(?!{0})'.format('|'.join(re.escape(path) + '$' for path in resource['seeds']))
 
                 for seed in resource['seeds']:
                     result['requests'].append({'method':'get',
