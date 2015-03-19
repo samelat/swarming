@@ -40,7 +40,8 @@ class Post:
                     # Get indexed form
                     if 'index' in attrs['form']:
                         # First request to take all info we need to continue.
-                        request = {'method':'get', 'url':self.unit.url}
+                        request = {'method':'get', 'url':self.unit.url,
+                                   'allow_redirects':False}
                         request.update(self.unit.complements)
                         response = session.request(**request)
 

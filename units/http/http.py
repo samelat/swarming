@@ -1,5 +1,7 @@
 
 import time
+import urllib
+import requests
 import traceback
 
 from modules.light_unit import LightUnit
@@ -44,12 +46,28 @@ class HTTP(LightUnit):
     def http_initial_stage(self, message):
         print('[http] Initial Stage method')
 
-        values = {'task':{'id':self.task['id'], 'stage':'crawling', 'state':'ready'}}
+        # We return in 'updates' the self task values we want to change.
+        values = {'stage':'crawling', 'state':'ready'}
 
-        print('[http] setting initial task values')
-        self.set_knowledge(values)
+        response = requests.request(method='head', url=self.url)
 
-        return {'status':0, 'stage':'crawling'}
+        if response.status_code != 200:
+            return {'status':-1, 'task':{'stage':'error', 'state':'stopped',
+                                         'description':'HTTP Error {0}'.format(response.status_code)}}
+
+        url = urllib.parse.urlsplit(response.url)
+
+        if url.hostname != self.task['hostname']:
+            print('[HTTP_INIT] Hostnames: {0} - {1}'.format(url.hostname, self.task['hostname']))
+            return {'status':-2, 'task':{'stage':'error', 'state':'stopped',
+                                         'description':'HTTP Redirection'}}
+
+        if url.scheme != self.task['protocol']:
+            values['protocol'] = url.scheme
+            if not url.port:
+                values['port'] = self.protocols[url.scheme]
+
+        return {'status':0, 'task':values}
 
     ''' 
     '''

@@ -44,12 +44,13 @@ class Crawler:
         
         for request in self.container:
 
+            request['allow_redirects'] = False
             request.update(self.unit.complements)
 
             print('[CRAWLER] next url: {0}'.format(request['url']))
 
             try:
-                response = session.request(**request, allow_redirects=False)
+                response = session.request(**request)
             except:
                 print('[crawler] Error requesting {0}'.format(request))
                 continue

@@ -39,18 +39,20 @@ class LightUnit(Unit):
 
 
     def consume(self, message):
+
+        values = {}
+
         try:
             self.task = message['params']['task']
 
             if 'complements' in message['params']:
                 self.complements = message['params']['complements']
 
-            self.task['done'] = 0
-            self.task['total'] = 0
+            # self.task['done'] = 0
+            # self.task['total'] = 0
 
-            if self.task['port'] == None:
-                self.task['port'] = self.protocols[self.task['protocol']]
-                self.set_knowledge({'task':{'id':self.task['id'], 'port':self.task['port']}})
+            if not self.task['port']:
+                values['port'] = self.task['port'] = self.protocols[self.task['protocol']]
 
             self.prepare()
 
@@ -59,7 +61,15 @@ class LightUnit(Unit):
         except KeyError:
             return {'status':-1, 'error':'Unknown stage'}
 
-        return result
+        # Task Initialization.
+        if 'task' in result:
+            values.update(result['task'])
+
+        if values:
+            values['id'] = self.task['id']
+            self.set_knowledge({'task':values})
+
+        return {'status':result['status']}
 
     ''' ##########################################
     '''
