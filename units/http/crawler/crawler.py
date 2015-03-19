@@ -1,11 +1,11 @@
 
+import time
 import requests
 
 from units.http.tools import HTML
 from units.http.crawler.container import Container
 from units.http.crawler import spiders
 
-import time
 
 class Crawler:
 
@@ -15,13 +15,26 @@ class Crawler:
                         spiders.ErrorSpider(unit),
                         spiders.AppSpider(unit)]
         self.container = None
+        self.timestamp = time.time()
 
-    def get_done_work(self):
-        return self.container.done()
+    ''' Each unit is responsable of the 'done' and 'total'
+        values update. That is what this method do.
+    '''
+    def sync(self, component, force=False):
+        timestamp = time.time()
+        if force or (timestamp > (self.timestamp + 4.0)):
+            self.timestamp = timestamp
 
-    def get_total_work(self):
-        return self.container.total()
+            done = self.container.done()
+            total = self.container.total()
 
+            self.unit.set_knowledge({'task':{'id':self.unit.task['id'],
+                                             'done':done,
+                                             'total':total}})
+
+    '''
+
+    '''
     def crawl(self):
 
         print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
@@ -36,7 +49,7 @@ class Crawler:
             print('[CRAWLER] next url: {0}'.format(request['url']))
 
             try:
-                response = session.request(**request)
+                response = session.request(**request, allow_redirects=False)
             except:
                 print('[crawler] Error requesting {0}'.format(request))
                 continue
@@ -66,8 +79,10 @@ class Crawler:
                         print('[http.crawler] new dictionary: {0}'.format(dictionary))
 
             time.sleep(1)
-            self.unit.sync(self)
 
-        self.unit.sync(self, True)
+            # Syncronize the total and done work
+            self.sync(self)
+
+        self.sync(self, True)
 
         return {'status':0}

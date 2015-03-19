@@ -79,15 +79,8 @@ class Unit:
         
         if not block:
             return result
-
-        # print('[{0}] set_knowledge dispatch result: {1}'.format(self.name, result))
-        responses = self.get_response(result['channel'], True)
-
-        # print('[{0}] set_knowledge response: {1}'.format(self.name, response))
         
-        return responses
-
-        #return {'status':0}
+        return self.get_response(result['channel'], True)
 
 
     def get_knowledge(self, values, block=True):

@@ -272,7 +272,7 @@ class Tasker:
                 print('[tasker] Dispatch response: {0}'.format(response))
 
                 new_subtask = DictionaryTask(index=index, current=current,
-                                             state='running', timestamp=self._db_mgr.timestamp())
+                                             timestamp=self._db_mgr.timestamp())
                 
                 new_subtask.task = task
                 self._db_mgr.session.add(new_subtask)
@@ -327,9 +327,15 @@ class Tasker:
                                      all()
         for task in tasks:
             task.state = 'ready'
-            if task.stage != 'cracking':
+            if not task.stage.startswith('cracking'):
                 task.done = 0
                 task.total = 0
+
+        subtasks = self._db_mgr.session.query(DictionaryTask).\
+                                        filter(DictionaryTask.state != 'complete').\
+                                        all()
+        for subtask in subtasks:
+            self._db_mgr.session.delete(subtask)
 
         self._db_mgr.session.commit()
         self._db_mgr.session_lock.release()

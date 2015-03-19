@@ -330,7 +330,7 @@ class DictionaryTask(ORMBase):
     index = Column(Integer)
     current = Column(Integer)
     # channel = Column(Integer)
-    state = Column(String, default='stopped') # (stopped, running, complete)
+    state = Column(String, default='running') # (running, complete)
     timestamp = Column(Integer)
 
     task = relationship('Task')

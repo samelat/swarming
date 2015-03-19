@@ -11,8 +11,8 @@ from units.http.crawler import crawler
 class HTTP(LightUnit):
 
     name = 'http'
-    protocols = [('http', 80),
-                 ('https', 443)]
+    protocols = {'http' :80,
+                 'https':443}
 
     def __init__(self, core):
         super(HTTP, self).__init__(core)
@@ -49,7 +49,7 @@ class HTTP(LightUnit):
         print('[http] setting initial task values')
         self.set_knowledge(values)
 
-        return {'status':0}
+        return {'status':0, 'stage':'crawling'}
 
     ''' 
     '''

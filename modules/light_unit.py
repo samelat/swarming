@@ -1,6 +1,4 @@
 
-import time
-
 from modules.unit import Unit
 
 
@@ -14,7 +12,6 @@ class LightUnit(Unit):
         self.task = None
         self.stages = {}
         self.complements = {}
-        self.timestamp = time.time()
 
         self.add_cmd_handler('consume', self.consume)
         self.add_cmd_handler('register', self.register)
@@ -31,23 +28,8 @@ class LightUnit(Unit):
     def prepare(self):
         pass
 
-    def sync(self, component, force=False):
-        timestamp = time.time()
-        if force or (timestamp > (self.timestamp + 4.0)):
-            self.timestamp = timestamp
-
-            done = component.get_done_work()
-            total = component.get_total_work()
-
-            print('[!!!!!!!!!!!!!!!!!!!] {0} - {1}'.format(done, total))
-
-            self.set_knowledge({'task':{'id':self.task['id'],
-                                        'done':done,
-                                        'total':total}})
-
 
     def success(self, credentials, complement):
-
         rows = {'success':{'credentials':credentials, 'task':{'id':self.task['id']}}}
         if not 'complement' in self.task:
             self.task['complement'] = complement
@@ -66,10 +48,14 @@ class LightUnit(Unit):
             self.task['done'] = 0
             self.task['total'] = 0
 
+            if self.task['port'] == None:
+                self.task['port'] = self.protocols[self.task['protocol']]
+                self.set_knowledge({'task':{'id':self.task['id'], 'port':self.task['port']}})
+
             self.prepare()
 
-            stage = self.task['stage']
-            result = self.stages[stage](message)
+            result = self.stages[self.task['stage']](message)
+
         except KeyError:
             return {'status':-1, 'error':'Unknown stage'}
 
@@ -77,14 +63,11 @@ class LightUnit(Unit):
 
     ''' ##########################################
     '''
-    # TODO: Move this method to LightUnit
     def register(self, message):
 
         support = [{'unit':{'name':self.name, 
                             'protocol':protocol,
-                            'port':port}} for protocol, port in self.protocols]
+                            'port':port}} for protocol, port in self.protocols.items()]
         result = self.set_knowledge(rows=support)
-
-        #print('[{0}.register] REGISTRATION RESULT: {1}'.format(self.name, result))
 
         return {'status':0}
