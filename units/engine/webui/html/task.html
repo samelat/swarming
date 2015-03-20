@@ -63,42 +63,36 @@
             <h4 class="modal-title">New Task</h4>
             </div>
             <div class="modal-body">
-                <div class="row">
-                    <div class="col-lg-24">
+                <div class="row padding-4">
+                    <div class="col-lg-17">
                         <label>URI:</label>
                         <input type="text" name="uri" class="form-control" placeholder="http://127.0.0.1:8080/">
                     </div>
-                    <div class="col-lg-14 top-margin-16">
-                        <label>Stage:</label>
-                        <select class="form-control" name="stage">
-                            <option>initial</option>
-                            <option>cracking</option>
-                            <option>crawling</option>
-                        </select>
-                    </div>
-                    <div class="col-lg-10 top-margin-16">
+                    <div class="col-lg-7">
                         <label>State:</label>
                         <select class="form-control" name="state">
                             <option>ready</option>
                             <option>stopped</option>
                         </select>
                     </div>
+                </div>
+                <div class="row padding-4">
+                    <hr>
                     <div class="col-lg-24">
-                        <hr>
                         <label>Attributes</label>
-                        <div class="row no-right-padding">
-                            <div class="col-lg-10">
-                                <input type="text" name="key" class="form-control input-sm" placeholder="Key">
-                            </div>
-                            <div class="col-lg-10">
-                                <input type="text" name="value" class="form-control input-sm" placeholder="Value">
-                            </div>
-                            <div class="col-lg-4">
-                                <button class="btn btn-primary btn-sm" onclick="module.add_attr()">
-                                    <i class="fa fa-plus fa-fw"></i>
-                                </button>
-                            </div>
-                        </div>
+                    </div>
+                    <div class="col-lg-10">
+                        <input type="text" name="key" class="form-control input-sm" placeholder="Key">
+                    </div>
+                    <div class="col-lg-10">
+                        <input type="text" name="value" class="form-control input-sm" placeholder="Value">
+                    </div>
+                    <div class="col-lg-4">
+                        <button class="btn btn-primary btn-sm" onclick="module.add_attr()">
+                            <i class="fa fa-plus fa-fw"></i>
+                        </button>
+                    </div>
+                    <div class="col-lg-24">
                         <table class="table table-striped" id="attr_table">
                             <thead>
                                 <tr>
@@ -114,7 +108,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary btn-sm" onclick="module.add_task()">Agregar</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="module.add_task()">Add</button>
             </div>
         </div>
     </div>

@@ -65,8 +65,8 @@
     margin-top: 25px;
 }*/
 
-.no-right-padding > div {
-    padding-right: 0px;
+.padding-4 > div {
+    padding: 4px;
 }
 
 textarea {

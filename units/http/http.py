@@ -56,9 +56,12 @@ class HTTP(LightUnit):
 
         response = requests.request(method='head', url=self.url)
 
+        # TODO: Control connection errors
+        '''
         if response.status_code != 200:
             return {'status':-1, 'task':{'stage':'error', 'state':'stopped',
                                          'description':'HTTP Error {0}'.format(response.status_code)}}
+        '''
 
         url = urllib.parse.urlsplit(response.url)
 
