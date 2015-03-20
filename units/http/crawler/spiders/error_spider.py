@@ -6,12 +6,10 @@ from units.http.crawler.spiders.spider import Spider
 
 class ErrorSpider(Spider):
 
+    status_codes = [302, 401, 407]
+
     def __init__(self, unit):
         self.unit = unit
-
-
-    def accept(self, response, extra):
-        return True
 
 
     def parse(self, request, response, extra):

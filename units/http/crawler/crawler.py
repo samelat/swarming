@@ -79,8 +79,6 @@ class Crawler:
                     for dictionary in result['dictionaries']:
                         print('[http.crawler] new dictionary: {0}'.format(dictionary))
 
-            time.sleep(1)
-
             # Syncronize the total and done work
             self.sync(self)
 

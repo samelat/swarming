@@ -10,7 +10,7 @@
 
          "path":{"tag":{"name":"script", "attrs":{"type":"text/javascript"}},
                  "attr":"src",
-                 "regex":"(.+)lib\\/javascript\\.php"},
+                 "regex":"(.+)lib\\/javascript(?:\\.php|\\-)"},
 
          "seeds":["login/index.php"]
         }

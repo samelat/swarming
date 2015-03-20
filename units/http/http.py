@@ -35,7 +35,12 @@ class HTTP(LightUnit):
         if 'auth' in self.complements:
             self.complements['auth'] = tuple(self.complements['auth'])
 
-        self.url = '{protocol}://{hostname}:{port}{path}'.format(**self.task)
+        # If the task's port is the protocol defaul port, we do not add it
+        netloc = self.task['hostname']
+        if self.task['port'] != self.protocols[self.task['protocol']]:
+            netloc += ':{0}'.format(self.task['port'])
+
+        self.url = '{protocol}://{0}{path}'.format(netloc, **self.task)
         if 'query' in self.task['attrs']:
             self.url += self.task['attrs']['query']
         

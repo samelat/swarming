@@ -12,12 +12,10 @@ from units.http.crawler.spiders.spider import Spider
 
     If a web application is too complex to be
     molded this wey, you may have to implement
-    a Spider to detect it.
+    a complete Spider to detect it.
 '''
 
 class AppSpider(Spider):
-
-    content_types = ['text/html']
 
     def __init__(self, unit):
         self.unit = unit

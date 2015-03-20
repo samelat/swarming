@@ -6,8 +6,6 @@ from units.http.crawler.spiders.spider import Spider
 
 class MainSpider(Spider):
 
-    content_types = ['text/html']
-
     def __init__(self, unit):
         self.unit = unit
 
