@@ -78,7 +78,12 @@ class Post:
                     else:
                         cicle += 1
 
+                print('()()()() CICLE == {0} ()()()()'.format(cicle))
                 if ('attempts' in attrs) and (cicle >= attrs['attempts']):
+                    print('[][][][] REINICIO!!! [][][][]')
                     reload = True
+
+        if session:
+            session.close()
 
         return {'status':0}

@@ -18,7 +18,6 @@ class Knowledge:
     def set(self, message):
         print('[knowledge] "set" message - {0}'.format(message['params']))
 
-        errors = 0
         results_list = []
         self._db_mgr.session_lock.acquire()
         for rows in message['params']:
@@ -26,14 +25,12 @@ class Knowledge:
             for table, row in rows.items():
                 result = self._db_mgr.set(table, row)
                 results[table] = result
-                if result['status'] < 0:
-                    errors += 1
             results_list.append(results)
         self._db_mgr.session_lock.release()
 
-        print('[knowledge] saliendo de "set" - {1} - {0}'.format(results_list, errors))
+        print('[knowledge] saliendo de "set" - {0}'.format(results_list))
 
-        return {'status':errors, 'results':results_list}
+        return {'status':0, 'results':results_list}
 
 
     def get(self, message):

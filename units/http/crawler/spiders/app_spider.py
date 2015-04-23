@@ -103,9 +103,12 @@ class AppSpider(Spider):
             crack_task = self.unit.task.copy()
             del(crack_task['id'])
             crack_task['description'] = app['description']
+            attrs = {'auth_scheme':'post', 'form':{'index':0}}
+            if 'attrs' in resource:
+                attrs.update(resource['attrs'])
 
-            crack_task.update({'path': urllib.parse.urlparse(response.url).path,
-                               'attrs': {'auth_scheme':'post', 'form':{'index':0}},
+            crack_task.update({'attrs': attrs,
+                               'path' : urllib.parse.urlparse(response.url).path,
                                'stage':'cracking.dictionary', 'state':'ready'})
 
             self.unit.set_knowledge({'task':crack_task}, block=False)

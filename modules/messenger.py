@@ -51,7 +51,7 @@ class Messenger:
         try:
             _message = Message(message)
         except ValueError:
-            return {'status':-1, 'error':'message format error'}
+            return {'status':3, 'error':'message format error'}
 
         _message.add_channel()
         self._messages.put(_message.raw)

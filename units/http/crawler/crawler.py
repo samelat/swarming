@@ -11,9 +11,9 @@ class Crawler:
 
     def __init__(self, unit):
         self.unit = unit
-        self.spiders = [spiders.MainSpider(unit),
-                        spiders.ErrorSpider(unit),
-                        spiders.AppSpider(unit)]
+        self.spiders = [spiders.ErrorSpider(unit),
+                        spiders.AppSpider(unit),
+                        spiders.DefaultSpider(unit)]
         self.container = None
         self.timestamp = time.time()
 

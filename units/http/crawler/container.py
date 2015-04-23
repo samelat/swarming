@@ -25,7 +25,7 @@ class Container:
 
 
     def total(self):
-        return (len(self.seen_urls) - len(self.requests))
+        return (len(self.seen_urls) + len(self.requests))
 
 
     def done(self):

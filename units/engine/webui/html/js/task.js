@@ -154,7 +154,6 @@ function Task () {
 
         var uri = $('.row input[name="uri"]').val();
         var state = $('.row select[name="state"]').val();
-        var stage = $('.row select[name="stage"]').val();
 
         // ... "http", "127.0.0.1", "9090", "/index.php", "var1=val1&var2=val2&var3=val3"]
         values = {};
@@ -171,7 +170,6 @@ function Task () {
         if(split[5] != undefined)
             attrs['query'] = split[5];
 
-        values['stage'] = stage;
         values['state'] = state;
 
         $.ajax({
@@ -185,6 +183,6 @@ function Task () {
                      }
         });
 
-        //console.log(JSON.stringify(attrs));
+        $('#add_task').modal('hide');
     };
 };
