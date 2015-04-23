@@ -7,15 +7,13 @@
  * 
  */
 const int SSH2::CONNECTION_ERROR;
-const int SSH2::SESSION_ERROR;
-const int SSH2::HANDSHAKE_ERROR;
 const int SSH2::TIMEOUT_ERROR;
+const int SSH2::PROTOCOL_ERROR;
 
 const int SSH2::LOGIN_SUCCESSFUL;
+const int SSH2::LOGIN_FAILED;
 
-const int SSH2::CONTINUE_ERROR;
-const int SSH2::AUTH_ERROR;
-
+const int SSH2::RETRY_LOGIN;
 
 /*
  * 
@@ -32,7 +30,9 @@ SSH2::SSH2(string hostname, short port, int timeout) {
     this->_timeout  = timeout;
     
     this->_sock = -1;
-    this->_session = NULL;
+    this->_session = nullptr;
+    
+    this->banner = "";
 }
 
 SSH2::~SSH2() {
@@ -40,7 +40,7 @@ SSH2::~SSH2() {
 }
 
 /*
- * Espera a que el socket tenga respuesta
+ * Wait until the socket receives a response
  */
 int SSH2::_wait_socket() {
 	int so_error, dir, count_fds;
@@ -122,7 +122,7 @@ int SSH2::_ssh2_start() {
     this->_session = libssh2_session_init();
 
     if (!this->_session)
-        return SESSION_ERROR;
+        return PROTOCOL_ERROR;
  
     libssh2_session_set_blocking(this->_session, 0);
     
@@ -134,9 +134,9 @@ int SSH2::_ssh2_start() {
 	};
 	
     if (ssh2_error)
-        return HANDSHAKE_ERROR;
+        return PROTOCOL_ERROR;
         
-    cout << libssh2_session_banner_get(this->_session) << endl;
+    //this->banner = string(libssh2_session_banner_get(this->_session));
     
     return 0;
 }
@@ -144,14 +144,14 @@ int SSH2::_ssh2_start() {
 /*
  * 
  */
-int SSH2::_ssh2_finish() {
+void SSH2::_ssh2_finish() {
 	libssh2_session_disconnect(this->_session, "");
     libssh2_session_free(this->_session);
 
     close(this->_sock);
     
     this->_sock = -1;
-    this->_session = NULL;
+    this->_session = nullptr;
 }
 
 /*

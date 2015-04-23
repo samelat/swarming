@@ -1,0 +1,3 @@
+What I'm using to compile:
+
+g++ -std=c++11 -I /usr/include/python3.3/ -L /usr/lib/x86_64-linux-gnu/ -fPIC -shared test.cpp -o test.so -lpython3.3m -lboost_python-py33

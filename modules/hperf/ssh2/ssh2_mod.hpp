@@ -1,6 +1,7 @@
 
 #include <libssh2.h>
 
+#include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -10,8 +11,6 @@
 
 
 using namespace std;
-
-
 
 class SSH2 {
 	
@@ -25,20 +24,21 @@ class SSH2 {
     
     public:
     
+		string banner;
+    
 		static const int CONNECTION_ERROR = 1;
-        static const int SESSION_ERROR    = 2;
-        static const int HANDSHAKE_ERROR  = 3;
-        static const int TIMEOUT_ERROR    = 4;
+		static const int TIMEOUT_ERROR    = 2;
+        static const int PROTOCOL_ERROR   = 3;
         
         static const int LOGIN_SUCCESSFUL = 0;
+        static const int LOGIN_FAILED     = -18;
         
-        static const int CONTINUE_ERROR   = -9;
-        static const int AUTH_ERROR       = -18;
+        static const int RETRY_LOGIN      = -9;
     
 		int _wait_socket();
         int _socket_connect();
         int _ssh2_start();
-        int _ssh2_finish();
+        void _ssh2_finish();
     
         SSH2(string hostname, short port, int timeout);
         ~SSH2();
