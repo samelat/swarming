@@ -2,21 +2,22 @@
 
 using namespace boost::python;
 
-class World {
-    std::string s;
+class Cracker {
+    str& callback;
     public:
-        World(std::string p1) : s(p1) {};
-        void greet(object);
+        Cracker(str& cb) : callback(cb) {};
+        void crack(list&, list&, list&);
 };
 
-void World::greet(object o) {
-    extract<dict> d(o);
-    extract<std::string> s(d()["test"]);
-    std::cout << s();
+void Cracker::crack(list& usernames, list& password, list& pairs) {
+    //callback("samelat", "123456");
+
+    std::cout << extract<std::string>(callback) << std::endl;
+    //std::cout << extract<int>(usernames[0]) << std::endl;
 }
 
 BOOST_PYTHON_MODULE(test)
 {
-    class_<World>("World", init<std::string>())
-        .def("greet", &World::greet);
+    class_<Cracker>("Cracker", init<str&>())
+        .def("crack", &Cracker::crack);
 }
