@@ -1,2 +1,0 @@
-default:
-	g++ -o smb main.c smb_mod.cpp ntlm.cpp hmac_md5.cpp smb_response.cpp -lcrypto -w -fpermissive -I ./ -std=c++11 -g

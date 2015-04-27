@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC  -std=c++11 -Wall   -shared -Wl,-soname,test.so -o ../test.so CMakeFiles/test.dir/test.cpp.o -lboost_python-py34 
