@@ -7,20 +7,6 @@ d = {'usernames':['cacho', 'rojo', 'hacker'],
 def callback(username, password):
     print('[!] Login! username: {0} - password: {1}'.format(username, password))
 
-def algo():
-    print('TEST FUNC')
+c = test.Test(callback)
 
-e = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-c = test.Cracker()
-
-c.test(e)
-
-c.test3()
-
-e = None
-
-c.test2(e)
-
-c.test3()
-
-c.crack([1,2], [1,2], [2,3])
+c.crack(**d)
