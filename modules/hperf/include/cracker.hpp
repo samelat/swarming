@@ -9,10 +9,17 @@ namespace bp = boost::python;
 
 class Cracker {
 public:
+
+    enum status_t {
+        SUCCESS,
+        FAILED,
+        ERROR
+    };
+
     Cracker(bp::object& callback) : callback(callback) {};
     ~Cracker() {};
 
-    virtual void login(const char * username, const char * password) = 0;
+    virtual status_t login(const char * username, const char * password) = 0;
 
     void crack(bp::list, bp::list, bp::list);
 

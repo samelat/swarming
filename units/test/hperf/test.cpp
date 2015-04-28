@@ -2,8 +2,9 @@
 
 #include "test.hpp"
 
-void Test::login(const char * username, const char * password) {
+Cracker::status_t Test::login(const char * username, const char * password) {
     std::cout << "[!] " << username << " - " << password << std::endl;
+    Cracker::status_t::FAILED;
 }
 
 BOOST_PYTHON_MODULE(test)
