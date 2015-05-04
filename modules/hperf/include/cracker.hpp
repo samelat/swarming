@@ -5,6 +5,9 @@
 #include <boost/python/def.hpp>
 #include <boost/python/stl_iterator.hpp>
 
+#define STRINGIFY(var) _STRINGIFY(var)
+#define _STRINGIFY(var) #var
+
 namespace bp = boost::python;
 
 class Cracker {

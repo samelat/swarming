@@ -1,4 +1,5 @@
-#include "cracker.hpp"
+
+#include <module.hpp>
 
 void Cracker::crack(bp::list usernames, bp::list passwords, bp::list pairs) {
     
@@ -27,4 +28,12 @@ void Cracker::crack(bp::list usernames, bp::list passwords, bp::list pairs) {
             case status_t::ERROR:   break; // This will be handle.
         }
     }
+}
+
+BOOST_PYTHON_MODULE(MODULE_NAME)
+{
+    bp::class_<CLASS_NAME>(STRINGIFY(CLASS_NAME), bp::init<bp::object&>())
+        .def("crack",
+             &CLASS_NAME::crack,
+             (bp::arg("usernames"), bp::arg("passwords"), bp::arg("pairs")));
 }
