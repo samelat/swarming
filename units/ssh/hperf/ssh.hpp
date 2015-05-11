@@ -31,23 +31,23 @@ public:
 class SSH : public Cracker {
 public:
 
-    SSH(bp::object callback/*, uint32_t ipv4*/);
-    ~SSH(){};
-    
-    Cracker::status_t login(const char * username, const char * password);
+    SSH(bp::object& callback, const char * daddr, const uint16_t dport, const unsigned int timeout=DEFAULT_TIMEOUT)
+        : Cracker(callback, daddr, dport, timeout), session(ssh_new()) {};
+
+    ~SSH(){ssh_free(session);};
+
+
+protected:
+
+    Cracker::LoginResult login(const char * username, const char * password);
+
 
 private:
-    
-    int sock;
-    unsigned int timeout;
 
-    uint16_t dst_port;
-    uint32_t dst_ipv4;
+    ssh_session session;
 
-    int  wait_socket();
-    int  socket_connect();
-    int  ssh2_start();
-    void ssh2_finish();
+    Cracker::SocketState connect();
+    Cracker::SocketState disconnect();
 };
 
 #endif
