@@ -4,7 +4,8 @@
 #include <memory>
 #include <cstdint>
 
-#include <libssh2.h>
+#include <libssh/libssh.h>
+
 #include <cracker.hpp>
 
 /*
@@ -27,27 +28,23 @@ public:
     static const int RETRY_LOGIN      = -9;
  */
 
-class SSH : Cracker {
+class SSH : public Cracker {
 public:
 
-    SSH2::SSH2(object callback, uint32_t ipv4);
-    ~SSH2();
-    
-    Cracker::status_t SSH::login(const char * username, const char * password);
+    SSH(bp::object& callback, const char * daddr, const uint16_t dport, const unsigned int timeout=DEFAULT_TIMEOUT)
+        : Cracker(callback, daddr, dport, timeout), session(ssh_new()) {};
+
+    ~SSH(){ssh_free(session);};
+
 
 private:
-    std::unique_ptr<LIBSSH2_SESSION, decltype(libssh2_session_free)> session;
-    
-    int sock;
-    unsigned int timeout;
 
-    uint16_t dst_port;
-    uint32_t dst_ipv4;
+    ssh_session session;
 
-    int  wait_socket();
-    int  socket_connect();
-    int  ssh2_start();
-    void ssh2_finish();
+    Cracker::SocketState connect() override ;
+    Cracker::SocketState disconnect() override ;
+    Cracker::SocketState set_username(const char * usr) override ;
+    Cracker::LoginResult login(const char * password) override ;
 };
 
 #endif

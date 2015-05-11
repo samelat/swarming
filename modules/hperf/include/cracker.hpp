@@ -32,12 +32,12 @@ public:
 
     void crack(bp::list, bp::list, bp::list);
 
+
 protected:
 
     enum LoginResult {
         SUCCESS,
-        FAILED,
-        RECONNECT,
+        FAILED
     };
 
     enum SocketState {
@@ -47,18 +47,19 @@ protected:
         NOSOCK
     };
 
-    virtual LoginResult login(const char * username, const char * password) = 0;
-    virtual SocketState wait(const unsigned int secs);
+    int socket_fd;
+    const char * username;
+    const uint16_t     dst_port;
+    const char *       dst_addr;
+    const unsigned int timeout_limit;
+    const bp::object   callback;
+
+    virtual LoginResult login(const char * password) = 0;
+    virtual SocketState wait(const unsigned int secs = 1);
     virtual SocketState connect();
     virtual SocketState disconnect();
+    virtual void        set_username(const char *usr) {username = usr;};
 
-    int socket_fd;
-    uint16_t     dst_port;
-    const char * dst_addr;
-    unsigned int timeout_limit;
-
-private:
-    const bp::object callback;
 };
 
 #endif

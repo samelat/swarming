@@ -7,69 +7,31 @@
  * The idea behind using an external socket insted native libraries
  * connections is to provide the basis for the use of socks.
  */
-
 void Cracker::crack(bp::list usernames, bp::list passwords, bp::list pairs) {
     
     using string_iterator = bp::stl_input_iterator<const char *>;
 
-    LoginResult result;
+    try {
+        connect();
 
-    connect();
-
-    for(string_iterator usr(usernames); usr != string_iterator(); usr++) {
-        for(string_iterator pwd(passwords); pwd != string_iterator(); pwd++) {
-            result = login(*usr, *pwd);
-            switch(result) {
-                case LoginResult::SUCCESS:
-                    std::cout << "login success\n";
-                    callback(*usr, *pwd);
-                    //disconnect();
-                    //connect();
-                    break;
-
-                case LoginResult::FAILED:
-                    std::cout << "login failed\n";
-                    break;
-
-                /*
-                 * Here we should control the number of attempts and
-                 * report in case where Its value were greater than the limit.
-                 */
-                case LoginResult::RECONNECT:
-                    std::cout << "login reconnect\n";
-                    //disconnect();
-                    //connect();
-                    std::cout << "reconnecting..." << std::endl;
-                    break;
-            }
+        for(string_iterator usr(usernames); usr != string_iterator(); usr++) {
+            set_username(*usr);
+            for(string_iterator pwd(passwords); pwd != string_iterator(); pwd++)
+                if(login(*pwd) == LoginResult::SUCCESS)
+                    callback(username, *pwd);
         }
-    }
 
-    for(bp::stl_input_iterator<bp::tuple> p(pairs); p != bp::stl_input_iterator<bp::tuple>(); p++) {
-        result = login(bp::extract<const char *>((*p)[0])(), bp::extract<const char *>((*p)[1])());
-        switch(result) {
-            case LoginResult::SUCCESS:
-                std::cout << "login success\n";
-                callback(bp::extract<const char *>((*p)[0])(),
-                         bp::extract<const char *>((*p)[1])());
-                //disconnect();
-                //connect();
-                break;
-
-            case LoginResult::FAILED:
-                std::cout << "login failed\n";
-                break;
-
-            case LoginResult::RECONNECT:
-                std::cout << "login reconnect\n";
-                //disconnect();
-                //connect();
-                std::cout << "reconnecting..." << std::endl;
-                break;
+        for(bp::stl_input_iterator<bp::tuple> p(pairs); p != bp::stl_input_iterator<bp::tuple>(); p++) {
+            set_username(bp::extract<const char *>((*p)[0])());
+            if(login(bp::extract<const char *>((*p)[1])()) == LoginResult::SUCCESS)
+                callback(username, bp::extract<const char *>((*p)[1])());
         }
-    }
 
-    //disconnect();
+        disconnect();
+
+    } catch(...) {
+        std::cout << "Exception!!!" << std::endl;
+    }
 }
 
 /*

@@ -7,7 +7,7 @@
 /*
  * 
  */
-Cracker::SocketState SSH::connect() {
+Cracker::SocketState SSH::connect() override {
     
     std::cout << "SSH::connect()\n";
 
@@ -27,7 +27,7 @@ Cracker::SocketState SSH::connect() {
 /*
  * 
  */
-Cracker::SocketState SSH::disconnect() {
+Cracker::SocketState SSH::disconnect() override {
     
     std::cout << "disconnecting\n";
 
@@ -36,13 +36,20 @@ Cracker::SocketState SSH::disconnect() {
     return Cracker::SocketState::NOSOCK;
 }
 
+void SSH::set_username(const char * usr) override {
+    Cracker::set_username(usr);
+    disconnect();
+    connect();
+}
+
 /*
  *
  */
-Cracker::LoginResult SSH::login(const char * username, const char * password) {
+Cracker::LoginResult SSH::login(const char * password) override {
     
     bool retry = true;
     int ssh_error;
+
 
     std::cout << "[!] " << username << " - " << password << std::endl;
     
@@ -52,7 +59,7 @@ Cracker::LoginResult SSH::login(const char * username, const char * password) {
         if(ssh_error != SSH_AUTH_AGAIN)
             break;
         
-        switch(wait(10)) {
+        switch(wait()) {
             case SocketState::READY:
                 std::cout << "re-trying ..." << std::endl;
                 break;
@@ -63,9 +70,34 @@ Cracker::LoginResult SSH::login(const char * username, const char * password) {
 
             default:
                 std::cout << "Socket Error" << std::endl;
+                // We should raise an exception here
                 retry = false;
                 break;
         }
+    }
+
+    switch(ssh_error) {
+        case SSH_AUTH_SUCCESS:
+            std::cout << "login success\n";
+            callback(username, password);  
+            //disconnect();
+            //connect();
+            break;
+
+        case SSH_AUTH_ERROR:
+            std::cout << "login failed\n";
+            break;
+
+        /*
+         * Here we should control the number of attempts and
+         * report in case where Its value were greater than the limit.
+         */
+        case SSH_AUTH_AGAIN:
+            std::cout << "login reconnect\n";
+            //disconnect();
+            //connect();
+            std::cout << "reconnecting..." << std::endl;
+            break;
     }
 
     if(ssh_error == SSH_AUTH_SUCCESS)
