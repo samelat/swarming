@@ -43,8 +43,7 @@ protected:
     enum SocketState {
         READY,
         ERROR,
-        TIMEOUT,
-        NOSOCK
+        TIMEOUT
     };
 
     int socket_fd;
@@ -57,7 +56,6 @@ protected:
     virtual LoginResult login(const char * password) = 0;
     virtual SocketState wait(const unsigned int secs = 1);
     virtual SocketState connect();
-    virtual SocketState disconnect();
     virtual void        set_username(const char *usr) {username = usr;};
 
 };

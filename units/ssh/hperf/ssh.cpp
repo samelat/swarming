@@ -7,9 +7,11 @@
 /*
  * 
  */
-Cracker::SocketState SSH::connect() override {
+Cracker::SocketState SSH::connect() {
     
     std::cout << "SSH::connect()\n";
+
+    session = ssh_new();
 
     if(Cracker::connect() == Cracker::SocketState::ERROR)
         return Cracker::SocketState::ERROR;
@@ -26,52 +28,50 @@ Cracker::SocketState SSH::connect() override {
 
 /*
  * 
- */
-Cracker::SocketState SSH::disconnect() override {
+ *
+void SSH::disconnect(ssh_session_t * s) {
     
     std::cout << "disconnecting\n";
 
-    ssh_disconnect(session);
+    ssh_disconnect(s);
+}*/
 
-    return Cracker::SocketState::NOSOCK;
-}
-
-void SSH::set_username(const char * usr) override {
+/*
+ *
+ */
+void SSH::set_username(const char * usr) {
     Cracker::set_username(usr);
-    disconnect();
-    connect();
+    session = nullptr;
 }
 
 /*
  *
  */
-Cracker::LoginResult SSH::login(const char * password) override {
+Cracker::LoginResult SSH::login(const char * password) {
     
-    bool retry = true;
+    LoginResult result = LoginResult::FAILED;
     int ssh_error;
 
-
     std::cout << "[!] " << username << " - " << password << std::endl;
-    
-    while(retry) {
-        ssh_error = ssh_userauth_password(session, username, password);
 
-        if(ssh_error != SSH_AUTH_AGAIN)
-            break;
+    if(!session)
+        connect();
+    
+    while((ssh_error = ssh_userauth_password(session, username, password)) == SSH_AUTH_AGAIN) {
         
-        switch(wait()) {
+        switch(wait(10)) {
             case SocketState::READY:
                 std::cout << "re-trying ..." << std::endl;
                 break;
 
             case SocketState::TIMEOUT:
                 std::cout << "Timeout Error" << std::endl;
+                throw SocketState::TIMEOUT;
                 break;
 
             default:
                 std::cout << "Socket Error" << std::endl;
-                // We should raise an exception here
-                retry = false;
+                throw SocketState::ERROR;
                 break;
         }
     }
@@ -79,12 +79,11 @@ Cracker::LoginResult SSH::login(const char * password) override {
     switch(ssh_error) {
         case SSH_AUTH_SUCCESS:
             std::cout << "login success\n";
-            callback(username, password);  
-            //disconnect();
-            //connect();
+            session = nullptr;
+            result = LoginResult::SUCCESS;
             break;
 
-        case SSH_AUTH_ERROR:
+        case SSH_AUTH_DENIED:
             std::cout << "login failed\n";
             break;
 
@@ -94,14 +93,10 @@ Cracker::LoginResult SSH::login(const char * password) override {
          */
         case SSH_AUTH_AGAIN:
             std::cout << "login reconnect\n";
-            //disconnect();
-            //connect();
+            session = nullptr;
             std::cout << "reconnecting..." << std::endl;
             break;
     }
 
-    if(ssh_error == SSH_AUTH_SUCCESS)
-        return LoginResult::SUCCESS;
-
-    return LoginResult::FAILED;
+    return result;
 }

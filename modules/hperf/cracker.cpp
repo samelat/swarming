@@ -12,7 +12,6 @@ void Cracker::crack(bp::list usernames, bp::list passwords, bp::list pairs) {
     using string_iterator = bp::stl_input_iterator<const char *>;
 
     try {
-        connect();
 
         for(string_iterator usr(usernames); usr != string_iterator(); usr++) {
             set_username(*usr);
@@ -26,8 +25,6 @@ void Cracker::crack(bp::list usernames, bp::list passwords, bp::list pairs) {
             if(login(bp::extract<const char *>((*p)[1])()) == LoginResult::SUCCESS)
                 callback(username, bp::extract<const char *>((*p)[1])());
         }
-
-        disconnect();
 
     } catch(...) {
         std::cout << "Exception!!!" << std::endl;
@@ -57,19 +54,6 @@ Cracker::SocketState Cracker::connect() {
         return SocketState::READY;
 
     return SocketState::ERROR;
-}
-
-Cracker::SocketState Cracker::disconnect() {
-
-    std::cout << "Cracker::disconnect()\n";
-
-    // If there is no active socket, ignore the call
-    if(socket_fd >= 0) {
-        close(socket_fd);
-        socket_fd = -1;
-    }
-
-    return SocketState::NOSOCK;
 }
 
 /*

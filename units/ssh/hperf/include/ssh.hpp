@@ -27,23 +27,33 @@ public:
     
     static const int RETRY_LOGIN      = -9;
  */
+extern "C" {
+typedef struct ssh_session_struct ssh_session_t;
+}
+/*
+void disconnect(ssh_session_t *) {
+
+
+}*/
 
 class SSH : public Cracker {
 public:
 
     SSH(bp::object& callback, const char * daddr, const uint16_t dport, const unsigned int timeout=DEFAULT_TIMEOUT)
-        : Cracker(callback, daddr, dport, timeout), session(ssh_new()) {};
+        : Cracker(callback, daddr, dport, timeout), session(nullptr) {};
 
-    ~SSH(){ssh_free(session);};
+    ~SSH(){};
 
 
 private:
 
+    //std::unique_ptr<ssh_session_t, void (*)(ssh_session_t *)> session;
     ssh_session session;
 
+    //void disconnect(ssh_session_t *);
+
+    void set_username(const char * usr) override ;
     Cracker::SocketState connect() override ;
-    Cracker::SocketState disconnect() override ;
-    Cracker::SocketState set_username(const char * usr) override ;
     Cracker::LoginResult login(const char * password) override ;
 };
 
