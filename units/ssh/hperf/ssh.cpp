@@ -11,30 +11,20 @@ Cracker::SocketState SSH::connect() {
     
     std::cout << "SSH::connect()\n";
 
-    session = ssh_new();
+    session.reset(ssh_new());
 
     if(Cracker::connect() == Cracker::SocketState::ERROR)
         return Cracker::SocketState::ERROR;
 
-    ssh_options_set(session, SSH_OPTIONS_FD, &socket_fd);
+    ssh_options_set(session.get(), SSH_OPTIONS_FD, &socket_fd);
 
-    if(ssh_connect(session) != SSH_OK)
+    if(ssh_connect(session.get()) != SSH_OK)
         return Cracker::SocketState::ERROR;
 
-    ssh_set_blocking(session, 0); //nonblocking
+    ssh_set_blocking(session.get(), 0); //nonblocking
 
     return Cracker::SocketState::READY;
 }
-
-/*
- * 
- *
-void SSH::disconnect(ssh_session_t * s) {
-    
-    std::cout << "disconnecting\n";
-
-    ssh_disconnect(s);
-}*/
 
 /*
  *
@@ -57,7 +47,7 @@ Cracker::LoginResult SSH::login(const char * password) {
     if(!session)
         connect();
     
-    while((ssh_error = ssh_userauth_password(session, username, password)) == SSH_AUTH_AGAIN) {
+    while((ssh_error = ssh_userauth_password(session.get(), username, password)) == SSH_AUTH_AGAIN) {
         
         switch(wait(10)) {
             case SocketState::READY:

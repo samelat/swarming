@@ -72,9 +72,7 @@ Cracker::SocketState Cracker::wait(const unsigned int secs) {
     timeout.tv_sec  = secs;
     timeout.tv_usec = 0;
     
-    std::cout << "esperando\n";
     count_fds = select(socket_fd + 1, &read_set, NULL, NULL, &timeout);
-    std::cout << "listo\n";
     if(count_fds > 0)
         return SocketState::READY;
     
