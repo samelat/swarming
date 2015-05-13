@@ -39,10 +39,8 @@ public:
         };
     };
 
-    SSH(bp::object& callback, const char * daddr, const uint16_t dport, const unsigned int timeout=DEFAULT_TIMEOUT)
-        : Cracker(callback, daddr, dport, timeout) {};
-
-    SSH(const SSH & other) : Cracker(other) {};
+    SSH(bp::object& callback, const char * daddr, const uint16_t dport)
+        : Cracker(callback, daddr, dport) {};
 
     ~SSH(){};
 

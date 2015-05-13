@@ -39,7 +39,7 @@ void SSH::set_username(const char * usr) {
  */
 Cracker::LoginResult SSH::login(const char * password) {
     
-    LoginResult result = LoginResult::FAILED;
+    LoginResult result = FAILED;
     int ssh_error;
 
     std::cout << "[!] " << username << " - " << password << std::endl;
@@ -49,20 +49,19 @@ Cracker::LoginResult SSH::login(const char * password) {
     
     while((ssh_error = ssh_userauth_password(session.get(), username, password)) == SSH_AUTH_AGAIN) {
         
-        switch(wait(10)) {
+        switch(wait()) {
             case SocketState::READY:
                 std::cout << "re-trying ..." << std::endl;
                 break;
 
             case SocketState::TIMEOUT:
                 std::cout << "Timeout Error" << std::endl;
-                throw SocketState::TIMEOUT;
-                break;
+                throw cracker_abort(TIMEOUT, "timeout error");
 
             default:
                 std::cout << "Socket Error" << std::endl;
-                throw SocketState::ERROR;
-                break;
+                session = nullptr;
+                return RETRY;
         }
     }
 
@@ -70,21 +69,15 @@ Cracker::LoginResult SSH::login(const char * password) {
         case SSH_AUTH_SUCCESS:
             std::cout << "login success\n";
             session = nullptr;
-            result = LoginResult::SUCCESS;
+            result = SUCCESS;
             break;
 
         case SSH_AUTH_DENIED:
             std::cout << "login failed\n";
             break;
 
-        /*
-         * Here we should control the number of attempts and
-         * report in case where Its value were greater than the limit.
-         */
-        case SSH_AUTH_AGAIN:
-            std::cout << "login reconnect\n";
-            session = nullptr;
-            std::cout << "reconnecting..." << std::endl;
+        default:
+            std::cout << "UKNOWN SSH Return Value :S" << std::endl;
             break;
     }
 
