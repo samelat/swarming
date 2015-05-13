@@ -53,11 +53,14 @@ protected:
         TIMEOUT
     };
 
-    class cracker_abort : public std::runtime_error {
+    class socket_error : public std::runtime_error {
     public:
-        SocketState error;
-        cracker_abort(SocketState e, std::string what)
-            : std::runtime_error(what), error(e) {};
+        socket_error(std::string what) : std::runtime_error(what) {};
+    };
+
+    class abort_task : public std::runtime_error {
+    public:
+        socket_error(std::string what) : std::runtime_error(what) {};
     };
 
     int socket_fd;

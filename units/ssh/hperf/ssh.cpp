@@ -44,8 +44,8 @@ Cracker::LoginResult SSH::login(const char * password) {
 
     std::cout << "[!] " << username << " - " << password << std::endl;
 
-    if(!session)
-        connect();
+    if((!session) && (connect() != READY))
+        return RETRY;
     
     while((ssh_error = ssh_userauth_password(session.get(), username, password)) == SSH_AUTH_AGAIN) {
         
