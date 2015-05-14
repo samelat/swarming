@@ -7,23 +7,20 @@
 /*
  * 
  */
-Cracker::SocketState SSH::connect() {
+void SSH::connect() {
     
     std::cout << "SSH::connect()\n";
 
     session.reset(ssh_new());
 
-    if(Cracker::connect() == Cracker::SocketState::ERROR)
-        return Cracker::SocketState::ERROR;
+    Cracker::connect();
 
     ssh_options_set(session.get(), SSH_OPTIONS_FD, &socket_fd);
 
     if(ssh_connect(session.get()) != SSH_OK)
-        return Cracker::SocketState::ERROR;
+        throw connection_error("ssh_connect error");
 
     ssh_set_blocking(session.get(), 0); //nonblocking
-
-    return Cracker::SocketState::READY;
 }
 
 /*
@@ -44,25 +41,12 @@ Cracker::LoginResult SSH::login(const char * password) {
 
     std::cout << "[!] " << username << " - " << password << std::endl;
 
-    if((!session) && (connect() != READY))
-        return RETRY;
+    if(!session)
+        connect();
     
     while((ssh_error = ssh_userauth_password(session.get(), username, password)) == SSH_AUTH_AGAIN) {
-        
-        switch(wait()) {
-            case SocketState::READY:
-                std::cout << "re-trying ..." << std::endl;
-                break;
-
-            case SocketState::TIMEOUT:
-                std::cout << "Timeout Error" << std::endl;
-                throw cracker_abort(TIMEOUT, "timeout error");
-
-            default:
-                std::cout << "Socket Error" << std::endl;
-                session = nullptr;
-                return RETRY;
-        }
+        wait();
+        std::cout << "re-trying ..." << std::endl;
     }
 
     switch(ssh_error) {

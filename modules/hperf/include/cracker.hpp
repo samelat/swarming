@@ -15,6 +15,8 @@
 #include <boost/python/def.hpp>
 #include <boost/python/stl_iterator.hpp>
 
+#include <exceptions.hpp>
+
 #define  STRINGIFY(var) _STRINGIFY(var)
 #define _STRINGIFY(var) #var
 
@@ -43,39 +45,31 @@ protected:
 
     enum LoginResult {
         SUCCESS,
-        FAILED,
-        RETRY
+        FAILED
     };
 
+    /*
     enum SocketState {
         READY,
         ERROR,
         TIMEOUT
-    };
-
-    class socket_error : public std::runtime_error {
-    public:
-        socket_error(std::string what) : std::runtime_error(what) {};
-    };
-
-    class abort_task : public std::runtime_error {
-    public:
-        socket_error(std::string what) : std::runtime_error(what) {};
-    };
+    };*/
 
     int socket_fd;
     unsigned int timeout  = DEFAULT_TIMEOUT;
     unsigned int attempts = DEFAULT_ATTEMPTS;
 
-    const char * username;
-    const uint16_t     dst_port;
-    const char *       dst_addr;
-    const bp::object   callback;
+    const char *     username;
+    const uint16_t   dst_port;
+    const char *     dst_addr;
+    const bp::object callback;
+
+    virtual void wait();
+    virtual void connect();
+    virtual void disconnect() {close(socket_fd);}
+    virtual void set_username(const char *usr) {username = usr;}
 
     virtual LoginResult login(const char * password) = 0;
-    virtual SocketState wait();
-    virtual SocketState connect();
-    virtual void        set_username(const char *usr) {username = usr;};
 
 };
 

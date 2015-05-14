@@ -49,8 +49,10 @@ private:
 
     std::unique_ptr<struct ssh_session_struct, ssh_deleter> session;
 
-    void set_username(const char * usr) override ;
-    Cracker::SocketState connect() override ;
+    void connect() override;
+    void disconnect() override {session = nullptr;}
+    void set_username(const char * usr) override;
+
     Cracker::LoginResult login(const char * password) override ;
 };
 
