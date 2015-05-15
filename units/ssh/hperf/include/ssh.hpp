@@ -39,8 +39,8 @@ public:
         };
     };
 
-    SSH(bp::object& callback, const char * daddr, const uint16_t dport)
-        : Cracker(callback, daddr, dport) {};
+    SSH(bp::object& success_cb, bp::object& retry_cb, const char * daddr, const uint16_t dport)
+        : Cracker(success_cb, retry_cb, daddr, dport) {};
 
     ~SSH(){};
 

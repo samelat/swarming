@@ -29,9 +29,9 @@ namespace bp = boost::python;
 class Cracker {
 public:
 
-    Cracker(bp::object& callback, const char * daddr, const uint16_t dport)
+    Cracker(bp::object& success_cb, bp::object& retry_cb, const char * daddr, const uint16_t dport)
         : socket_fd(-1), dst_port(dport), dst_addr(daddr)
-        , callback(callback) {};
+        , retry_callback(retry_cb), success_callback(success_cb) {};
 
     ~Cracker() {};
 
@@ -45,15 +45,9 @@ protected:
 
     enum LoginResult {
         SUCCESS,
-        FAILED
+        FAILED,
+        RETRY
     };
-
-    /*
-    enum SocketState {
-        READY,
-        ERROR,
-        TIMEOUT
-    };*/
 
     int socket_fd;
     unsigned int timeout  = DEFAULT_TIMEOUT;
@@ -62,7 +56,9 @@ protected:
     const char *     username;
     const uint16_t   dst_port;
     const char *     dst_addr;
-    const bp::object callback;
+
+    const bp::object retry_callback;
+    const bp::object success_callback;
 
     virtual void wait();
     virtual void connect();
@@ -70,7 +66,6 @@ protected:
     virtual void set_username(const char *usr) {username = usr;}
 
     virtual LoginResult login(const char * password) = 0;
-
 };
 
 #endif

@@ -18,7 +18,7 @@ void SSH::connect() {
     ssh_options_set(session.get(), SSH_OPTIONS_FD, &socket_fd);
 
     if(ssh_connect(session.get()) != SSH_OK)
-        throw connection_error("ssh_connect error");
+        throw standard_error("ssh_connect error");
 
     ssh_set_blocking(session.get(), 0); //nonblocking
 }

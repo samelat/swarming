@@ -5,19 +5,19 @@
 #include <boost/python.hpp>
 
 
-class connection_error : public std::runtime_error {
+class standard_error : public std::runtime_error {
 public:
     static PyObject *python_type;
 
-    connection_error(const std::string &what) : std::runtime_error(what) {};
+    standard_error(const std::string &what) : std::runtime_error(what) {};
 };
 
 
-class abort_task : public std::runtime_error {
+class fatal_error : public std::runtime_error {
 public:
     static PyObject *python_type;
 
-    abort_task(const std::string &what) : std::runtime_error(what) {};
+    fatal_error(const std::string &what) : std::runtime_error(what) {};
 };
 
 
