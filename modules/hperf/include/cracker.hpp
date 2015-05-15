@@ -66,6 +66,9 @@ protected:
     virtual void set_username(const char *usr) {username = usr;}
 
     virtual LoginResult login(const char * password) = 0;
+
+private:
+    bool login_wrapper(const char * password);
 };
 
 #endif

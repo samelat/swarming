@@ -12,53 +12,44 @@ void Cracker::crack(bp::list usernames, bp::list passwords, bp::list pairs) {
     
     using string_iterator = bp::stl_input_iterator<const char *>;
 
-    unsigned int attempt = 0;
-    LoginResult result;
-
     for(string_iterator usr(usernames); usr != string_iterator(); usr++) {
         set_username(*usr);
         for(string_iterator pwd(passwords); pwd != string_iterator(); pwd++) {
-            attempt = 0;
-            result = RETRY;
-            do {
-                try {
-                    result = login(*pwd);
-                } catch(standard_error &e) {
-                    std::cout << "Error: " << e.what() << std::endl;
-                    disconnect();
-                    if(!retry_callback(++attempt))
-                        throw;
-                }
-            } while(result == RETRY);
-
-            if(result == SUCCESS) {
-                success_callback(username, *pwd);
-                // Continue with the next username.
+            if(login_wrapper(*pwd))
                 break;
-            }
         }
     }
 
     for(bp::stl_input_iterator<bp::tuple> p(pairs); p != bp::stl_input_iterator<bp::tuple>(); p++) {
         set_username(bp::extract<const char *>((*p)[0])());
-        attempt = 0;
-        result = RETRY;
-        do {
-            try {
-                result = login(bp::extract<const char *>((*p)[1])());
-            } catch(standard_error &e) {
-                std::cout << "Error: " << e.what() << std::endl;
-                disconnect();
-                if(!retry_callback(++attempt))
-                    throw;
-            }
-        } while(result == RETRY);
-
-        if(result == SUCCESS) {
-            success_callback(username, bp::extract<const char *>((*p)[1])());
-            // Continue with the next username.
-        }
+        login_wrapper(bp::extract<const char *>((*p)[1])());
     }
+}
+
+
+bool Cracker::login_wrapper(const char * password) {
+
+    unsigned int attempt = 0;
+    LoginResult result = RETRY;
+
+    do {
+        try {
+            result = login(password);
+        } catch(standard_error &e) {
+            std::cout << "Error: " << e.what() << std::endl;
+            disconnect();
+            if(!retry_callback(++attempt))
+                throw;
+        }
+    } while(result == RETRY);
+
+    if(result == SUCCESS) {
+        success_callback(username, password);
+        // Continue with the next username.
+        return true;
+    }
+
+    return false;
 }
 
 /*
