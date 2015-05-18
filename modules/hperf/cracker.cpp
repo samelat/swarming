@@ -1,6 +1,8 @@
 
 #include <module.hpp>
 
+#include <map>
+#include <vector>
 #include <iostream>
 
 
@@ -12,18 +14,43 @@ void Cracker::crack(bp::list usernames, bp::list passwords, bp::list pairs) {
     
     using string_iterator = bp::stl_input_iterator<const char *>;
 
-    for(string_iterator usr(usernames); usr != string_iterator(); usr++) {
-        set_username(*usr);
-        for(string_iterator pwd(passwords); pwd != string_iterator(); pwd++) {
-            if(login_wrapper(*pwd))
-                break;
-        }
-    }
+    // Convert "pairs" into a collection that join all passwords for the same username.
+    std::map<std::string, std::vector<const char *>> _pairs = {};
 
     for(bp::stl_input_iterator<bp::tuple> p(pairs); p != bp::stl_input_iterator<bp::tuple>(); p++) {
-        set_username(bp::extract<const char *>((*p)[0])());
-        login_wrapper(bp::extract<const char *>((*p)[1])());
+        std::string username = bp::extract<const char *>((*p)[0])();
+        if(_pairs.find(username) == _pairs.end())
+            _pairs[username] = std::vector<const char *>();
+        _pairs[username].push_back(bp::extract<const char *>((*p)[1])());
     }
+
+    // Start cracking
+    for(string_iterator usr(usernames); usr != string_iterator(); usr++) {
+        set_username(*usr);
+        auto entry = _pairs.find(*usr);
+        for(string_iterator pwd(passwords); pwd != string_iterator(); pwd++) {
+            if(login_wrapper(*pwd)) {
+                if(entry != _pairs.end())
+                    _pairs.erase(entry);
+                break;
+            }
+        }
+
+    }
+
+    for(const auto entry : _pairs) {
+        set_username(entry.first.c_str());
+        for(const auto pass : entry.second)
+            if(login_wrapper(pass))
+                break;
+    }
+
+    /*
+    for(bp::stl_input_iterator<bp::tuple> p(pairs); p != bp::stl_input_iterator<bp::tuple>(); p++) {
+        if
+        if(ignore.find(bp::extract<const char *>((*p)[0])()) != ignore.end())
+        login_wrapper(bp::extract<const char *>((*p)[1])());
+    }*/
 }
 
 
@@ -57,6 +84,7 @@ bool Cracker::login_wrapper(const char * password) {
  */
 void Cracker::connect() {
 
+    char buffer[64];
     struct sockaddr_in sin;
  
     socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -76,10 +104,10 @@ void Cracker::connect() {
 
             case ENETUNREACH:
             case EHOSTUNREACH:
-                throw fatal_error(strerror(errno));
+                throw fatal_error(strerror_r(errno, buffer, 64));
 
             default:
-                throw standard_error(strerror(errno));
+                throw standard_error(strerror_r(errno, buffer, 64));
         }
     }
 }
@@ -91,9 +119,10 @@ void Cracker::wait() {
 
     std::cout << "waiting" << std::endl;
 
+    char buffer[64];
     unsigned int ticks = 1;
-    int count_fds, so_error;
-    socklen_t option_len = sizeof(so_error);
+    int count_fds;
+    //socklen_t option_len = sizeof(so_error);
     
     fd_set read_set;
     struct timeval quantum;
@@ -115,12 +144,13 @@ void Cracker::wait() {
 
     if(count_fds < 0) {
 
-        getsockopt(socket_fd, SOL_SOCKET, SO_ERROR, &so_error, &option_len);
+        //getsockopt(socket_fd, SOL_SOCKET, SO_ERROR, &so_error, &option_len);
 
-        std::cout << "so_error == " << so_error << " - " << strerror(so_error) << std::endl;
+        std::cout << "errno == " << errno << std::endl;
+        //std::cout << "so_error == " << so_error << " - " << strerror(so_error) << std::endl;
         std::cout << "count_fds == " << count_fds << std::endl;
         
-        throw standard_error("wait error");
+        throw standard_error(strerror_r(errno, buffer, 64));
     }
 }
 
