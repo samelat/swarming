@@ -27,15 +27,22 @@ void Cracker::crack(bp::list usernames, bp::list passwords, bp::list pairs) {
     // Start cracking
     for(string_iterator usr(usernames); usr != string_iterator(); usr++) {
         set_username(*usr);
-        auto entry = _pairs.find(*usr);
         for(string_iterator pwd(passwords); pwd != string_iterator(); pwd++) {
             if(login_wrapper(*pwd)) {
+                auto entry = _pairs.find(*usr);
                 if(entry != _pairs.end())
                     _pairs.erase(entry);
                 break;
             }
         }
 
+        // This will avoid needless disconexions.
+        auto entry = _pairs.find(*usr);
+        if(entry != _pairs.end())
+            for(const auto pwd : entry->second) {
+                if(login_wrapper(pwd))
+                    break;
+            }
     }
 
     for(const auto entry : _pairs) {
@@ -44,13 +51,6 @@ void Cracker::crack(bp::list usernames, bp::list passwords, bp::list pairs) {
             if(login_wrapper(pass))
                 break;
     }
-
-    /*
-    for(bp::stl_input_iterator<bp::tuple> p(pairs); p != bp::stl_input_iterator<bp::tuple>(); p++) {
-        if
-        if(ignore.find(bp::extract<const char *>((*p)[0])()) != ignore.end())
-        login_wrapper(bp::extract<const char *>((*p)[1])());
-    }*/
 }
 
 
