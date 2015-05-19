@@ -67,6 +67,23 @@ class Engine(Unit):
         result = self.core.dispatch(message)
         response = self.get_response(result['channel'], True)
 
+        #####################################################################
+
+        # Load SSH in the 3 layers
+        message = {'dst':'core', 'src':'engine', 'cmd':'control',
+                   'params':{'action':'load', 'unit':'ssh'}}
+        for lid in range(1, 4):
+            message['layer'] = lid
+            result = self.core.dispatch(message)
+            print('[engine.start] Starting ssh, result: {0}'.format(result))
+            response = self.get_response(result['channel'], True)
+            print('[engine.start] Unit ssh, ready: {0}'.format(response))
+
+        # Register HTTP Unit (Just the unit knows its protocols)
+        message = {'dst':'ssh', 'src':'engine', 'cmd':'register', 'params':{}, 'async':False}
+        result = self.core.dispatch(message)
+        response = self.get_response(result['channel'], True)
+
         print('[core.start] Unit Register Response: {0}'.format(response))
 
 

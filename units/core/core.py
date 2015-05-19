@@ -5,6 +5,7 @@ from threading import Condition
 from modules.unit import Unit
 from modules.message import Message
 
+from units.ssh.ssh import SSH
 from units.http.http import HTTP
 from units.engine.engine import Engine
 from units.core.executor import Executor
@@ -18,7 +19,8 @@ class Core(Unit):
         super(Core, self).__init__()
         # I have to change this to load the unit dinamicaly
         self._unit_class = {'executor':Executor,
-                            'http':HTTP}
+                            'http':HTTP,
+                            'ssh':SSH}
         self._condition = Condition()
         self._accesses = 0
 
@@ -181,6 +183,7 @@ class Core(Unit):
 
         params = message['params']
         if params['action'] == 'load':
+            print(dir(self._unit_class[params['unit']]))
             result = self._unit_class[params['unit']].build(self)
             print('[core.control:{0}] result: {1}'.format(self.layer, result))
 
