@@ -73,3 +73,32 @@ textarea {
     resize: vertical;
     font-family: Monospace;
 }
+
+
+
+
+
+
+
+
+
+.panel.panel-horizontal {
+    display:table;
+    width:100%;
+}
+.panel.panel-horizontal > .panel-heading, .panel.panel-horizontal > .panel-body, .panel.panel-horizontal > .panel-footer {
+    display:table-cell;
+}
+
+.panel.panel-horizontal > .panel-footer {
+    width: 25%;
+    border:0;
+    vertical-align: middle;
+}
+
+.panel.panel-horizontal > .panel-heading {
+    width: 75%;
+    border:0;
+    vertical-align: middle;
+}
+
