@@ -75,30 +75,45 @@ textarea {
 }
 
 
+.hotlink-success {
+  margin-bottom: 20px;
+  border-radius: 3px;
+  background-color: #ffffff;
+  height: 100px;
+  overflow: hidden;
+  box-shadow: 0px 3px 0px #dbdfe0;
+  border: 1px black solid;
 
-
-
-
-
-
-
-.panel.panel-horizontal {
-    display:table;
-    width:100%;
-}
-.panel.panel-horizontal > .panel-heading, .panel.panel-horizontal > .panel-body, .panel.panel-horizontal > .panel-footer {
-    display:table-cell;
+  padding: 10px 15px;
+  font-family: 'Lato', sans-serif;
 }
 
-.panel.panel-horizontal > .panel-footer {
-    width: 25%;
-    border:0;
-    vertical-align: middle;
+.hotlink-header {
+    display: inline-block;
+    vertical-align: top;
+    height: 78px;
+    width: 30%;
 }
 
-.panel.panel-horizontal > .panel-heading {
-    width: 75%;
-    border:0;
-    vertical-align: middle;
+.hotlink-body {
+    display: inline-block;
+    vertical-align: top;
+    height: 78px;
+    width: 68%;
 }
 
+.notify {
+      position: absolute;
+  top: -8px;
+  right: 0px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #f86868;
+  width: 50px;
+  height: 50px;
+  color: #ffffff;
+  line-height: 50px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: bold;
+}
