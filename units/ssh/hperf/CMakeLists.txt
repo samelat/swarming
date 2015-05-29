@@ -28,7 +28,7 @@ include_directories($(LibSSH_INCLUDE_DIRS))
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/hperf/include)
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../)
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../)
 
 #message("HPERF BASE DIR: " ${HPERF_BASE_CLASS_DIR})
 #message(${HPERF_BASE_CLASS_DIR}/cracker.cpp)
