@@ -1,6 +1,27 @@
 
-/*@grid-columns: 24;*/
 
+/* ##################
+ *  board properties
+ * ##################
+ */
+.board-header {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    color: #2F3949;
+}
+
+.board-menu {
+    margin-bottom: 10px;
+}
+
+.board-table {
+    overflow: auto;
+}
+
+/* ###################
+ *  
+ * ###################
+ */
 .table .list-unstyled {
     margin-bottom: 0px;
 }
@@ -10,8 +31,17 @@
 }
 
 .progress {
-    height: 16px;
+    height: 20px;
+    min-width: 100px;
+    position: relative;
 }
+
+.progress span {
+    position: absolute;
+    display: block;
+    width: 100%;
+}
+
 /* ######## GREEN ######## */
 .progress-bar.initial {
     background-color: #5CB85C;
@@ -74,46 +104,78 @@ textarea {
     font-family: Monospace;
 }
 
+/* ########################
+ * hotlink style definition
+ * ########################
+ */
+.hotlink {
+    padding-right: 30px;
+    font-family: 'Lato', sans-serif;
+    min-width: 320px;
+}
 
-.hotlink-success {
-  margin-bottom: 20px;
-  border-radius: 3px;
-  background-color: #ffffff;
-  height: 100px;
-  overflow: hidden;
-  box-shadow: 0px 3px 0px #dbdfe0;
-  border: 1px black solid;
-
-  padding: 10px 15px;
-  font-family: 'Lato', sans-serif;
+.hotlink-base {
+    padding: 0;
+    margin-bottom: 20px;
+    border-radius: 3px;
+    width: 100%;
+    height: 100px;
+    overflow: hidden;
+    box-shadow: 0px 3px 0px 0px #dbdfe0;
 }
 
 .hotlink-header {
     display: inline-block;
     vertical-align: top;
-    height: 78px;
+    height: 100px;
     width: 30%;
+    padding: 16px 0px;
+    color: #fff;
+    text-align: center;
 }
 
 .hotlink-body {
     display: inline-block;
     vertical-align: top;
-    height: 78px;
-    width: 68%;
+    height: 100px;
+    width: 70%;
+    background-color: #F8F8F8;
+    margin-left: -4px;
+}
+
+.hotlink-body > h3 {
+    margin-top: 60px;
+    margin-left: 16px;
+}
+
+.hotlink-header.success {
+    background-color: #428BCA;
+}
+
+.hotlink-header.task {
+    background-color: #6C7681;
+}
+
+.hotlink-header.dictionary {
+    background-color: #9F90E4;
+}
+
+.hotlink-header.error {
+    background-color: #F15722;
 }
 
 .notify {
-      position: absolute;
-  top: -8px;
-  right: 0px;
-  border-radius: 50%;
-  overflow: hidden;
-  background-color: #f86868;
-  width: 50px;
-  height: 50px;
-  color: #ffffff;
-  line-height: 50px;
-  text-align: center;
-  font-size: 26px;
-  font-weight: bold;
+    position: absolute;
+    top: -8px;
+    right: 16px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #f86868;
+    width: 50px;
+    height: 50px;
+    color: #ffffff;
+    line-height: 50px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: bold;
 }

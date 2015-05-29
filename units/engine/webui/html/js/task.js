@@ -63,7 +63,7 @@ function Task () {
                                '    <td>' +
                                '        <div class="progress {{stage_name}}">' +
                                '            <div class="progress-bar {{stage_name}} {{striped}}" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: {{percentage}}%">' +
-                               '                {{percentage}}%' +
+                               '                <span>{{percentage}}%</span>' +
                                '            </div>' +
                                '        </div>' +
                                '    </td>' +
@@ -126,31 +126,7 @@ function Task () {
         });
     };
 
-    this.add_attr = function() {
-
-        template = '<tr>' +
-                   '    <td class="pair">{"{{key}}":{{value}}}</td>' +
-                   '    <td></td>' +
-                   '</tr>';
-
-        var key = $('.row input[name="key"]').val();
-        var value = $('.row input[name="value"]').val();
-
-        if((key.length == 0) || (value.length == 0))
-            return;
-
-        html = Mustache.to_html(template, {"key":key, "value":value});
-
-        $('#attr_table tbody').append(html);
-    };
-
     this.add_task = function() {
-
-        var attrs = {};
-        $('#attr_table tbody .pair').each(function(index, tag){
-            var tmp = JSON.parse(tag.innerText);
-            $.extend(attrs, tmp);
-        });
 
         var uri = $('.row input[name="uri"]').val();
         var state = $('.row select[name="state"]').val();
@@ -183,6 +159,6 @@ function Task () {
                      }
         });
 
-        $('#add_task').modal('hide');
+        $('#add_task_modal').modal('toggle');
     };
 };

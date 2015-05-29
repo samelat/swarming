@@ -6,6 +6,7 @@ function Dictionary () {
     this.index = 0;
 
     this.start = function() {
+
         this.update();
     };
 
@@ -107,60 +108,93 @@ function Dictionary () {
 
     this.add_entry = function() {
 
-        template = '<tr>' +
-                   '    <td class="pair">{{username}}</td>' +
-                   '    <td class="pair">{{password}}</td>' +
-                   '    <td></td>' +
-                   '    <td></td>' +
-                   '</tr>';
-
-        if(this.values == undefined)
-            this.values = [];
-
-        var keywords = {};
-        if(!$('#null_username').prop("checked"))
+        var keywords = {"username":null, "password":null};
+        if($("#username_radio").prop("checked"))
             keywords.username = $('#username').val();
-        else
-            keywords.username = null;
 
-        if(!$('#null_password').prop("checked"))
+        else if($('#password_radio').prop("checked"))
             keywords.password = $('#password').val();
-        else
-            keywords.password = null;
 
-        if(!(('username' in keywords) || ('password' in keywords)))
-            return;
-
-        this.values.push({'dictionary':keywords});
-
-        console.log('[dictionary.add_entry] ' + JSON.stringify(keywords));
-
-        html = Mustache.to_html(template, keywords);
-
-        console.log(html);
-
-        $('#entries_table tbody').append(html);
-
-    };
-
-    this.add_entries = function() {
-
-        console.log('SENDING!!!');
-
-        if((this.values == undefined) || (this.values.length == 0))
-            return;
+        else {
+            keywords.username = $('#username').val();
+            keywords.password = $('#password').val();
+        }
 
         $.ajax({
             type: 'POST',
             url: '/api/set',
-            data: JSON.stringify(this.values),
+            data: JSON.stringify([{'dictionary':keywords}]),
             contentType: 'application/json',
             dataType: 'json',
             success: function(response) {
-                        console.log('[ADD_TASK.RESPONSE] ' + JSON.stringify(response));
-                     }
+                console.log('[ADD_TASK.RESPONSE] ' + JSON.stringify(response));
+            }
+        });
+    };
+
+    /*
+     * Upload File Modal Methods
+     */
+    this.show_upload_modal = function() {
+        $('#upload_dictionary_modal .alert').hide();
+        $("#upload_form").submit(module.upload_file);
+        $("#upload_dictionary_modal").modal("toggle");
+    };
+
+    this.change_file_format = function(tag) {
+        if(tag.value == "custom")
+            $("#file_regex").prop("disabled", false);
+        else
+            $("#file_regex").prop("disabled", true);
+    };
+
+    this.upload_file = function(upload_event) {
+
+        var alert_box = $('#upload_dictionary_modal .alert');
+        var error_tmp = '<span class="fa fa-exclamation-circle" aria-hidden="true"></span>';
+
+        var file = $('#dictionary_file')[0].files[0];
+        if(file == undefined) {
+            alert_box.html(error_tmp + "You haven't specified a File");
+            alert_box.show();
+            return false;
+        }
+        
+        var params = {};
+        params.format = $('#file_type')[0].value;
+        if(params.format == 'custom') {
+            var regex = $('#file_regex')[0].value;
+            if(regex == "") {
+                alert_box.html(error_tmp + "You haven't specified a Regex");
+                alert_box.show();
+                return false;
+            }
+
+            params.regex = regex;
+        }
+        
+        var data = new FormData();
+        data.append('content', file);
+        data.append('params', JSON.stringify(params));
+        
+        $.ajax({
+            type: 'POST',
+            url: '/api/upload',
+            data: data,
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                console.log('File Upload Success.');
+            },
+            error: function() {
+                
+            }
         });
 
-        //console.log(JSON.stringify(attrs));
+        //upload_event.preventDefault();
+
+        alert_box.hide();
+        $("#upload_dictionary_modal").modal("toggle");
     };
 };

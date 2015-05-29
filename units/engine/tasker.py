@@ -73,6 +73,7 @@ class Tasker:
 
         crawling_tasks = self._db_mgr.session.query(Task).\
                                               filter_by(state = 'ready').\
+                                              filter(Task.protocol == Unit.protocol).\
                                               filter(Task.stage.like('crawling')|Task.stage.like('initial')).\
                                               all()
 
@@ -136,9 +137,10 @@ class Tasker:
         #################################################################
         
         cracking_tasks = self._db_mgr.session.query(Task).\
+                                              filter_by(stage = 'cracking.dictionary').\
+                                              filter(Task.protocol == Unit.protocol).\
                                               filter((Task.state == 'running')|
                                                      (Task.state == 'ready')).\
-                                              filter_by(stage = 'cracking.dictionary').\
                                               all()
 
         if cracking_tasks:

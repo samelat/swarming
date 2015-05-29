@@ -1,4 +1,5 @@
 
+import json
 import cherrypy
 
 from units.engine.orm import *
@@ -68,3 +69,18 @@ class UIApi:
         print('[knowledge] saliendo de "set" - {1} - {0}'.format(results_list, errors))
 
         return {'status':errors, 'results':results_list}
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def upload(self, content, params):
+        print("UPLOAD")
+
+        json_params = json.loads(params)
+
+        print('[uiapi.upload] content: {0}'.format(content))
+        print('[uiapi.upload] json_params: {0}'.format(json_params))
+
+        print(content.file.read(8192))
+
+        return {'status':0}

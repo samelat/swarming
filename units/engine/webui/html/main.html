@@ -1,61 +1,70 @@
 <div class="row">
-    <div class="col-lg-24">
-        <h1 class="page-header">General Information</h1>
+    <div class="col-lg-12">
+        <h2 class="board-header">Summary</h2>
     </div>
     <!-- /.col-lg-12 -->
 </div>
 
-
-
-
-
-
-
 <!-- /.row -->
 <div class="row">
-    <div class="col-lg-3">
-        <div class="hotlink-success">
-            <div class="hotlink-header">
-                <i class="fa fa-star fa-5x"></i>
-            </div>
-            <div class="hotlink-body">
-                <h3>Successes</h3>
-                <div class="notify">13</div>
-            </div>
-        </div>
-    </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <div class="col-lg-3 col-md-6">
-        <div class="panel panel-red">
-            <div class="panel-heading">
-                <div class="row">
-                    <div class="col-xs-3">
-                        <i class="fa fa-star fa-5x"></i>
-                    </div>
-                    <div class="col-xs-9 text-right">
-                        <div class="huge">19</div>
-                        <div>New Successes!</div>
-                    </div>
+    <div class="hotlink col-md-6 col-lg-3">
+        <a href="javascript:module.show_summary('success')">
+            <div class="hotlink-base">
+                <div class="hotlink-header success">
+                    <i class="fa fa-star-o fa-5x"></i>
+                </div>
+                <div class="hotlink-body">
+                    <h3>Successes</h3>
+                    <div class="notify">13</div>
                 </div>
             </div>
-        </div>
+        </a>
+    </div>
+
+    <div class="hotlink col-md-6 col-lg-3">
+        <a href="javascript:module.show_summary('task')">
+            <div class="hotlink-base">
+                <div class="hotlink-header task">
+                    <i class="fa fa-tasks fa-5x"></i>
+                </div>
+                <div class="hotlink-body">
+                    <h3>Tasks</h3>
+                    <div class="notify">24</div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="hotlink col-md-6 col-lg-3">
+        <a href="javascript:module.show_summary('dictionary')">
+            <div class="hotlink-base">
+                <div class="hotlink-header dictionary">
+                    <i class="fa fa-book fa-5x"></i>
+                </div>
+                <div class="hotlink-body">
+                    <h3>Dictionaries</h3>
+                    <div class="notify">89</div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="hotlink col-md-6 col-lg-3">
+        <a href="javascript:module.show_summary('debug')">
+            <div class="hotlink-base">
+                <div class="hotlink-header error">
+                    <i class="fa fa-warning fa-5x"></i>
+                </div>
+                <div class="hotlink-body">
+                    <h3>Errors</h3>
+                    <div class="notify">1</div>
+                </div>
+            </div>
+        </a>
     </div>
 </div>
 <!-- /.row -->
+
 <div class="row">
         
 </div>
