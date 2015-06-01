@@ -1,4 +1,5 @@
 
+import re
 import urllib.parse
 
 from units.http.crawler.spiders.spider import Spider
@@ -6,7 +7,7 @@ from units.http.crawler.spiders.spider import Spider
 
 class ErrorSpider(Spider):
 
-    status_codes = [302, 401, 407]
+    status_codes = [301, 302, 401, 407]
 
     def __init__(self, unit):
         self.unit = unit
@@ -18,8 +19,15 @@ class ErrorSpider(Spider):
 
         print('[spider.error] response status_code: {0}'.format(response.status_code))
 
+        # Moved Permanently
+        if response.status_code == 301:
+            if re.search('^' + re.escape(request['url']), response.headers['location']):
+                new_request = request.copy()
+                new_request['url'] = response.headers['location']
+                result['requests'] = [new_request]
+
         # www-Authentication
-        if response.status_code == 401:
+        elif response.status_code == 401:
 
             _url = urllib.parse.urlparse(request['url'])
 
