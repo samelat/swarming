@@ -42,6 +42,16 @@ class ORM:
         return int(time.time() * 1000)
 
 
+    def check(self, entity, fields):
+        if entity not in self.entities:
+            return False
+
+        if not set(fields).issubset(self.entities[entity].attributes):
+            return False
+
+        return True
+
+
     def set(self, entity, values):
         cls = self.entities[entity]
         error, values = cls.from_json(values, self)
@@ -190,7 +200,8 @@ class Task(ORMBase, ORMCommon):
     def get_conditions(cls, to_set):
         return [getattr(cls, attr)==to_set[attr] for attr in to_set.keys()
                                                  if  attr not in ['state', 'stage',
-                                                                  'done',  'total']]
+                                                                  'done',  'total',
+                                                                  'description']]
 
     @classmethod
     def get_to_set(cls, values, mgr):
