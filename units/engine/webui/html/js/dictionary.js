@@ -43,22 +43,21 @@ function Dictionary () {
                     console.log('row[' + index + ']: ' + JSON.stringify(row));
 
                     template = '<tr>' +
-                               '    <td>{{id}}</td>' +
-                               '    {{#username}}' +
-                               '    <td>{{username}}</td>' +
-                               '    {{/username}}' +
-                               '    {{^username}}' +
-                               '    <td><i class="fa fa-times fa-fw"></i></td>' +
-                               '    {{/username}}' +
-                               '    {{#password}}' +
-                               '    <td>{{password}}</td>' +
-                               '    {{/password}}' +
-                               '    {{^password}}' +
-                               '    <td><i class="fa fa-times fa-fw"></i></td>' +
-                               '    {{/password}}' +
-                               '    <td></td>' +
-                               '    <td></td>' +
-                               '</tr>';
+                               '    <td>{{id}}</td>';
+
+                    if(row.username != null)
+                        template += '    <td>{{username}}</td>';
+                    else
+                        template += '    <td><i class="fa fa-times fa-fw"></i></td>';
+
+                    if(row.password != null)
+                        template += '    <td>{{password}}</td>';
+                    else
+                        template += '    <td><i class="fa fa-times fa-fw"></i></td>';
+
+                    template += '    <td></td>' +
+                                '    <td></td>' +
+                                '</tr>';
 
                     html = Mustache.to_html(template, row);
                     table.append(html);
@@ -137,7 +136,7 @@ function Dictionary () {
      */
     this.show_upload_modal = function() {
         $('#upload_dictionary_modal .alert').hide();
-        $("#upload_form").submit(module.upload_file);
+        //$("#upload_form").submit(module.upload_file);
         $("#upload_dictionary_modal").modal("toggle");
     };
 
@@ -148,7 +147,7 @@ function Dictionary () {
             $("#file_regex").prop("disabled", true);
     };
 
-    this.upload_file = function(upload_event) {
+    this.upload_file = function() {
 
         var alert_box = $('#upload_dictionary_modal .alert');
         var error_tmp = '<span class="fa fa-exclamation-circle" aria-hidden="true"></span>';
@@ -172,10 +171,14 @@ function Dictionary () {
 
             params.regex = regex;
         }
+
+        // <table_name> => {<table_field> : <how_to_identify_it>, ...}
+        params.entity = 'dictionary'
+        //params.fields = {'username':'username', 'password':'password'};
         
         var data = new FormData();
-        data.append('content', file);
-        data.append('params', JSON.stringify(params));
+        data.append('file', file);
+        data.append('json_params', JSON.stringify(params));
         
         $.ajax({
             type: 'POST',
@@ -192,9 +195,6 @@ function Dictionary () {
             }
         });
 
-        //upload_event.preventDefault();
-
-        alert_box.hide();
         $("#upload_dictionary_modal").modal("toggle");
     };
 };

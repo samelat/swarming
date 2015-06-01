@@ -155,10 +155,73 @@ function Task () {
             contentType: 'application/json',
             dataType: 'json',
             success: function(response) {
-                        console.log('[ADD_TASK.RESPONSE] ' + JSON.stringify(response));
-                     }
+                console.log('[ADD_TASK.RESPONSE] ' + JSON.stringify(response));
+             }
         });
 
         $('#add_task_modal').modal('toggle');
     };
+
+    /*
+     * Upload File Modal Methods
+     */
+    this.show_upload_modal = function() {
+        $('#upload_task_modal .alert').hide();
+        //$("#upload_form").submit(module.upload_file);
+        $("#upload_task_modal").modal("toggle");
+    };
+
+
+    this.upload_file = function() {
+
+        var alert_box = $('#upload_dictionary_modal .alert');
+        var error_tmp = '<span class="fa fa-exclamation-circle" aria-hidden="true"></span>';
+
+        var file = $('#dictionary_file')[0].files[0];
+        if(file == undefined) {
+            alert_box.html(error_tmp + "You haven't specified a File");
+            alert_box.show();
+            return false;
+        }
+        
+        var params = {};
+        params.format = $('#file_type')[0].value;
+        if(params.format == 'custom') {
+            var regex = $('#file_regex')[0].value;
+            if(regex == "") {
+                alert_box.html(error_tmp + "You haven't specified a Regex");
+                alert_box.show();
+                return false;
+            }
+
+            params.regex = regex;
+        }
+
+        // <table_name> => {<table_field> : <how_to_identify_it>, ...}
+        params.entity = 'task';
+        //params.fields = {'protocol':'protocol', 'hostname':'hostname',
+        //                 'port':'port', 'path':'path', 'url':'url'};
+        
+        var data = new FormData();
+        data.append('file', file);
+        data.append('json_params', JSON.stringify(params));
+        
+        $.ajax({
+            type: 'POST',
+            url: '/api/upload',
+            data: data,
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                console.log('File Upload Success.');
+            },
+            error: function() {
+                
+            }
+        });
+
+        $("#upload_task_modal").modal("toggle");
+    };
+
 };

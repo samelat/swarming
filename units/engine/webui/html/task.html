@@ -11,18 +11,12 @@
             <div class="btn-group" role="group" aria-label="...">
                 <button class="btn btn-default" data-toggle="modal" data-target="#add_task_modal">
                     <i class="fa fa-plus fa-fw"></i>
+                    Single Entry
                 </button>
-                <div class="btn-group">
-                    <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                        Files <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu" role="menu">
-                        <li><a href="#">nmap</a></li>
-                        <li><a href="#">cvs</a></li>
-                        <li class="divider"></li>
-                        <li><a href="#">custom</a></li>
-                    </ul>
-                </div>
+                <button class="btn btn-default" onclick="module.show_upload_modal()">
+                    <i class="fa fa-file-o fa-fw"></i>
+                    Upload File
+                </button>
                 <!-- /.btn-group -->
             </div>
         </div>
@@ -88,6 +82,44 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary btn-sm" onclick="module.add_task()">Add</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- File with many entries, Modal -->
+<div class="modal fade" id="upload_task_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content col-sm-8">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">Upload Dictionary File</h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info" role="alert" style="display: block;">
+                </div>
+                <form role="form" action="/api/upload" method="post" enctype="multipart/form-data" id="upload_form">
+                    <div class="form-group">
+                        <label for="dictionary_file">File Input</label>
+                        <input type="file" id="dictionary_file" name="data">
+                    </div>
+                    <div class="form-group">
+                        <label for="filetype">File Format</label>
+                        <select class="form-control" name="format" id="file_type" onchange="module.change_file_format(this)">
+                            <option>csv</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" name="regex" id="file_regex" type="text" placeholder="{username}:{password}" disabled>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="module.upload_file()">Add</button>
             </div>
         </div>
     </div>

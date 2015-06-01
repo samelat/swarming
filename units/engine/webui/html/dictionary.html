@@ -9,7 +9,7 @@
     <div class="col-lg-12">
         <div class="board-menu">
             <div class="btn-group" role="group" aria-label="...">
-                <button class="btn btn-default" data-toggle="modal" data-target="#add_entry_modal">
+                <button class="btn btn-default" data-toggle="modal" data-target="#add_dictionary_modal">
                     <i class="fa fa-plus fa-fw"></i>
                     Single Entry
                 </button>
@@ -51,7 +51,7 @@
 <!-- /.row -->
 
 <!-- Single Dictionary Entry Modal -->
-<div class="modal fade" id="add_entry_modal" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="add_dictionary_modal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-md">
         <div class="modal-content col-sm-8">
             <div class="modal-header">
@@ -102,7 +102,7 @@
                 <h4 class="modal-title">Upload Dictionary File</h4>
             </div>
             <div class="modal-body">
-                <div class="alert alert-danger" role="alert" style="display: none;">
+                <div class="alert alert-info" role="alert" style="display: block;">
                 </div>
                 <form role="form" action="/api/upload" method="post" enctype="multipart/form-data" id="upload_form">
                     <div class="form-group">
@@ -112,8 +112,7 @@
                     <div class="form-group">
                         <label for="filetype">File Format</label>
                         <select class="form-control" name="format" id="file_type" onchange="module.change_file_format(this)">
-                            <option>cvs</option>
-                            <option>custom</option>
+                            <option>csv</option>
                         </select>
                     </div>
                     <div class="form-group">
