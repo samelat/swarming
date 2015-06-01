@@ -24,7 +24,7 @@ class DefaultSpider(Spider):
 
             crack_task.update({'attrs': {'auth_scheme':'post', 'form':{'index':0}},
                                'path' : urllib.parse.urlparse(response.url).path,
-                               'stage':'cracking.dictionary', 'state':'ready'})
+                               'stage':'cracking.dictionary', 'state':'stopped'})
 
             self.unit.set_knowledge({'task':crack_task}, block=False)
 

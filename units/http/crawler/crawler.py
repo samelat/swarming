@@ -11,6 +11,8 @@ class Crawler:
 
     def __init__(self, unit):
         self.unit = unit
+
+        # This list of Spiders has been ordered. Don't change its order.
         self.spiders = [spiders.ErrorSpider(unit),
                         spiders.AppSpider(unit),
                         spiders.DefaultSpider(unit)]
@@ -78,6 +80,9 @@ class Crawler:
                 if 'dictionaries' in result:
                     for dictionary in result['dictionaries']:
                         print('[http.crawler] new dictionary: {0}'.format(dictionary))
+
+                if ('break' in result) and (result['break']):
+                    break
 
             # Syncronize the total and done work
             self.sync(self)

@@ -91,6 +91,9 @@ class AppSpider(Spider):
             
             result['filters'] = [urllib.parse.urljoin(response.url, root_path + regex)]
 
+            # Tell to crawler stop processing this request/response
+            result['break'] = True
+
             # STEP #4
             # Search for the login form. If this page is not Administrator panel, form may not exist.
             login_forms = extra['html'].get_login_forms()

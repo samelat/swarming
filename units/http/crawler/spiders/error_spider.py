@@ -38,6 +38,8 @@ class ErrorSpider(Spider):
 
             result['filters'] = [urllib.parse.urljoin(request['url'], '.*')]
 
+            result['break'] = True
+
         # Proxy Authentication
         elif response.status_code == 407:
             pass
