@@ -33,19 +33,34 @@ class UIApi:
 
         query = self.orm.session.query(entity)
 
+        # Conditions that have to be applied
+        if 'conditions' in data:
+            for condition, value in data['conditions'].items():
+                if condition == 'timestamp':
+                    query = query.filter(entity.timestamp > value)
+
+        # Query limit and offset
         if 'limit' in data:
             query = query.limit(data['limit'])
             if 'offset' in data:
                 query = query.offset(data['offset'])
 
-        rows = query.all()
-        json_rows = [row.to_json() for row in rows]
+        timestamp = self.orm.timestamp()
+        if ('aggregate' in data) and (data['aggregate'] == 'count'):
+            count = query.count()
+            result = {'status':0, 'count':count, 'timestamp':timestamp}
 
-        size = self.orm.session.query(entity).count()
+        else:
+            rows = query.all()
+            json_rows = [row.to_json() for row in rows]
+
+            size = self.orm.session.query(entity).count()
+
+            result = {'status':0, 'size':size, 'rows':json_rows}
 
         self.orm.session_lock.release()
 
-        return {'status':0, 'size':size, 'rows':json_rows}
+        return result
 
     
     @cherrypy.expose
