@@ -264,6 +264,8 @@ class Success(ORMBase, ORMCommon):
         to_set['credentials'] = json.dumps(values['credentials'])
         return (0, to_set)
 
+    # The attribute Stage in the JSON response is precent to help
+    # in the identification of what kind of credentials the entry have.
     def to_json(self):
         return {'id':self.id,
                 'credentials':json.loads(self.credentials),
