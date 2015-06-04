@@ -1,8 +1,8 @@
 
-function Debug () {
+function Log () {
 
     this.start = function() {
-        alert("DEBUG LOADED!!!");
+        
     };
     
     this.update = function() {
