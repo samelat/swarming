@@ -17,7 +17,8 @@ function Dictionary () {
 
     this.update = function() {
         
-        data = {'entity':'dictionary', 'limit':this.limit, 'offset':(this.index * this.limit)};
+        data = [{'entity':'dictionary', 'aggregate':'count'},
+                {'entity':'dictionary', 'limit':this.limit, 'offset':(this.index * this.limit)}];
 
         $.ajax({
             type: 'POST',
@@ -30,16 +31,18 @@ function Dictionary () {
                 console.log('[dictionary.get] request error: ' + JSON.stringify());
             },
 
-            success: function(result) {
+            success: function(response) {
 
-                console.log('dictionary size: ' + result.size);
+                var count = response.results[0].count;
+                var rows  = response.results[1].rows;
 
-                console.log(result);
+                console.log('count: ' + count);
+                console.log(rows);
 
                 var table = $('#dictionary-table tbody');
                 table.html('');
 
-                $.each(result.rows, function(index, row){
+                $.each(rows, function(index, row){
                     console.log('row[' + index + ']: ' + JSON.stringify(row));
 
                     template = '<tr>' +
@@ -56,19 +59,17 @@ function Dictionary () {
                         template += '    <td><i class="fa fa-times fa-fw"></i></td>';
 
                     template += '    <td></td>' +
-                                '    <td></td>' +
                                 '</tr>';
 
                     html = Mustache.to_html(template, row);
                     table.append(html);
                 });
 
-                pages = Math.ceil(result.size / module.limit);
+                pages = Math.ceil(count / module.limit);
 
-                console.log('result.size: ' + result.size);
                 console.log('module.limit: ' + module.limit);
                 console.log('module.index: ' + module.index);
-                if(result.size > module.limit) {
+                if(count > module.limit) {
 
                     template = '<ul class="pagination no-padding">' +
                                '    <li{{{left_class}}}><a onclick="module.page({{bottom}})">&laquo;</a></li>';

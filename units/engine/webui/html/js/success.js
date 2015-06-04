@@ -16,12 +16,13 @@ function Success () {
 
     this.update = function() {
 
-        data = {'entity':'success', 'limit':this.limit, 'offset':(this.index * this.limit)};
+        success_data = [{'entity':'success', 'aggregate':'count'},
+                        {'entity':'success', 'limit':this.limit, 'offset':(this.index * this.limit)}];
 
         $.ajax({
             type: 'POST',
             url: '/api/get',
-            data: JSON.stringify(data),
+            data: JSON.stringify(success_data),
             contentType: 'application/json',
             dataType: 'json',
 
@@ -29,71 +30,97 @@ function Success () {
                 console.log('[success.update] request error');
             },
 
-            success: function(result) {
+            success: function(success_response) {
 
-                console.log('success size: ' + result.size);
+                var count = success_response.results[0].count;
+                var success_rows = success_response.results[1].rows;
 
-                var table = $('#success-table tbody');
-                table.html('');
+                console.log('COUNT: ' + count);
+                console.log('SUCCESS: ' + JSON.stringify(success_rows));
 
-                $.each(result.rows, function(index, row){
-                    console.log('row[' + index + ']: ' + JSON.stringify(row));
-
-                    if(row.task.stage == 'cracking.dictionary') {
-                        template = 'Username: "{{username}}" - Password: "{{password}}"';
-                        row.credentials = Mustache.to_html(template, row.credentials);
-                    }
-
-                    template = '<tr>' +
-                               '    <td>{{id}}</td>' +
-                               '    <td>{{credentials}}</td>' +
-                               '    <td>{{task.id}}</td>' +
-                               '</tr>';
-
-                    html = Mustache.to_html(template, row);
-                    table.append(html);
-
+                task_data = [];
+                $.each(success_rows, function(index, success_row) {
+                    task_data.push({'entity':'task', 'conditions':{'id':success_row.task.id}});
                 });
 
-                pages = Math.ceil(result.size / module.limit);
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/get',
+                    data: JSON.stringify(task_data),
+                    contentType: 'application/json',
+                    dataType: 'json',
 
-                console.log('result.size: ' + result.size);
-                console.log('module.limit: ' + module.limit);
-                console.log('module.index: ' + module.index);
-                if(result.size > module.limit) {
+                    success: function(task_response) {
 
-                    template = '<ul class="pagination no-padding">' +
-                               '    <li{{{left_class}}}><a onclick="module.page({{bottom}})">&laquo;</a></li>';
+                        //console.log(JSON.stringify(task_response));
 
-                    for(page=0; page < pages; page++) {
-                        v = {'page':page};
-                        if(page == module.index)
-                            v.state = ' class="active"';
+                        var table = $('#success-table tbody');
+                        table.html('');
 
-                        template += Mustache.to_html('    <li{{{state}}}><a onclick="module.page({{page}})">{{page}}</a></li>', v);
+                        $.each(success_rows, function(index, row){
+
+                            console.log(row);
+
+                            var task_row = task_response.results[index].rows[0];
+
+                            url_html = Mustache.to_html('<td>{{protocol}}://{{hostname}}:{{port}}{{path}}</td>', task_row);
+
+                            row.description = task_row.description;
+
+                            template = '<tr>' +
+                                       '    <td>{{id}}</td>' +
+                                       '    <td>{{credentials.username}}</td>' +
+                                       '    <td>{{credentials.password}}</td>' +
+                                       url_html +
+                                       '    <td>{{description}}</td>' +
+                                       '</tr>';
+
+                            html = Mustache.to_html(template, row);
+                            table.append(html);
+
+                        });
+
+                        pages = Math.ceil(count / module.limit);
+
+                        console.log('result.size: ' + count);
+                        console.log('module.limit: ' + module.limit);
+                        console.log('module.index: ' + module.index);
+                        if(count > module.limit) {
+
+                            template = '<ul class="pagination no-padding">' +
+                                       '    <li{{{left_class}}}><a onclick="module.page({{bottom}})">&laquo;</a></li>';
+
+                            for(page=0; page < pages; page++) {
+                                v = {'page':page};
+                                if(page == module.index)
+                                    v.state = ' class="active"';
+
+                                template += Mustache.to_html('    <li{{{state}}}><a onclick="module.page({{page}})">{{page}}</a></li>', v);
+                            }
+
+                            template += '    <li{{{right_class}}}><a onclick="module.page({{top}})">&raquo;</a></li>' +
+                                        '</ul>';
+
+                            v = {'bottom':0, 'top':(pages - 1)};
+                            if(module.index == 0)
+                                v.left_class = ' class="disabled"';
+                            else
+                                v.bottom = module.index - 1;
+
+                            if(module.index >= (pages - 1))
+                                v.right_class = ' class="disabled"';
+                            else
+                                v.top = module.index + 1;
+
+                            var html = Mustache.to_html(template, v);
+                            console.log(html);
+
+                            $('#pagination_bar').html(html);
+                        } else
+                            $('#pagination_bar').html('');
                     }
-
-                    template += '    <li{{{right_class}}}><a onclick="module.page({{top}})">&raquo;</a></li>' +
-                                '</ul>';
-
-                    v = {'bottom':0, 'top':(pages - 1)};
-                    if(module.index == 0)
-                        v.left_class = ' class="disabled"';
-                    else
-                        v.bottom = module.index - 1;
-
-                    if(module.index >= (pages - 1))
-                        v.right_class = ' class="disabled"';
-                    else
-                        v.top = module.index + 1;
-
-                    var html = Mustache.to_html(template, v);
-                    console.log(html);
-
-                    $('#pagination_bar').html(html);
-                } else
-                    $('#pagination_bar').html('');
+                }); // Second Ajax Request
             }
-        });
+        }); // First Ajax Request
     };
 };

@@ -22,45 +22,51 @@ class UIApi:
     @cherrypy.tools.json_out()
     def get(self):
         print('[uiapi.get] JSON: {0}'.format(cherrypy.request.json))
-        data = cherrypy.request.json
+        queries = cherrypy.request.json
 
-        try:
-            entity = self.orm.entities[data['entity']]
-        except KeyError:
-            return {'status':-1, 'msg':'Malformed data [{0}]'.format(data)}
+        for query in queries:
+            try:
+                self.orm.entities[query['entity']]
+            except KeyError:
+                return {'status':-1, 'msg':'Entity does not exist', 'entity':query['entity']}
 
         self.orm.session_lock.acquire()
 
-        query = self.orm.session.query(entity)
+        results = []
+        for query in queries:
 
-        # Conditions that have to be applied
-        if 'conditions' in data:
-            for condition, value in data['conditions'].items():
-                if condition == 'timestamp':
-                    query = query.filter(entity.timestamp > value)
+            entity = self.orm.entities[query['entity']]
+            orm_query = self.orm.session.query(entity)
 
-        # Query limit and offset
-        if 'limit' in data:
-            query = query.limit(data['limit'])
-            if 'offset' in data:
-                query = query.offset(data['offset'])
+            # Conditions that have to be applied
+            if 'conditions' in query:
+                for field, value in query['conditions'].items():
+                    if field == 'timestamp':
+                        orm_query = orm_query.filter(entity.timestamp > value)
+                    else:
+                        orm_query = orm_query.filter(getattr(entity, field) == value)
+
+            # Query limit and offset
+            if 'limit' in query:
+                orm_query = orm_query.limit(query['limit'])
+                if 'offset' in query:
+                    orm_query = orm_query.offset(query['offset'])
+
+            if ('aggregate' in query) and (query['aggregate'] == 'count'):
+                count = orm_query.count()
+                results.append({'count':count})
+
+            else:
+                rows = orm_query.all()
+                json_rows = [row.to_json() for row in rows]
+
+                results.append({'rows':json_rows})
 
         timestamp = self.orm.timestamp()
-        if ('aggregate' in data) and (data['aggregate'] == 'count'):
-            count = query.count()
-            result = {'status':0, 'count':count, 'timestamp':timestamp}
-
-        else:
-            rows = query.all()
-            json_rows = [row.to_json() for row in rows]
-
-            size = self.orm.session.query(entity).count()
-
-            result = {'status':0, 'size':size, 'rows':json_rows}
-
+        
         self.orm.session_lock.release()
 
-        return result
+        return {'status':0, 'results':results, 'timestamp':timestamp}
 
     
     @cherrypy.expose

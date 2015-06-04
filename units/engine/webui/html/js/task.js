@@ -16,7 +16,8 @@ function Task () {
 
     this.update = function() {
 
-        data = {'entity':'task', 'limit':this.limit, 'offset':(this.index * this.limit)};
+        data = [{'entity':'task', 'aggregate':'count'},
+                {'entity':'task', 'limit':this.limit, 'offset':(this.index * this.limit)}];
 
         $.ajax({
             type: 'POST',
@@ -29,14 +30,15 @@ function Task () {
                 console.log('[task.update] request error');
             },
 
-            success: function(result) {
+            success: function(response) {
 
-                console.log('task size: ' + result.size);
+                var count = response.results[0].count;
+                var rows  = response.results[1].rows;
 
                 var table = $('#task-table tbody');
                 table.html('');
 
-                $.each(result.rows, function(index, row){
+                $.each(rows, function(index, row){
                     console.log('row[' + index + ']: ' + JSON.stringify(row));
 
                     if(row.state != 'complete') {
@@ -84,12 +86,12 @@ function Task () {
                     table.append(html);
                 });
 
-                pages = Math.ceil(result.size / module.limit);
+                pages = Math.ceil(count / module.limit);
 
-                console.log('result.size: ' + result.size);
+                console.log('result.size: ' + count);
                 console.log('module.limit: ' + module.limit);
                 console.log('module.index: ' + module.index);
-                if(result.size > module.limit) {
+                if(count > module.limit) {
 
                     template = '<ul class="pagination no-padding">' +
                                '    <li{{{left_class}}}><a onclick="module.page({{bottom}})">&laquo;</a></li>';
