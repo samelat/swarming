@@ -28,15 +28,15 @@ include_directories($(LibSSH_INCLUDE_DIRS))
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/hperf/include)
 
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../)
 
 #message("HPERF BASE DIR: " ${HPERF_BASE_CLASS_DIR})
 #message(${HPERF_BASE_CLASS_DIR}/cracker.cpp)
 
-add_library(ssh SHARED ssh.cpp ${CMAKE_SOURCE_DIR}/modules/hperf/cracker.cpp)
+add_library(hperf_ssh SHARED ssh.cpp ${CMAKE_SOURCE_DIR}/modules/hperf/cracker.cpp)
 
-set_target_properties(ssh PROPERTIES PREFIX "")
+set_target_properties(hperf_ssh PROPERTIES PREFIX "")
 
-target_link_libraries(ssh ${Boost_LIBRARIES})
-target_link_libraries(ssh ${PYTHON_LIBRARIES})
-target_link_libraries(ssh ${LIBSSH_LIBRARIES})
+target_link_libraries(hperf_ssh ${Boost_LIBRARIES})
+target_link_libraries(hperf_ssh ${PYTHON_LIBRARIES})
+target_link_libraries(hperf_ssh ${LIBSSH_LIBRARIES})

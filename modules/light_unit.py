@@ -29,10 +29,14 @@ class LightUnit(Unit):
         pass
 
 
-    def success(self, credentials, complement):
+    def success(self, credentials, complement=None):
         rows = {'success':{'credentials':credentials, 'task':{'id':self.task['id']}}}
         if not 'complement' in self.task:
-            self.task['complement'] = complement
+            if complement:
+                self.task['complement'] = complement
+            else:
+                self.task['complement'] = credentials
+
             rows['complement'] = {'values':complement, 'task':{'id':self.task['id']}}
 
         self.set_knowledge(rows)
