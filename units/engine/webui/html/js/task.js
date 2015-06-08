@@ -36,10 +36,10 @@ function Task () {
                 var rows  = response.results[1].rows;
 
                 var table = $('#task-table tbody');
-                table.html('');
+                
+                var table_html = '';
 
                 $.each(rows, function(index, row){
-                    console.log('row[' + index + ']: ' + JSON.stringify(row));
 
                     if(row.state != 'complete') {
                         row.striped = 'progress-bar-striped';
@@ -59,7 +59,15 @@ function Task () {
                     if(row.total > 0)
                         row.percentage = Math.round((row.done/row.total)*100);
 
+                    if(row.stage == 'cracking.dictionary') {
+                        var cbox = $('#task_checkbox_' + row.id)[0];
+                        if(cbox && cbox.checked)
+                            row.checked = 'checked="checked"';
+                    } else
+                        row.checked = 'disabled';
+
                     template = '<tr>' +
+                               '    <td><input id="task_checkbox_{{id}}" type="checkbox" {{checked}}></td>' +
                                '    <td>{{id}}</td>' +
                                '    <td>{{protocol}}://{{hostname}}:{{port}}{{path}}</td>' +
                                '    <td>' +
@@ -82,15 +90,13 @@ function Task () {
                                '    </td>' +
                                '</tr>';
 
-                    html = Mustache.to_html(template, row);
-                    table.append(html);
+                    table_html += Mustache.to_html(template, row);
                 });
+
+                table.html(table_html);
 
                 pages = Math.ceil(count / module.limit);
 
-                console.log('result.size: ' + count);
-                console.log('module.limit: ' + module.limit);
-                console.log('module.index: ' + module.index);
                 if(count > module.limit) {
 
                     template = '<ul class="pagination no-padding">' +
@@ -119,7 +125,6 @@ function Task () {
                         v.top = module.index + 1;
 
                     var html = Mustache.to_html(template, v);
-                    console.log(html);
 
                     $('#pagination_bar').html(html);
                 } else
@@ -164,6 +169,40 @@ function Task () {
         $('#add_task_modal').modal('toggle');
     };
 
+    this.change_state = function() {
+
+        var state = $('select.form-control')[0].value;
+
+        var changes = [];
+        $('tbody input[type="checkbox"]').each(function(index, tag){
+            if(tag.checked)
+                changes.push({'task':{'id':parseInt(tag.id.split('_')[2]), 'state':state}});
+
+            tag.checked = false;
+        });
+
+        $.ajax({
+            type: 'POST',
+            url: '/api/set',
+            data: JSON.stringify(changes),
+            contentType: 'application/json',
+            dataType: 'json',
+            success: function(response) {
+                console.log('[ADD_TASK.RESPONSE] ' + JSON.stringify(response));
+             }
+        });
+
+
+    };
+
+    this.toggle_checkboxs = function(checkbox_tag) {
+        var value = checkbox_tag.checked;
+        $('tbody input[type="checkbox"]').each(function(index, tag){
+            if(!tag.disabled)
+                tag.checked = value;
+        });
+    };
+
     /*
      * Upload File Modal Methods
      */
@@ -172,7 +211,6 @@ function Task () {
         //$("#upload_form").submit(module.upload_file);
         $("#upload_task_modal").modal("toggle");
     };
-
 
     this.upload_file = function() {
 

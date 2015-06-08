@@ -1,8 +1,8 @@
 
 
-/* ##################
- *  board properties
- * ##################
+/* ##########################
+ *  GENERAL BOARD PROPERTIES
+ * ##########################
  */
 .board-header {
     padding-bottom: 10px;
@@ -14,10 +14,14 @@
     margin-bottom: 10px;
 }
 
-/* ###################
- *  
- * ###################
+/* #######################
+ *   TASK BOARD ELEMENTS  
+ * #######################
  */
+.table-responsive {
+    overflow: auto;
+}
+
 .table .list-unstyled {
     margin-bottom: 0px;
 }
@@ -36,6 +40,22 @@
     position: absolute;
     display: block;
     width: 100%;
+}
+
+button.start {
+    padding: 0px 2px;
+    color: #fff;
+    background-color: #5cb85c;
+    border-color: #4cae4c;
+    border-radius: 5px;
+}
+
+button.stop {
+    padding: 0px 2px;
+    color: #fff;
+    background-color: #d9534f;
+    border-color: #d43f3a;
+    border-radius: 5px;
 }
 
 /* ######## GREEN ######## */
