@@ -26,6 +26,7 @@ class Knowledge:
                 result = self._db_mgr.set(table, row)
                 results[table] = result
             results_list.append(results)
+        self._db_mgr.session.commit()
         self._db_mgr.session_lock.release()
 
         print('[knowledge] saliendo de "set" - {0}'.format(results_list))

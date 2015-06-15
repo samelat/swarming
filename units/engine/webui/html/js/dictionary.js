@@ -2,23 +2,24 @@
 function Dictionary () {
 
     this.name = 'dictionary';
-    this.limit = 10;
-    this.index = 0;
+    this.elements_per_page = 10;
+    this.pagination_size = 20;
+    this.pagination_index = 0;
 
     this.start = function() {
-
         this.update();
     };
 
     this.page = function(page) {
-        this.index = page;
+        this.pagination_index = page;
         this.update();
     };
 
     this.update = function() {
         
         data = [{'entity':'dictionary', 'aggregate':'count'},
-                {'entity':'dictionary', 'limit':this.limit, 'offset':(this.index * this.limit)}];
+                {'entity':'dictionary', 'limit':this.elements_per_page,
+                 'offset':(this.pagination_index * this.elements_per_page)}];
 
         $.ajax({
             type: 'POST',
@@ -65,41 +66,53 @@ function Dictionary () {
                     table.append(html);
                 });
 
-                pages = Math.ceil(count / module.limit);
+                pages = Math.ceil(count / module.elements_per_page);
 
-                console.log('module.limit: ' + module.limit);
-                console.log('module.index: ' + module.index);
-                if(count > module.limit) {
+                if(count > module.pagination_size) {
 
-                    template = '<ul class="pagination no-padding">' +
-                               '    <li{{{left_class}}}><a onclick="module.page({{bottom}})">&laquo;</a></li>';
+                    //template = '<ul class="pagination no-padding">' +
+                    template = '    <li{{{left_class}}}><a onclick="module.page(0)">&laquo;</a></li>' +
+                               '    <li{{{left_class}}}><a onclick="module.page({{prev}})">&lsaquo;</a></li>';
 
-                    for(page=0; page < pages; page++) {
+                    //pages = 20;
+
+                    var first = module.pagination_index - (module.pagination_size / 2);
+                    var last  = module.pagination_index + (module.pagination_size / 2);
+
+                    if(first < 0) {
+                        last += first * -1; // I'm moving the underflow to "last".
+                        first = 0;
+                    }
+
+                    if(last >= pages)
+                        last = pages - 1; // I'm ignoring any overflow.
+
+                    for(page=first; page <= last; page++) {
                         v = {'page':page};
-                        if(page == module.index)
+                        if(page == module.pagination_index)
                             v.state = ' class="active"';
 
                         template += Mustache.to_html('    <li{{{state}}}><a onclick="module.page({{page}})">{{page}}</a></li>', v);
                     }
 
-                    template += '    <li{{{right_class}}}><a onclick="module.page({{top}})">&raquo;</a></li>' +
-                                '</ul>';
+                    template += '    <li{{{right_class}}}><a onclick="module.page({{next}})">&rsaquo;</a></li>' +
+                                '    <li{{{right_class}}}><a onclick="module.page({{top}})">&raquo;</a></li>';
+                                //'</ul>';
 
-                    v = {'bottom':0, 'top':(pages - 1)};
-                    if(module.index == 0)
+                    v = {'top':(pages - 1),
+                         'prev':(module.pagination_index - 1),
+                         'next':(module.pagination_index + 1)};
+                    if(module.pagination_index == 0)
                         v.left_class = ' class="disabled"';
-                    else
-                        v.bottom = module.index - 1;
 
-                    if(module.index >= (pages - 1))
+                    if(module.pagination_index == (pages - 1))
                         v.right_class = ' class="disabled"';
-                    else
-                        v.top = module.index + 1;
 
                     var html = Mustache.to_html(template, v);
                     console.log(html);
 
                     $('#pagination_bar').html(html);
+                    $('#pagination_bar').rPage();
                 } else
                     $('#pagination_bar').html('');
             }

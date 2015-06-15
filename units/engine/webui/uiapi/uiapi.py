@@ -83,6 +83,7 @@ class UIApi:
                 result = self.orm.set(table, row)
                 results[table] = result
             results_list.append(results)
+        self.orm.session.commit()
         self.orm.session_lock.release()
 
         print('[knowledge] saliendo de "set" - {1} - {0}'.format(results_list, errors))

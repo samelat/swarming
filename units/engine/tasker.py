@@ -19,7 +19,7 @@ class Tasker:
         self._ready_task_channels = {}
 
         # Forcing Dictionary
-        self.dictionary_limit = 3
+        self.dictionary_limit = 200
 
 
     def _dispatch_task(self, task):
@@ -180,6 +180,8 @@ class Tasker:
                 dictionary = {'usernames':set(), 'passwords':set(), 'pairs':set()}
                 while True:
 
+                    # last_entry is only to control when current_entry has changed from
+                    # username to password or vice versa
                     last_entry = current_entry
 
                     if index == current:
@@ -198,8 +200,8 @@ class Tasker:
                         current_entry = self._db_mgr.session.query(Dictionary).\
                                                              filter_by(id = current).one()
 
-
                     if last_entry and\
+                       ((current_entry.username == None) ^ (last_entry.username == None)) and\
                        ((current_entry.password == None) ^ (last_entry.password == None)) and\
                        (dictionary['passwords'] and dictionary['usernames']):
                             print('##############################################')
@@ -215,11 +217,17 @@ class Tasker:
                         usernames = self._db_mgr.session.query(Dictionary.id, Dictionary.username).\
                                                          filter(Dictionary.id > index,
                                                                 Dictionary.id < current,
-                                                                Dictionary.password == None).all()
+                                                                Dictionary.password == None).\
+                                                         order_by(Dictionary.id.asc()).\
+                                                         limit(10).all()
 
                         dictionary['passwords'].add(current_entry.password)
                         dictionary['usernames'].update([usr for uid, usr in usernames])
 
+                        if usernames:
+                            index = usernames[-1][0] # The last ID
+                        else:
+                            index = current
                         count += len(usernames)
 
                     # It's a username
@@ -228,19 +236,25 @@ class Tasker:
                         passwords = self._db_mgr.session.query(Dictionary.id, Dictionary.password).\
                                                          filter(Dictionary.id > index,
                                                                 Dictionary.id < current,
-                                                                Dictionary.username == None).all()
+                                                                Dictionary.username == None).\
+                                                         order_by(Dictionary.id.asc()).\
+                                                         limit(10).all()
 
                         dictionary['usernames'].add(current_entry.username)
                         dictionary['passwords'].update([pwd for pid, pwd in passwords])
 
+                        if passwords:
+                            index = passwords[-1][0]
+                        else:
+                            index = current
                         count += len(passwords)
 
                     # It's a pair
                     else:
-                        #dictionary['usernames'].add(current_entry.username)
+                        pair = (current_entry.username, current_entry.password)
+                        dictionary['pairs'].add(pair)
                         count += 1
-
-                    index = current
+                        index = current
 
                     if count > self.dictionary_limit:
                         print('[cracking.dictionary] limited - {0}'.format(dictionary))

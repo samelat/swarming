@@ -13,6 +13,7 @@ class CSV:
         reader = csv.DictReader(codecs.iterdecode(file.file, 'utf-8'))
         print('[csv] reader: {0}'.format(reader))
 
+        count = 0
         for row in reader:
             result = {}
             for field in reader.fieldnames:
@@ -31,9 +32,15 @@ class CSV:
                     else:
                         result[field] = row[field]
 
-            print('[upload] data: {0}'.format(result))
+            if not (count % 2000):
+                print('[upload] #{0} data: {1}'.format(count, result))
+            count += 1
+
+            # I don't know if I could improve performance here
             self.orm.session_lock.acquire()
             result = self.orm.set(params['entity'], result)
             self.orm.session_lock.release()
+        print('[upload] #{0} data: {1}'.format(count, result))
+        self.orm.session.commit()
 
         return {'status':0}

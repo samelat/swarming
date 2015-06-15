@@ -55,7 +55,7 @@ class ORM:
     def set(self, entity, values):
         cls = self.entities[entity]
         error, values = cls.from_json(values, self)
-        self.session.commit()
+        #self.session.commit()
 
         return {'status':error, 'values':values}
 
@@ -178,7 +178,7 @@ class Task(ORMBase, ORMCommon):
 
     # Task
     stage = Column(String, default='initial') # (initial, crawling, cracking, waiting)
-    state = Column(String, default='ready') # (ready, stopped, running, complete)
+    state = Column(String, default='ready') # (ready, stopped, running, complete, error)
     description = Column(String, default='')
     timestamp = Column(Integer, default=0)
 
