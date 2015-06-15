@@ -12,7 +12,7 @@
 
          "seeds":["login/index.php"],
 
-         "attrs":{"attempts":8}
+         "attrs":{"attempts":1}
         }
     ]
 }
