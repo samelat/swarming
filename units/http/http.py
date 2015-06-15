@@ -52,9 +52,12 @@ class HTTP(LightUnit):
         print('[http] Initial Stage method')
 
         # We return in 'updates' the self task values we want to change.
-        values = {'stage':'crawling', 'state':'ready'}
+        values = {'stage':'crawling', 'state':'ready', 'description':'Web Crawling'}
 
-        response = requests.request(method='head', url=self.url)
+        try:
+            response = requests.request(method='head', url=self.url)
+        except requests.exceptions.ConnectionError:
+            return {'status':-1, 'task':{'state':'error', 'description':'Connection Error'}}
 
         # TODO: Control connection errors
         '''
@@ -67,8 +70,7 @@ class HTTP(LightUnit):
 
         if url.hostname != self.task['hostname']:
             print('[HTTP_INIT] Hostnames: {0} - {1}'.format(url.hostname, self.task['hostname']))
-            return {'status':-2, 'task':{'stage':'error', 'state':'stopped',
-                                         'description':'HTTP Redirection'}}
+            return {'status':-2, 'task':{'state':'error', 'description':'HTTP Redirection'}}
 
         if url.scheme != self.task['protocol']:
             values['protocol'] = url.scheme

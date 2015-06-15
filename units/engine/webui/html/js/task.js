@@ -12,6 +12,8 @@ function Task () {
     this.page = function(page) {
         this.index = page;
         this.update();
+
+        $('#task-table thead input[type="checkbox"]')[0].checked = false;
     };
 
     this.update = function() {
@@ -47,19 +49,22 @@ function Task () {
                             row.striped += ' active';
                     }
 
-                    row.stage_name = row.stage.split('.')[0];
-                    if(row.stage_name == 'cracking')
-                        if('complement' in row)
-                            row.lock = 'unlock';
-                        else
-                            row.lock = 'lock';
-                    
+                    if(row.state == 'error')
+                        row.progress_name = 'error';
+                    else {
+                        row.progress_name = row.stage.split('.')[0];
+                        if(row.progress_name == 'cracking')
+                            if('complement' in row)
+                                row.lock = 'unlock';
+                            else
+                                row.lock = 'lock';
+                    }
                     
                     row.percentage = 0;
                     if(row.total > 0)
                         row.percentage = Math.round((row.done/row.total)*100);
 
-                    if(row.stage == 'cracking.dictionary') {
+                    if(row.state != 'complete') {
                         var cbox = $('#task_checkbox_' + row.id)[0];
                         if(cbox && cbox.checked)
                             row.checked = 'checked="checked"';
@@ -71,8 +76,8 @@ function Task () {
                                '    <td>{{id}}</td>' +
                                '    <td>{{protocol}}://{{hostname}}:{{port}}{{path}}</td>' +
                                '    <td>' +
-                               '        <div class="progress {{stage_name}}">' +
-                               '            <div class="progress-bar {{stage_name}} {{striped}}" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: {{percentage}}%">' +
+                               '        <div class="progress {{progress_name}}">' +
+                               '            <div class="progress-bar {{progress_name}} {{striped}}" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: {{percentage}}%">' +
                                '                <span>{{percentage}}%</span>' +
                                '            </div>' +
                                '        </div>' +
@@ -181,18 +186,19 @@ function Task () {
             tag.checked = false;
         });
 
-        $.ajax({
-            type: 'POST',
-            url: '/api/set',
-            data: JSON.stringify(changes),
-            contentType: 'application/json',
-            dataType: 'json',
-            success: function(response) {
-                console.log('[ADD_TASK.RESPONSE] ' + JSON.stringify(response));
-             }
-        });
+        if(changes.length)
+            $.ajax({
+                type: 'POST',
+                url: '/api/set',
+                data: JSON.stringify(changes),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function(response) {
+                    console.log('[ADD_TASK.RESPONSE] ' + JSON.stringify(response));
+                 }
+            });
 
-
+        $('#task-table thead input[type="checkbox"]')[0].checked = false;
     };
 
     this.toggle_checkboxs = function(checkbox_tag) {
