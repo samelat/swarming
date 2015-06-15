@@ -5,7 +5,9 @@
         {"condition":{"tag":{"name":"link", "attrs":{"rel":"stylesheet"}},
                       "attr":"href",
                       "regex":"^phpmyadmin\\.css\\.php"},
-         "path":"./"
+         "path":"./",
+
+         "attrs":{"attempts":1}
         }
     ]
 }
