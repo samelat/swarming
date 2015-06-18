@@ -20,11 +20,10 @@ class Knowledge:
 
         results_list = []
         self._db_mgr.session_lock.acquire()
-        for rows in message['params']:
+        for transaction in message['params']:
             results = {}
-            for table, row in rows.items():
-                result = self._db_mgr.set(table, row)
-                results[table] = result
+            for table, values in transaction.items():
+                results[table] = self._db_mgr.set(table, values)
             results_list.append(results)
         self._db_mgr.session.commit()
         self._db_mgr.session_lock.release()

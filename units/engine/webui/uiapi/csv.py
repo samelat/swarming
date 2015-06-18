@@ -14,33 +14,40 @@ class CSV:
         print('[csv] reader: {0}'.format(reader))
 
         count = 0
-        for row in reader:
-            result = {}
-            for field in reader.fieldnames:
-                if field == 'url':
-                    match = re.match('^(?P<protocol>[^:]+)://(?P<hostname>[^:/]+)(?::(?P<port>\d+))?(?P<path>[^\?]*)', row[field])
-                    if not match:
-                        continue
 
-                    for key, value in match.groupdict().items():
-                        if value:
-                            result[key] = value
+        while True:
 
-                elif field in self.orm.entities[params['entity']].attributes:
-                    if not row[field]:
-                        result[field] = None
+            chunk = []
+            for line in reader:
+                entry = {}
+                for column in reader.fieldnames:
+                    if column == 'url':
+                        match = re.match('^(?P<protocol>[^:]+)://(?P<hostname>[^:/]+)(?::(?P<port>\d+))?(?P<path>[^\?]*)', line[column])
+                        if not match:
+                            continue
+                        for field, value in match.groupdict().items():
+                            if value and field in self.orm.entities[params['entity']].attributes):
+                                entry[field] = value
+
                     else:
-                        result[field] = row[field]
+                        entry[column] = line[column]
 
-            if not (count % 2000):
-                print('[upload] #{0} data: {1}'.format(count, result))
+                for field, value in entry.items():
+                    if (_field in self.orm.entities[params['entity']].attributes) and value:
+                        entry[_field] = value
+
+            if not chunk:
+                break
+
             count += 1
+            chunk.append(entry)
+            if len(chunk) > 400:
+                print('[upload] #{0}'.format(count))
+                self.orm.session_lock.acquire()
+                self.orm.add(params['entity'], chunk)
+                self.orm.session_lock.release()
+                chunk = []
 
-            # I don't know if I could improve performance here
-            self.orm.session_lock.acquire()
-            result = self.orm.set(params['entity'], result)
-            self.orm.session_lock.release()
-        print('[upload] #{0} data: {1}'.format(count, result))
-        self.orm.session.commit()
+        print('[upload] #{0}'.format(count))
 
         return {'status':0}

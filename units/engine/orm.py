@@ -19,9 +19,12 @@ class ORM:
     _singleton_session_lock = None
 
     def __init__(self):
-
         self._engine = create_engine('sqlite:///context.db', echo=False,
                                      connect_args={'check_same_thread':False})
+        '''
+        self._engine = create_engine('sqlite://', echo=False,
+                                     connect_args={'check_same_thread':False})
+        '''
         ORMBase.metadata.create_all(self._engine)
         Session.configure(bind=self._engine)
 
@@ -50,6 +53,20 @@ class ORM:
             return False
 
         return True
+
+
+    def add(self, entity, values):
+        #for chunk in [values[i:i+400] for i in range(0, len(values), 400)]:
+        try:
+            self._engine.execute(self.entities[entity].__table__.insert(), values)
+        except sqlalchemy.exc.IntegrityError:
+            print('[rollback]')
+            self.session.rollback()
+            for value in values:
+                self.set(entity, value)
+            self.session.commit()
+
+        return {'status':0}
 
 
     def set(self, entity, values):
@@ -151,9 +168,9 @@ class Unit(ORMBase, ORMCommon):
     attributes = ['name', 'protocol', 'port']
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String(32), nullable=False)
     port = Column(Integer, nullable=False)
-    protocol = Column(String, nullable=False)
+    protocol = Column(String(32), nullable=False)
     timestamp = Column(Integer)
 
     def to_json(self):
@@ -177,17 +194,17 @@ class Task(ORMBase, ORMCommon):
     dependence_id = Column(Integer, ForeignKey('task.id'))
 
     # Task
-    stage = Column(String, default='initial') # (initial, crawling, cracking, waiting)
-    state = Column(String, default='ready') # (ready, stopped, running, complete, error)
-    description = Column(String, default='')
+    stage = Column(String(64), default='initial') # (initial, crawling, cracking, waiting)
+    state = Column(String(64), default='ready') # (ready, stopped, running, complete, error)
+    description = Column(String(128), default='')
     timestamp = Column(Integer, default=0)
 
     # Resource
-    protocol = Column(String)
-    hostname = Column(String)
+    protocol = Column(String(32))
+    hostname = Column(String(128))
     port = Column(Integer)
-    path = Column(String, default='/')
-    attrs = Column(String, default='{}')
+    path = Column(String(128), default='/')
+    attrs = Column(String(1024), default='{}')
 
     # Work
     done = Column(Integer, default=0)
@@ -252,7 +269,8 @@ class Success(ORMBase, ORMCommon):
     id = Column(Integer, primary_key=True)
     task_id = Column(Integer, ForeignKey('task.id'))
 
-    credentials = Column(String, nullable=False)
+    # The string lenght should be greater for other types of credencials
+    credentials = Column(String(512), nullable=False)
     timestamp = Column(Integer)
 
     task = relationship('Task', uselist=False)
@@ -283,7 +301,7 @@ class Complement(ORMBase, ORMCommon):
     id = Column(Integer, primary_key=True)
     task_id = Column(Integer, ForeignKey('task.id'))
 
-    values = Column(String, nullable=False)
+    values = Column(String(1024), nullable=False)
     timestamp = Column(Integer)
 
     @classmethod
@@ -310,8 +328,8 @@ class Dictionary(ORMBase, ORMCommon):
     id = Column(Integer, primary_key=True)
     task_id = Column(Integer, ForeignKey('task.id'))
 
-    username = Column(String)
-    password = Column(String)
+    username = Column(String(32), unique=True)
+    password = Column(String(32), unique=True)
     timestamp = Column(Integer)
 
     @classmethod
@@ -343,7 +361,7 @@ class DictionaryTask(ORMBase):
     index = Column(Integer)
     current = Column(Integer)
     # channel = Column(Integer)
-    state = Column(String, default='running') # (running, complete)
+    state = Column(String(64), default='running') # (running, complete)
     timestamp = Column(Integer)
 
     task = relationship('Task')
