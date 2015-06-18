@@ -44,7 +44,7 @@ class ORM:
     def timestamp(self):
         return int(time.time() * 1000)
 
-
+    '''
     def check(self, entity, fields):
         if entity not in self.entities:
             return False
@@ -53,7 +53,7 @@ class ORM:
             return False
 
         return True
-
+    '''
 
     def add(self, entity, values):
         #for chunk in [values[i:i+400] for i in range(0, len(values), 400)]:
@@ -157,6 +157,14 @@ class ORMCommon:
         to_set = dict([(attr, value) for attr, value in values.items()
                                      if  attr in cls.attributes])
         return (0, to_set)
+
+    @classmethod
+    def clean(cls, values):
+        result = {}
+        for field, value in values.items():
+            if value and field in cls.attributes:
+                result[field] = value
+        return result
 
 
 ''' ################################################
