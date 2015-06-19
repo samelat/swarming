@@ -326,10 +326,54 @@ class Complement(ORMBase, ORMCommon):
 
 
 ''' ################################################
+       These three clases compose the dictionary
     ################################################
 '''
-class Dictionary(ORMBase, ORMCommon):
-    __tablename__ = 'dictionary'
+
+class Dictionary(ORMCommon):
+
+    @classmethod
+    def get_to_set(cls, values, mgr):
+        _, to_set = super(cls, cls).get_to_set(values, mgr)
+        if 'task' in values:
+            to_set['task_id'] = values['task']['id']
+        return (0, to_set)
+
+    def to_json(self):
+        values = {'id':self.id}
+        for attr in self.attributes:
+            values[attr] = getattr(self, attr)
+        if self.task_id:
+            values['task'] = {'id':self.task_id}
+        return values
+
+
+class Username(ORMBase, Dictionary):
+    __tablename__ = 'username'
+
+    attributes = ['username']
+
+    id = Column(Integer, primary_key=True)
+    task_id = Column(Integer, ForeignKey('task.id'))
+
+    username = Column(String(32), unique=True)
+    timestamp = Column(Integer)
+
+
+class Password(ORMBase, Dictionary):
+    __tablename__ = 'username'
+
+    attributes = ['password']
+
+    id = Column(Integer, primary_key=True)
+    task_id = Column(Integer, ForeignKey('task.id'))
+
+    password = Column(String(32), unique=True)
+    timestamp = Column(Integer)
+
+
+class Pairs(ORMBase, Dictionary):
+    __tablename__ = 'pairs'
 
     attributes = ['username', 'password']
 
@@ -339,21 +383,6 @@ class Dictionary(ORMBase, ORMCommon):
     username = Column(String(32), unique=True)
     password = Column(String(32), unique=True)
     timestamp = Column(Integer)
-
-    @classmethod
-    def get_to_set(cls, values, mgr):
-        _, to_set = super(Dictionary, cls).get_to_set(values, mgr)
-        if 'task' in values:
-            to_set['task_id'] = values['task']['id']
-        return (0, to_set)
-
-    def to_json(self):
-        values = {'id':self.id,
-                  'username':self.username,
-                  'password':self.password}
-        if self.task_id:
-            values['task'] = {'id':self.task_id}
-        return values
 
 
 ''' ################################################
