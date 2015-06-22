@@ -5,7 +5,7 @@ import traceback
 from threading import Lock
 
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, SmallInteger
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -326,11 +326,26 @@ class Complement(ORMBase, ORMCommon):
 
 
 ''' ################################################
-       These three clases compose the dictionary
+        Dictionary
+    0: username
+    1: password
+    2: pairs
     ################################################
 '''
 
-class Dictionary(ORMCommon):
+class Dictionary(ORMBase, ORMCommon):
+    __tablename__ = 'pairs'
+    __table_args__ = (UniqueConstraint('type', 'username', 'password'),)
+
+    attributes = ['username', 'password']
+
+    id = Column(Integer, primary_key=True)
+    task_id = Column(Integer, ForeignKey('task.id'))
+
+    type = Column(SmallInteger, nullable=False, default=2)
+    username = Column(String(32), nullable=False, default='')
+    password = Column(String(32), nullable=False, default='')
+    timestamp = Column(Integer)
 
     @classmethod
     def get_to_set(cls, values, mgr):
@@ -346,43 +361,6 @@ class Dictionary(ORMCommon):
         if self.task_id:
             values['task'] = {'id':self.task_id}
         return values
-
-
-class Username(ORMBase, Dictionary):
-    __tablename__ = 'username'
-
-    attributes = ['username']
-
-    id = Column(Integer, primary_key=True)
-    task_id = Column(Integer, ForeignKey('task.id'))
-
-    username = Column(String(32), unique=True)
-    timestamp = Column(Integer)
-
-
-class Password(ORMBase, Dictionary):
-    __tablename__ = 'username'
-
-    attributes = ['password']
-
-    id = Column(Integer, primary_key=True)
-    task_id = Column(Integer, ForeignKey('task.id'))
-
-    password = Column(String(32), unique=True)
-    timestamp = Column(Integer)
-
-
-class Pairs(ORMBase, Dictionary):
-    __tablename__ = 'pairs'
-
-    attributes = ['username', 'password']
-
-    id = Column(Integer, primary_key=True)
-    task_id = Column(Integer, ForeignKey('task.id'))
-
-    username = Column(String(32), unique=True)
-    password = Column(String(32), unique=True)
-    timestamp = Column(Integer)
 
 
 ''' ################################################
