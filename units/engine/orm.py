@@ -5,6 +5,7 @@ import traceback
 from threading import Lock
 
 from sqlalchemy import create_engine
+from sqlalchemy import UniqueConstraint
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, SmallInteger
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -326,15 +327,13 @@ class Complement(ORMBase, ORMCommon):
 
 
 ''' ################################################
-        Dictionary
-    0: username
-    1: password
-    2: pairs
+    Dictionary
+    0: username - 1: password - 2: pairs
     ################################################
 '''
 
 class Dictionary(ORMBase, ORMCommon):
-    __tablename__ = 'pairs'
+    __tablename__ = 'dictionary'
     __table_args__ = (UniqueConstraint('type', 'username', 'password'),)
 
     attributes = ['username', 'password']
@@ -350,14 +349,31 @@ class Dictionary(ORMBase, ORMCommon):
     @classmethod
     def get_to_set(cls, values, mgr):
         _, to_set = super(cls, cls).get_to_set(values, mgr)
+        if 'type' in values:
+            to_set['type'] = values['type']
+        elif 'username' in values:
+            if 'password' in values:
+                to_set['type'] = 2 # Pair
+            else:
+                to_set['type'] = 0 # Username
+        else:
+            to_set['type'] = 1 # Password
+
+
         if 'task' in values:
             to_set['task_id'] = values['task']['id']
         return (0, to_set)
 
     def to_json(self):
         values = {'id':self.id}
-        for attr in self.attributes:
-            values[attr] = getattr(self, attr)
+        if self.type == 0:
+            values['username'] = self.username
+        elif self.type == 1:
+            values['password'] = self.password
+        else:
+            values['username'] = self.username
+            values['password'] = self.password
+
         if self.task_id:
             values['task'] = {'id':self.task_id}
         return values

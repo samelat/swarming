@@ -86,7 +86,7 @@ class UIApi:
         self.orm.session.commit()
         self.orm.session_lock.release()
 
-        print('[knowledge] saliendo de "set" - {1} - {0}'.format(results_list, errors))
+        #print('[knowledge] saliendo de "set" - {1} - {0}'.format(results_list, errors))
 
         return {'status':0, 'results':results_list}
 

@@ -8,8 +8,7 @@ class CSV:
 
     def __init__(self, orm):
         self.orm = orm
-
-
+    
 
     def digest(self, file, params):
         reader = csv.DictReader(codecs.iterdecode(file.file, 'utf-8'))

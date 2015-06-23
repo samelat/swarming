@@ -166,14 +166,11 @@ class Tasker:
                     current = last_subtask.current
 
                 # Update remaining Work
-                cunms = self._db_mgr.session.query(Dictionary.id).\
-                                             filter_by(password=None).count()
-                cpwds = self._db_mgr.session.query(Dictionary.id).\
-                                             filter_by(username=None).count()
-                cprs  = self._db_mgr.session.query(Dictionary).\
-                                             filter(Dictionary.username!=None,
-                                                    Dictionary.password!=None).count()
-                task.total = (cunms * cpwds) + cprs
+                username_count = self._db_mgr.session.query(Dictionary.id).filter_by(type=0).count()
+                password_count = self._db_mgr.session.query(Dictionary.id).filter_by(type=1).count()
+                pair_count     = self._db_mgr.session.query(Dictionary.id).filter_by(type=2).count()
+
+                task.total = (username_count * password_count) + pair_count
 
                 count = 0
                 current_entry = None
@@ -201,8 +198,7 @@ class Tasker:
                                                              filter_by(id = current).one()
 
                     if last_entry and\
-                       ((current_entry.username == None) ^ (last_entry.username == None)) and\
-                       ((current_entry.password == None) ^ (last_entry.password == None)) and\
+                       ((current_entry.type, last_entry.type) in [(0, 1), (1, 0)]) and\
                        (dictionary['passwords'] and dictionary['usernames']):
                             print('##############################################')
                             print('[cracking.dictionary] {0}'.format(dictionary))
@@ -211,32 +207,13 @@ class Tasker:
 
                     ####################################
 
-                    # It's a password
-                    if current_entry.username == None:
-                        
-                        usernames = self._db_mgr.session.query(Dictionary.id, Dictionary.username).\
-                                                         filter(Dictionary.id > index,
-                                                                Dictionary.id < current,
-                                                                Dictionary.password == None).\
-                                                         order_by(Dictionary.id.asc()).\
-                                                         limit(10).all()
-
-                        dictionary['passwords'].add(current_entry.password)
-                        dictionary['usernames'].update([usr for uid, usr in usernames])
-
-                        if usernames:
-                            index = usernames[-1][0] # The last ID
-                        else:
-                            index = current
-                        count += len(usernames)
-
                     # It's a username
-                    elif current_entry.password == None:
+                    if current_entry.type == 0:
                         # The password's ID will be used in a futer limitation in the number of results.
                         passwords = self._db_mgr.session.query(Dictionary.id, Dictionary.password).\
                                                          filter(Dictionary.id > index,
                                                                 Dictionary.id < current,
-                                                                Dictionary.username == None).\
+                                                                Dictionary.type == 1).\
                                                          order_by(Dictionary.id.asc()).\
                                                          limit(10).all()
 
@@ -248,6 +225,25 @@ class Tasker:
                         else:
                             index = current
                         count += len(passwords)
+
+                    # It's a password
+                    elif current_entry.type == 1:
+                        
+                        usernames = self._db_mgr.session.query(Dictionary.id, Dictionary.username).\
+                                                         filter(Dictionary.id > index,
+                                                                Dictionary.id < current,
+                                                                Dictionary.type == 0).\
+                                                         order_by(Dictionary.id.asc()).\
+                                                         limit(10).all()
+
+                        dictionary['passwords'].add(current_entry.password)
+                        dictionary['usernames'].update([usr for uid, usr in usernames])
+
+                        if usernames:
+                            index = usernames[-1][0] # The last ID
+                        else:
+                            index = current
+                        count += len(usernames)
 
                     # It's a pair
                     else:

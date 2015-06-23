@@ -121,7 +121,7 @@ function Dictionary () {
 
     this.add_entry = function() {
 
-        var keywords = {"username":null, "password":null};
+        var keywords = {};
         if($("#username_radio").prop("checked"))
             keywords.username = $('#username').val();
 
