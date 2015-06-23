@@ -30,7 +30,7 @@ class CSV:
                     else:
                         entry[column] = line[column]
 
-                new_entry = self.orm.entities[params['entity']].clean(entry)
+                new_entry = self.orm.entities[params['entity']].suit(entry)
 
                 if new_entry:
                     chunk.append(new_entry)

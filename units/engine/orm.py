@@ -41,8 +41,8 @@ class ORM:
         self.classes = [Unit, Task, Dictionary, Success, Complement]
         self.entities = dict([(c.__tablename__, c) for c in self.classes])
 
-
-    def timestamp(self):
+    @classmethod
+    def timestamp(cls):
         return int(time.time() * 1000)
 
     '''
@@ -160,8 +160,10 @@ class ORMCommon:
         return (0, to_set)
 
     @classmethod
-    def clean(cls, values):
+    def suit(cls, values):
         result = {}
+        if 'timestamp' not in values:
+            result['timestamp'] = ORM.timestamp()
         for field, value in values.items():
             if value and field in cls.attributes:
                 result[field] = value
@@ -194,6 +196,8 @@ class Unit(ORMBase, ORMCommon):
 '''
 class Task(ORMBase, ORMCommon):
     __tablename__ = 'task'
+    __table_args__ = (UniqueConstraint('protocol', 'hostname', 'port', 'path',
+                                       'stage', 'attr'),)
 
     attributes = ['protocol', 'hostname', 'port', 'path',
                   'stage',    'state',    'done', 'total',
@@ -203,17 +207,17 @@ class Task(ORMBase, ORMCommon):
     dependence_id = Column(Integer, ForeignKey('task.id'))
 
     # Task
-    stage = Column(String(64), default='initial') # (initial, crawling, cracking, waiting)
-    state = Column(String(64), default='ready') # (ready, stopped, running, complete, error)
-    description = Column(String(128), default='')
+    stage = Column(String(64), nullable=False, default='initial') # (initial, crawling, cracking, waiting)
+    state = Column(String(64), nullable=False, default='ready') # (ready, stopped, running, complete, error)
+    description = Column(String(128), nullable=False, default='')
     timestamp = Column(Integer, default=0)
 
     # Resource
-    protocol = Column(String(32))
-    hostname = Column(String(128))
+    protocol = Column(String(32), nullable=False)
+    hostname = Column(String(128), nullable=False)
     port = Column(Integer)
-    path = Column(String(128), default='/')
-    attrs = Column(String(1024), default='{}')
+    path = Column(String(128), nullable=False, default='/')
+    attrs = Column(String(1024), nullable=False, default='{}')
 
     # Work
     done = Column(Integer, default=0)
@@ -336,7 +340,7 @@ class Dictionary(ORMBase, ORMCommon):
     __tablename__ = 'dictionary'
     __table_args__ = (UniqueConstraint('type', 'username', 'password'),)
 
-    attributes = ['username', 'password']
+    attributes = ['type', 'username', 'password']
 
     id = Column(Integer, primary_key=True)
     task_id = Column(Integer, ForeignKey('task.id'))
@@ -359,10 +363,22 @@ class Dictionary(ORMBase, ORMCommon):
         else:
             to_set['type'] = 1 # Password
 
-
         if 'task' in values:
             to_set['task_id'] = values['task']['id']
         return (0, to_set)
+
+    @classmethod
+    def suit(cls, values):
+        result = super(cls, cls).suit(values)
+        if 'type' not in result:
+            if 'username' in values:
+                if 'password' in values:
+                    result['type'] = 2 # Pair
+                else:
+                    result['type'] = 0 # Username
+            else:
+                result['type'] = 1 # Password
+        return result
 
     def to_json(self):
         values = {'id':self.id}
