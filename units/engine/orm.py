@@ -348,6 +348,7 @@ class Dictionary(ORMBase, ORMCommon):
     type = Column(SmallInteger, nullable=False, default=2)
     username = Column(String(32), nullable=False, default='')
     password = Column(String(32), nullable=False, default='')
+    charsets = Column(String(256), nullable=False, default='{}')
     timestamp = Column(Integer)
 
     @classmethod
