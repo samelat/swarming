@@ -338,7 +338,7 @@ class Complement(ORMBase, ORMCommon):
 
 class Dictionary(ORMBase, ORMCommon):
     __tablename__ = 'dictionary'
-    __table_args__ = (UniqueConstraint('type', 'username', 'password'),)
+    __table_args__ = (UniqueConstraint('type', 'username', 'password', 'charsets'),)
 
     attributes = ['type', 'username', 'password']
 
@@ -363,6 +363,9 @@ class Dictionary(ORMBase, ORMCommon):
                 to_set['type'] = 0 # Username
         else:
             to_set['type'] = 1 # Password
+
+        if 'charsets' in values:
+            to_set['charsets'] = json.dumps(values['charsets'])
 
         if 'task' in values:
             to_set['task_id'] = values['task']['id']
@@ -390,6 +393,9 @@ class Dictionary(ORMBase, ORMCommon):
         else:
             values['username'] = self.username
             values['password'] = self.password
+
+        if self.charsets != '{}':
+            values['charsets'] = json.loads(self.charsets)
 
         if self.task_id:
             values['task'] = {'id':self.task_id}

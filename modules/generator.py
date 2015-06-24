@@ -1,6 +1,5 @@
 
 import re
-import string
 
 class Generator:
 
@@ -8,11 +7,20 @@ class Generator:
         self.done = False
         self.mask = mask
         self.charsets = {
-            '?d':string.digits,
-            '?1':'abcdef',
-            '?2':'ABC',
+            '?l':'abcdefghijklmnopqrstuvwxyz',
+            '?u':'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            '?d':'0123456789',
+            '?s':' !"#$%&\'()*+,-./:;<=>?@[]^_`{|}~',
             '??':'?'
         }
+
+        to_resolve = {'?a':'?l?u?d?s'}
+        to_resolve.update(charsets)
+        for key, tokens in to_resolve.items():
+            result = tokens
+            for token, charset in self.charsets.items():
+                result = result.replace(token, charset)
+            self.charsets[key] = result
 
         self.lockers = []
 
@@ -21,7 +29,7 @@ class Generator:
             if token in self.charsets:
                 self.lockers.append(list(set(self.charsets[token])))
             else:
-                self.lockers.append(list(set(token)))
+                self.lockers.extend([[c] for c in token])
 
         self.indexes = [0] * len(self.lockers)
 
@@ -52,7 +60,7 @@ class Generator:
 
 if __name__ == "__main__":
 
-    g = Generator('?2?2?2')
+    g = Generator('pedro19?1?d', {'?1':'89'})
 
     for i in g:
         print(i)
