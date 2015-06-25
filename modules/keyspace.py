@@ -1,7 +1,8 @@
 
 import re
+from functools import reduce
 
-class Generator:
+class KeySpace:
 
     def __init__(self, mask, charsets={}):
         self.done = False
@@ -58,9 +59,11 @@ class Generator:
 
         return result
 
+    def __len__(self):
+        return reduce(lambda x, y: x*y, [len(locker) for locker in self.lockers])
+
 if __name__ == "__main__":
 
-    g = Generator('pedro19?1?d', {'?1':'89'})
+    g = KeySpace('pedro?d?d?d?s', {'?1':'89'})
 
-    for i in g:
-        print(i)
+    print(len(g))

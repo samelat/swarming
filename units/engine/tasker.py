@@ -5,6 +5,7 @@ from threading import Lock
 from sqlalchemy import func
 
 from units.engine.orm import *
+from modules.keyspace import KeySpace
 
 
 class Tasker:
@@ -47,6 +48,26 @@ class Tasker:
         print('[engine.protocol_units] {0}'.format(protocol_units))
 
         return protocol_units
+
+
+    ''' #################################################
+
+        #################################################
+    '''
+    def _control_dictionary(self):
+        # We are going to update all entries without weight
+        # First, usernames and password
+        self._db_mgr.session_lock.acquire()
+        entries = self._db_mgr.session.query(Dictionary).\
+                                       filter((Dictionary.type >= 3) &\
+                                              (Dictionary.type <= 5) &\
+                                              (Dictionary.weight == 1)).all()
+        print('[tasker] entries: {0}'.format(entries))
+        for entry in entries:
+            mask = entry.username + entry.password
+            entry.weight = len(KeySpace(mask, json.loads(entry.charsets)))
+        self._db_mgr.session.commit()
+        self._db_mgr.session_lock.release()
 
 
     ''' #################################################
@@ -165,16 +186,38 @@ class Tasker:
                     index = last_subtask.index
                     current = last_subtask.current
 
-                # Update remaining Work
-                username_count = self._db_mgr.session.query(Dictionary.id).filter_by(type=0).count()
-                password_count = self._db_mgr.session.query(Dictionary.id).filter_by(type=1).count()
-                pair_count     = self._db_mgr.session.query(Dictionary.id).filter_by(type=2).count()
+                # Update remaining Work (+3 is the offset between each plain type and mask type)
+                # TODO: filter by task_id too
+                weights = []
+                for _type in [0, 1, 2]:
+                    weights[_type] = self._db_mgr.session.query(func.sum(Dictionary.weight)).\
+                                                          filter((Dictionary.type == _type) |\
+                                                                 (Dictionary.type == _type+3)).first()[0]
+                    if weights[_type] == None:
+                        weights[_type] = 0
 
-                task.total = (username_count * password_count) + pair_count
+                task.total = (weights[0] * weights[1]) + weights[3]
+
+                '''
+                    {
+                        'usernames':[
+                            {'type':0, 'username':'guess'},
+                            {'type':3, 'username':'19?1?d', 'charset':{'?1':'56789'}}
+                        ], 
+
+                        'passwords':[...],
+
+                        'pairs':[
+                            [{'type':2, 'username':'user1', 'password':'pass1'},
+                             {'type':5, 'username':'root' , 'password':'root?d?d?1', 'charset':{'?1':'AB'}},
+                        ]
+                    }
+                '''
 
                 count = 0
                 current_entry = None
-                dictionary = {'usernames':set(), 'passwords':set(), 'pairs':set()}
+                ids = {'usernames':set(), 'passwords':set(), 'pairs':set()}
+                dictionary = {'usernames':[], 'passwords':[], 'pairs':[]}
                 while True:
 
                     # last_entry is only to control when current_entry has changed from
@@ -197,13 +240,17 @@ class Tasker:
                         current_entry = self._db_mgr.session.query(Dictionary).\
                                                              filter_by(id = current).one()
 
+                    # Reset dictionary?
+                    dict_breakpoints = list(itertools.product([0, 3],[1, 4]))
+                    dict_breakpoints.extend(itertools.product([1, 4],[0, 3]))
                     if last_entry and\
-                       ((current_entry.type, last_entry.type) in [(0, 1), (1, 0)]) and\
-                       (dictionary['passwords'] and dictionary['usernames']):
+                       ((current_entry.type, last_entry.type) in dict_breakpoints) and\
+                       (ids['passwords'] and ids['usernames']):
                             print('##############################################')
                             print('[cracking.dictionary] {0}'.format(dictionary))
                             dictionaries.append(dictionary)
-                            dictionary = {'usernames':set(), 'passwords':set(), 'pairs':set()}
+                            ids = {'usernames':set(), 'passwords':set(), 'pairs':set()}
+                            dictionary = {'usernames':[], 'passwords':[], 'pairs':[]}
 
                     ####################################
 
@@ -369,6 +416,8 @@ class Tasker:
             print('[engine] Tasker main loop')
             # Get units per protocol
             self._units = self._get_protocol_units()
+
+            self._control_dictionary()
 
             self._waiting_tasks()
 

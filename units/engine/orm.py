@@ -197,7 +197,7 @@ class Unit(ORMBase, ORMCommon):
 class Task(ORMBase, ORMCommon):
     __tablename__ = 'task'
     __table_args__ = (UniqueConstraint('protocol', 'hostname', 'port', 'path',
-                                       'stage', 'attr'),)
+                                       'stage', 'attrs'),)
 
     attributes = ['protocol', 'hostname', 'port', 'path',
                   'stage',    'state',    'done', 'total',
@@ -331,8 +331,13 @@ class Complement(ORMBase, ORMCommon):
 
 
 ''' ################################################
-    Dictionary
-    0: username - 1: password - 2: pairs
+    Dictionary Types
+    0: plain username
+    1: plain password 
+    2: plain pair
+    3: mask username
+    4: mask password
+    5: mask pair
     ################################################
 '''
 
@@ -349,6 +354,7 @@ class Dictionary(ORMBase, ORMCommon):
     username = Column(String(32), nullable=False, default='')
     password = Column(String(32), nullable=False, default='')
     charsets = Column(String(256), nullable=False, default='{}')
+    weight   = Column(Integer, nullable=False, default=1)
     timestamp = Column(Integer)
 
     @classmethod
