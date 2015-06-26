@@ -7,6 +7,8 @@ from sqlalchemy import func
 from units.engine.orm import *
 from modules.keyspace import KeySpace
 
+from units.engine.tasker.work_planner import WorkPlanner
+
 
 class Tasker:
 
@@ -20,7 +22,7 @@ class Tasker:
         self._ready_task_channels = {}
 
         # Forcing Dictionary
-        self.dictionary_limit = 200
+        self.work_limit = 200
 
 
     def _dispatch_task(self, task):
@@ -136,14 +138,14 @@ class Tasker:
         running_tasks = set()
         self._engine._resp_lock.acquire()
         for channel in list(self._cracking_dictionary_channels.keys()):
-            subtask_id, task_id, count = self._cracking_dictionary_channels[channel]
+            work_id, task_id, count = self._cracking_dictionary_channels[channel]
             if channel in self._engine._responses:
                 response = self._engine._responses[channel]
                 del(self._engine._responses[channel])
                 del(self._cracking_dictionary_channels[channel])
-                subtask = self._db_mgr.session.query(DictionaryTask).\
-                                               filter_by(id=subtask_id).first()
-                subtask.state = 'complete'
+                work = self._db_mgr.session.query(DictionaryTask).\
+                                            filter_by(id=work_id).first()
+                work.state = 'complete'
 
                 task = self._db_mgr.session.query(Task).\
                                             filter_by(id=task_id).first()
@@ -172,177 +174,39 @@ class Tasker:
                 if task.id not in running_tasks:
                     task.state = 'ready'
 
-                # get last dictionary_task
-                last_subtask = self._db_mgr.session.query(DictionaryTask).\
-                                                    order_by(DictionaryTask.timestamp.desc()).\
-                                                    filter_by(task_id = task.id).\
-                                                    first()
-
-                # TODO: I have to restrict the number of tasks that will be generated.
-                if not last_subtask:
-                    index = current = 0
-                else:
-                    index = last_subtask.index
-                    current = last_subtask.current
-
-                # Update remaining Work (+3 is the offset between each plain type and mask type)
+                # Update remaining Work (+3 is the offset between plain types and mask types)
                 # TODO: filter by task_id too
                 weights = []
-                for _type in [0, 1, 2]:
-                    weights[_type] = self._db_mgr.session.query(func.sum(Dictionary.weight)).\
-                                                          filter((Dictionary.type == _type) |\
-                                                                 (Dictionary.type == _type+3)).first()[0]
-                    if weights[_type] == None:
-                        weights[_type] = 0
+                for row_type in [0, 1, 2]:
+                    weights[row_type] = self._db_mgr.session.query(func.sum(Dictionary.weight)).\
+                                                             filter((Dictionary.type == row_type) |\
+                                                                    (Dictionary.type == row_type + 3)).first()[0]
+                    if weights[row_type] == None:
+                        weights[row_type] = 0
 
-                task.total = (weights[0] * weights[1]) + weights[3]
+                self.task.total = (weights[0] * weights[1]) + weights[3]
 
-                '''
-                    {
-                        'usernames':[
-                            {'type':0, 'username':'guess'},
-                            {'type':3, 'username':'19?1?d', 'charset':{'?1':'56789'}}
-                        ], 
+                planner = WorkPlanner(self._db_mgr, task, self.work_limit)
 
-                        'passwords':[...],
-
-                        'pairs':[
-                            [{'type':2, 'username':'user1', 'password':'pass1'},
-                             {'type':5, 'username':'root' , 'password':'root?d?d?1', 'charset':{'?1':'AB'}},
-                        ]
-                    }
-                '''
-
-                weight = 0
-
-                last_ids = None
-                ids = {'usernames':set(), 'passwords':set()}
-
-                dictionaries = []
-                dictionary = {'usernames':[], 'passwords':[], 'pairs':[]}
-
-                if current > index:
-                    # Continue previous iteration
-                    current_entry = self._db_mgr.session.query(Dictionary).\
-                                                         filter_by(id = current).first()
-                while True:
-
-                    if index == current:
-                        # last_entry is only to control when current_entry has changed from
-                        # username to password or vice versa
-                        #last_entry = current_entry
-
-                        current_entry = self._db_mgr.session.query(Dictionary).\
-                                                             order_by(Dictionary.id.asc()).\
-                                                             filter(Dictionary.id > current).first()
-                        if not current_entry:
-                            break
-
-                        print('[cracking.dictionary] {0}'.format(dictionary))
-                        dictionaries.append(dictionary)
-
-                        index = 0
-                        current = current_entry.id
-
-                    # Reset dictionary?
-                    dict_breakpoints = list(itertools.product([0, 3],[1, 4]))
-                    dict_breakpoints.extend(itertools.product([1, 4],[0, 3]))
-                    if last_entry and\
-                       ((current_entry.type, last_entry.type) in dict_breakpoints) and\
-                       (dictionary['passwords'] and dictionary['usernames']):
-                            print('##############################################')
-                            print('[cracking.dictionary] {0}'.format(dictionary))
-                            dictionaries.append(dictionary)
-                            #ids = {'usernames':set(), 'passwords':set(), 'pairs':set()}
-                            dictionary = {'usernames':[], 'passwords':[], 'pairs':[]}
-
-                    ####################################
-
-                    # It's a username
-                    if current_entry.type in [0, 3]:
-                        # The password's ID will be used in a futer limitation in the number of results.
-                        passwords = self._db_mgr.session.query(Dictionary).\
-                                                         filter(Dictionary.id > index,
-                                                                Dictionary.id < current).\
-                                                         filter(Dictionary.type == 1 |\
-                                                                Dictionary.type == 4).\
-                                                         order_by(Dictionary.id.asc()).\
-                                                         limit(2).all()
-
-                        dictionary['usernames'].add(current_entry.username)
-                        dictionary['passwords'].update([pwd for pid, pwd in passwords])
-
-                        if passwords:
-                            #index = passwords[-1][0]
-                            weight += len(passwords)
-                        else:
-                            index = current
-
-                    # It's a password
-                    elif current_entry.type in [1, 4]:
-                        
-                        usernames = self._db_mgr.session.query(Dictionary.id, Dictionary.username).\
-                                                         filter(Dictionary.id > index,
-                                                                Dictionary.id < current,
-                                                                Dictionary.type == 0).\
-                                                         order_by(Dictionary.id.asc()).\
-                                                         limit(10).all()
-
-                        dictionary['passwords'].add(current_entry.password)
-                        dictionary['usernames'].update([usr for uid, usr in usernames])
-
-                        if usernames:
-                            index = usernames[-1][0] # The last ID
-                        else:
-                            index = current
-                        count += len(usernames)
-
-                    # It's a pair
-                    else:
-                        pair = (current_entry.username, current_entry.password)
-                        dictionary['pairs'].add(pair)
-                        count += 1
-                        index = current
-
-                    if count > self.dictionary_limit:
-                        print('[cracking.dictionary] limited - {0}'.format(dictionary))
-                        dictionaries.append(dictionary)
-                        break
-
-                    ####################################
-
-                if not count:
+                pending_work = planner.get_pending_work()
+                if not pending_work:
                     continue
 
                 task.state = 'running'
-
-                _dictionaries = []
-                for dictionary in dictionaries:
-                    _dictionaries.append({'usernames':list(dictionary['usernames']),
-                                          'passwords':list(dictionary['passwords']),
-                                          'pairs':list(dictionary['pairs'])})
 
                 complements = {}
                 dependence = task.dependence
                 while dependence:
                     complements.update(json.loads(dependence.complement.values))
                     dependence = dependence.dependence
-
-                _task = {'task':task.to_json(), 'dictionaries':_dictionaries}
                 if complements:
-                    _task['complements'] = complements
+                    pending_work['complements'] = complements
 
-                response = self._dispatch_task(_task)
+                response = self._dispatch_task(pending_work)
                 print('[tasker] Dispatch response: {0}'.format(response))
 
-                new_subtask = DictionaryTask(index=index, current=current,
-                                             timestamp=self._db_mgr.timestamp())
-                
-                new_subtask.task = task
-                self._db_mgr.session.add(new_subtask)
-                self._db_mgr.session.commit()
-
-                self._cracking_dictionary_channels[response['channel']] = (new_subtask.id, task.id, count)
+                tracking_info = (planner.work.id, task.id, planner.weight)
+                self._cracking_dictionary_channels[response['channel']] = tracking_info
 
         self._db_mgr.session_lock.release()
 
@@ -395,11 +259,11 @@ class Tasker:
                 task.done = 0
                 task.total = 0
 
-        subtasks = self._db_mgr.session.query(DictionaryTask).\
-                                        filter(DictionaryTask.state != 'complete').\
-                                        all()
-        for subtask in subtasks:
-            self._db_mgr.session.delete(subtask)
+        works = self._db_mgr.session.query(DictionaryTask).\
+                                     filter(DictionaryTask.state != 'complete').\
+                                     all()
+        for work in works:
+            self._db_mgr.session.delete(work)
 
         self._db_mgr.session.commit()
         self._db_mgr.session_lock.release()
@@ -416,9 +280,7 @@ class Tasker:
 
         while not self._engine.halt:
 
-            print('#######################################################')
-            print('[BBBBBBBBBB] {0}'.format(self._db_mgr.session_lock))
-            print('[engine] Tasker main loop')
+            print('[tasker] --------------------- new cycle ---------------------')
             # Get units per protocol
             self._units = self._get_protocol_units()
 
