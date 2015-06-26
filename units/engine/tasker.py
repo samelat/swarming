@@ -167,7 +167,6 @@ class Tasker:
         if cracking_tasks:
 
             for task in cracking_tasks:
-                dictionaries = []
 
                 # This is only to update the task's state
                 if task.id not in running_tasks:
@@ -214,67 +213,73 @@ class Tasker:
                     }
                 '''
 
-                count = 0
-                current_entry = None
-                ids = {'usernames':set(), 'passwords':set(), 'pairs':set()}
+                weight = 0
+
+                last_ids = None
+                ids = {'usernames':set(), 'passwords':set()}
+
+                dictionaries = []
                 dictionary = {'usernames':[], 'passwords':[], 'pairs':[]}
+
+                if current > index:
+                    # Continue previous iteration
+                    current_entry = self._db_mgr.session.query(Dictionary).\
+                                                         filter_by(id = current).first()
                 while True:
 
-                    # last_entry is only to control when current_entry has changed from
-                    # username to password or vice versa
-                    last_entry = current_entry
-
                     if index == current:
+                        # last_entry is only to control when current_entry has changed from
+                        # username to password or vice versa
+                        #last_entry = current_entry
+
                         current_entry = self._db_mgr.session.query(Dictionary).\
                                                              order_by(Dictionary.id.asc()).\
                                                              filter(Dictionary.id > current).first()
                         if not current_entry:
-                            print('[cracking.dictionary] {0}'.format(dictionary))
-                            dictionaries.append(dictionary)
                             break
+
+                        print('[cracking.dictionary] {0}'.format(dictionary))
+                        dictionaries.append(dictionary)
 
                         index = 0
                         current = current_entry.id
-
-                    else:
-                        current_entry = self._db_mgr.session.query(Dictionary).\
-                                                             filter_by(id = current).one()
 
                     # Reset dictionary?
                     dict_breakpoints = list(itertools.product([0, 3],[1, 4]))
                     dict_breakpoints.extend(itertools.product([1, 4],[0, 3]))
                     if last_entry and\
                        ((current_entry.type, last_entry.type) in dict_breakpoints) and\
-                       (ids['passwords'] and ids['usernames']):
+                       (dictionary['passwords'] and dictionary['usernames']):
                             print('##############################################')
                             print('[cracking.dictionary] {0}'.format(dictionary))
                             dictionaries.append(dictionary)
-                            ids = {'usernames':set(), 'passwords':set(), 'pairs':set()}
+                            #ids = {'usernames':set(), 'passwords':set(), 'pairs':set()}
                             dictionary = {'usernames':[], 'passwords':[], 'pairs':[]}
 
                     ####################################
 
                     # It's a username
-                    if current_entry.type == 0:
+                    if current_entry.type in [0, 3]:
                         # The password's ID will be used in a futer limitation in the number of results.
-                        passwords = self._db_mgr.session.query(Dictionary.id, Dictionary.password).\
+                        passwords = self._db_mgr.session.query(Dictionary).\
                                                          filter(Dictionary.id > index,
-                                                                Dictionary.id < current,
-                                                                Dictionary.type == 1).\
+                                                                Dictionary.id < current).\
+                                                         filter(Dictionary.type == 1 |\
+                                                                Dictionary.type == 4).\
                                                          order_by(Dictionary.id.asc()).\
-                                                         limit(10).all()
+                                                         limit(2).all()
 
                         dictionary['usernames'].add(current_entry.username)
                         dictionary['passwords'].update([pwd for pid, pwd in passwords])
 
                         if passwords:
-                            index = passwords[-1][0]
+                            #index = passwords[-1][0]
+                            weight += len(passwords)
                         else:
                             index = current
-                        count += len(passwords)
 
                     # It's a password
-                    elif current_entry.type == 1:
+                    elif current_entry.type in [1, 4]:
                         
                         usernames = self._db_mgr.session.query(Dictionary.id, Dictionary.username).\
                                                          filter(Dictionary.id > index,
