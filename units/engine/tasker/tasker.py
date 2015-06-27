@@ -166,47 +166,48 @@ class Tasker:
                                                      (Task.state == 'ready')).\
                                               all()
 
-        if cracking_tasks:
+        for task in cracking_tasks:
 
-            for task in cracking_tasks:
+            # This is only to update the task's state
+            if task.id not in running_tasks:
+                task.state = 'ready'
 
-                # This is only to update the task's state
-                if task.id not in running_tasks:
-                    task.state = 'ready'
+            # Update remaining Work (+3 is the offset between plain types and mask types)
+            # TODO: filter by task_id too
+            weights = []
+            for row_type in [0, 1, 2]:
+                weights[row_type] = self._db_mgr.session.query(func.sum(Dictionary.weight)).\
+                                                         filter((Dictionary.type == row_type) |\
+                                                                (Dictionary.type == row_type + 3)).first()[0]
+                if weights[row_type] == None:
+                    weights[row_type] = 0
 
-                # Update remaining Work (+3 is the offset between plain types and mask types)
-                # TODO: filter by task_id too
-                weights = []
-                for row_type in [0, 1, 2]:
-                    weights[row_type] = self._db_mgr.session.query(func.sum(Dictionary.weight)).\
-                                                             filter((Dictionary.type == row_type) |\
-                                                                    (Dictionary.type == row_type + 3)).first()[0]
-                    if weights[row_type] == None:
-                        weights[row_type] = 0
+            self.task.total = (weights[0] * weights[1]) + weights[3]
 
-                self.task.total = (weights[0] * weights[1]) + weights[3]
+            ###########################################################
 
-                planner = WorkPlanner(self._db_mgr, task, self.work_limit)
+            planner = WorkPlanner(self._db_mgr, task, self.work_limit)
 
-                pending_work = planner.get_pending_work()
-                if not pending_work:
-                    continue
+            pending_work = planner.get_pending_work()
+            if not pending_work:
+                continue
 
-                task.state = 'running'
+            task.state = 'running'
+            pending_work['task'] = task.to_json()
 
-                complements = {}
-                dependence = task.dependence
-                while dependence:
-                    complements.update(json.loads(dependence.complement.values))
-                    dependence = dependence.dependence
-                if complements:
-                    pending_work['complements'] = complements
+            complements = {}
+            dependence = task.dependence
+            while dependence:
+                complements.update(json.loads(dependence.complement.values))
+                dependence = dependence.dependence
+            if complements:
+                pending_work['complements'] = complements
 
-                response = self._dispatch_task(pending_work)
-                print('[tasker] Dispatch response: {0}'.format(response))
+            response = self._dispatch_task(pending_work)
+            print('[tasker] Dispatch response: {0}'.format(response))
 
-                tracking_info = (planner.work.id, task.id, planner.weight)
-                self._cracking_dictionary_channels[response['channel']] = tracking_info
+            tracking_info = (planner.work.id, task.id, planner.get_work_weight())
+            self._cracking_dictionary_channels[response['channel']] = tracking_info
 
         self._db_mgr.session_lock.release()
 

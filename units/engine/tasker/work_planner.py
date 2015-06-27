@@ -1,7 +1,21 @@
 
 from units.engine.orm import *
 
+''' 
+    {
+        'usernames':[
+            {'type':0, 'username':'guess'},
+            {'type':3, 'username':'19?1?d', 'charset':{'?1':'56789'}}
+        ], 
 
+        'passwords':[...],
+
+        'pairs':[
+            [{'type':2, 'username':'user1', 'password':'pass1'},
+             {'type':5, 'username':'root' , 'password':'root?d?d?1', 'charset':{'?1':'AB'}},
+        ]
+    }
+'''
 class WorkPlanner:
 
     def __init__(self, orm, task, work_limit):
@@ -10,85 +24,81 @@ class WorkPlanner:
         self.work_limit = work_limit
 
         self.work = None
-        self.weights = {'usernames':0, 'passwords':0, 'pairs':0}
+        #self.weights = []
+        #self.weights = [0]
 
         self.index = 0
         self.current = 0
 
-        self.dictionary_ids = []
-        self.dictionary_cache = {}
+        self.cycles = []
+        #self.dictionary_cache = {}
 
     '''
 
     '''
-    def get_weight(self):
-        return (self.weights['usernames'] * self.weights['passwords']) + self.weights['pairs']
+    def get_work_weight(self):
+        weight = 0
+        for cycle in self.cycles:
+            weight += sum([e.weight for e in cycle['usernames'].values()]) * sum([e.weight for e in cycle['passwords'].values()])
+            if 'pairs' in cycle:
+                weight += sum([e.weight for e in cycle['pairs'].values()])
+
+        return weight
 
     '''
 
     '''
-    def get_remaining_ids(self, field):
+    def get_cycle_entries(self, types, weight_edge):
 
+        total_weight = 0
         chunk_size = 10
-
-        if field == 'usernames':
-            types = [1, 4]
-        else:
-            types = [0, 3]
-
+        entries = {}
         # The password's ID will be used in a futer limitation in the number of results.
-        ids = set()
-        entries = self.orm.session.query(Dictionary).\
-                                     filter(Dictionary.id > self.index,
-                                            Dictionary.id < self.current).\
-                                     filter((Dictionary.type == types[0]) |\
-                                            (Dictionary.type == types[1])).\
-                                     order_by(Dictionary.id.asc()).\
-                                     limit(chunk_size).all()
+        
+        _entries = self.orm.session.query(Dictionary).\
+                                    filter(Dictionary.id > self.index,
+                                           Dictionary.id < self.current).\
+                                    filter((Dictionary.type == types[0]) |\
+                                           (Dictionary.type == types[1])).\
+                                    order_by(Dictionary.id.asc()).\
+                                    limit(chunk_size).all()
 
-        consumed = 0
-        while entries:
-            entry = entries.pop(0)
-            ids.add(entry.id)
+        while _entries:
+            entry = _entries.pop(0)
+            print('[ids] {0}'.format(entry.id))
+            entries[entry.id] = entry
             self.index = entry.id
-            self.weights[field] += entry.weight
-            if self.get_weight() >= self.work_limit:
+            total_weight += entry.weight
+            if total_weight > weight_edge:
                 break
 
-        if not entries:
+        if not _entries:
             self.index = self.current
 
-        return ids
+        return entries
 
+    ''' #####################################################
 
-    def update_dictionary_ids(self, ids):
-        if not self.dictionary_ids:
-            self.dictionary_ids.append(ids)
-            return
+        #####################################################
+    '''
+    def merge_cycles(self, cycle):
 
-        if ids['usernames'] == self.dictionary_ids[-1]['usernames']:
-            self.dictionary_ids[-1]['passwords'].update(ids['passwords'])
+        if self.cycles:
+            if cycle['usernames'].keys() == self.cycles[-1]['usernames'].keys():
+                self.cycles[-1]['passwords'].update(cycle['passwords'])
+                self.cycles[0]['pairs'].update(cycle['pairs'])
+                return
 
-        elif ids['passwords'] == self.dictionary_ids[-1]['passwords']:
-            self.dictionary_ids[-1]['usernames'].update(ids['usernames'])
-            
-        else:
-            self.dictionary_ids.append(ids)
+            elif cycle['passwords'].keys() == self.cycles[-1]['passwords'].keys():
+                self.cycles[-1]['usernames'].update(cycle['usernames'])
+                self.cycles[0]['pairs'].update(cycle['pairs'])
+                return
 
-    ''' 
-        {
-            'usernames':[
-                {'type':0, 'username':'guess'},
-                {'type':3, 'username':'19?1?d', 'charset':{'?1':'56789'}}
-            ], 
+        self.cycles.append(cycle)
 
-            'passwords':[...],
+    ''' #####################################################
 
-            'pairs':[
-                [{'type':2, 'username':'user1', 'password':'pass1'},
-                 {'type':5, 'username':'root' , 'password':'root?d?d?1', 'charset':{'?1':'AB'}},
-            ]
-        }
+        #####################################################
     '''
     def get_pending_work(self):
 
@@ -105,15 +115,11 @@ class WorkPlanner:
         if self.current > self.index:
             # Continue previous iteration
             current_entry = self.orm.session.query(Dictionary).\
-                                             filter_by(id = current).first()
-            self.dictionary_cache[current_entry.id] = current_entry
+                                             filter_by(id = self.current).first()
 
-        ids = {'usernames':set(), 'passwords':set()}
+        while self.get_work_weight() < self.work_limit:
 
-        while self.get_weight() < self.work_limit:
-
-            print('[!] current: {0} - index: {1}'.format(self.current, self.index))
-            print('[cracking.dictionary] {0}'.format(ids))
+            print('[weight] {0}'.format(self.get_work_weight()))
 
             if self.index == self.current:
                 # last_entry is only to control when current_entry has changed from
@@ -126,58 +132,69 @@ class WorkPlanner:
                 if not current_entry:
                     break
 
-                self.dictionary_cache[current_entry.id] = current_entry
-                
-                self.update_dictionary_ids(ids)
-                ids = {'usernames':set(), 'passwords':set()}
-
                 self.index = 0
                 self.current = current_entry.id
 
+                #self.dictionary_cache[current_entry.id] = current_entry
+
+            #### Start new Cycle ####
+            cycle = {'usernames':{}, 'passwords':{}, 'pairs':{}}
+
             ####################################
+
+            # This weight limit is not precise, but works
+            weight_edge = (self.work_limit - self.get_work_weight())/current_entry.weight
 
             # current is a username
             if current_entry.type in [0, 3]:
-                field_ids = self.get_remaining_ids('usernames')
-                ids['usernames'].update(field_ids)
+                cycle['usernames'][current_entry.id] = current_entry
+                entries = self.get_cycle_entries([1, 4], weight_edge)
+                cycle['passwords'] = entries
 
             # current is a password
             elif current_entry.type in [1, 4]:
-                field_ids = self.get_remaining_ids('passwords')
-                ids['passwords'].update(field_ids)
+                cycle['passwords'][current_entry.id] = current_entry
+                entries = self.get_cycle_entries([0, 3], weight_edge)
+                cycle['usernames'] = entries
 
             # current is a pair
             else:
-                dictionary['pairs'].add(pair)
+                cycle['pairs'][current_entry.id] = current_entry
                 self.index = self.current
 
             ####################################
 
-        self.update_dictionary_ids(ids)
+            print('[!] current: {0} - index: {1}'.format(self.current, self.index))
+            print('[cycles] {0}'.format(cycle))
 
-        print(self.dictionary_ids)
+            self.merge_cycles(cycle)
 
-        print(self.get_weight())
+        #self.update_dictionary_ids(ids)
 
-        if not self.get_weight():
+        print('[cycles] {0}'.format(self.cycles))
+        print('[weight] {0}'.format(self.get_work_weight()))
+
+        #print(self.get_weight())
+
+        if not self.cycles:
             return None
 
-        '''
-        _dictionaries = []
-        for dictionary in dictionaries:
-            _dictionaries.append({'usernames':list(dictionary['usernames']),
-                                  'passwords':list(dictionary['passwords']),
-                                  'pairs':list(dictionary['pairs'])})
+        dictionaries = []
+        for cycle in self.cycles:
+            dictionary = {}
+            dictionary['usernames'] = [entry.to_json() for entry in cycle['usernames'].values()]
+            dictionary['passwords'] = [entry.to_json() for entry in cycle['passwords'].values()]
+            if cycle['pairs']:
+                dictionary['pairs'] = [entry.to_json() for entry in cycle['pairs'].values()]
 
-        pending_work['task'] = task.to_json()
+            dictionaries.append(dictionary)
 
-        self.work = DictionaryTask(index=index, current=current,
-                                   timestamp=self._db_mgr.timestamp())
+        self.work = DictionaryTask(index=self.index, current=self.current,
+                                   timestamp=self.orm.timestamp())
         
-        self.subtask.task = task
+        self.work.task = self.task
         self.orm.session.add(self.work)
         self.orm.session.commit()
 
-        return {'task':self.task.to_json(), 'dictionaries':dictionaries}
-        '''
+        return {'dictionaries':dictionaries}
 

@@ -391,10 +391,10 @@ class Dictionary(ORMBase, ORMCommon):
         return result
 
     def to_json(self):
-        values = {'id':self.id}
-        if self.type == 0:
+        values = {'id':self.id, 'weight':self.weight, 'type':self.type}
+        if self.type in [0, 3]:
             values['username'] = self.username
-        elif self.type == 1:
+        elif self.type in [1, 4]:
             values['password'] = self.password
         else:
             values['username'] = self.username
