@@ -174,15 +174,16 @@ class Tasker:
 
             # Update remaining Work (+3 is the offset between plain types and mask types)
             # TODO: filter by task_id too
-            weights = []
+            weights = [0, 0, 0]
             for row_type in [0, 1, 2]:
-                weights[row_type] = self._db_mgr.session.query(func.sum(Dictionary.weight)).\
-                                                         filter((Dictionary.type == row_type) |\
-                                                                (Dictionary.type == row_type + 3)).first()[0]
-                if weights[row_type] == None:
-                    weights[row_type] = 0
+                value = self._db_mgr.session.query(func.sum(Dictionary.weight)).\
+                                             filter((Dictionary.type == row_type) |\
+                                                    (Dictionary.type == row_type + 3)).first()[0]
+                
+                if value != None:
+                    weights[row_type] = value
 
-            self.task.total = (weights[0] * weights[1]) + weights[3]
+            task.total = (weights[0] * weights[1]) + weights[2]
 
             ###########################################################
 

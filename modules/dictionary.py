@@ -1,16 +1,64 @@
 
+from modules.keyspace import KeySpace
 
 class Dictionary:
 
-    def __init__(self, usernames, passwords, pairs):
-        self._pairs = pairs
-        self._usernames = usernames
-        self._passwords = passwords
+    def __init__(self, dictionaries):
+        self.dictionaries = dictionaries
 
-    def pairs(self):
-        for username, password in self._pairs:
-            yield (username, password)
+    def make_iterator(self, elements):
+        field_name = {0:'username', 1:'password',
+                      3:'username', 4:'password'}
+        for element in elements:
+            _type = element['type']
+            if _type in [0, 1]:
+                yield element[field_name[_type]]
+            elif _type in [3, 4]:
+                charsets = {}
+                if 'charsets' in element:
+                    charsets = element['charsets']
+                yield KeySpace(element[field_name[_type]], charsets)
+        
 
-        for username in self._usernames:
-            for password in self._passwords:
-                yield (username, password)
+    def join(self):
+
+        pairs = []
+        username_pairs = {}
+        for dictionary in self.dictionaries:
+            if not 'pairs' in dictionary:
+                continue
+
+            for pair in dictionary['pairs']:
+                if pair['type'] == 2:
+                    username_pairs[pair['username']] = pair
+
+                elif pair['type'] == 5:
+                    pairs.append(pair)
+
+        for dictionary in self.dictionaries:
+            usernames_iter = self.make_iterator(dictionary['usernames'])
+            passwords_iter = self.make_iterator(dictionary['passwords'])
+
+            for username in usernames_iter:
+
+                if username in username_pairs:
+                    for pair in username_pairs[username]:
+                        yield (username, pair['password'])
+                    del(username_pairs[username])
+
+                for password in passwords_iter:
+                    yield (username, password)
+
+        pairs.extend([pair for pairs_list in username_pairs.values() for pair in pairs_list])
+        for pair in pairs:
+            if pair['type'] == 2:
+                yield (pair['username'], pair['password'])
+            elif pair['type'] == 5:
+                charsets = {}
+                if 'charsets' in pair:
+                    charsets = pair['charsets']
+                for username in KeySpace(pair['username'], charsets):
+                    for password in KeySpace(pair['password'], charsets):
+                        yield (username, password)
+
+
