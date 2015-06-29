@@ -18,6 +18,12 @@
  *   TASK BOARD ELEMENTS  
  * #######################
  */
+
+
+/* #######################
+ *   TASK BOARD ELEMENTS  
+ * #######################
+ */
 .table-responsive {
     overflow: auto;
 }
@@ -98,13 +104,15 @@ button.stop {
    margin: 0 !important;
 }
 
+/*
 .row > .top-margin-16 {
     margin-top: 16px;
-}
+}*/
 
+/*
 .row > .bottom-margin {
     margin-bottom: 10px;
-}
+}*/
 
 /*
 .row > div > button {

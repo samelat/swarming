@@ -3,7 +3,7 @@ function Dictionary () {
 
     this.name = 'dictionary';
     this.elements_per_page = 10;
-    this.pagination_size = 20;
+    this.pagination_size = 20; // Pagies
     this.pagination_index = 0;
 
     this.start = function() {
@@ -45,9 +45,14 @@ function Dictionary () {
 
                 $.each(rows, function(index, row){
                     console.log('row[' + index + ']: ' + JSON.stringify(row));
+                    if('charsets' in row)
+                        row.charsets_json = JSON.stringify(row.charsets);
+                    else
+                        row.charsets_json = '';
 
                     template = '<tr>' +
-                               '    <td>{{id}}</td>';
+                               '    <td>{{id}}</td>' +
+                               '    <td>{{type}}</td>' ;
 
                     if(row.username != null)
                         template += '    <td>{{username}}</td>';
@@ -59,7 +64,9 @@ function Dictionary () {
                     else
                         template += '    <td><i class="fa fa-times fa-fw"></i></td>';
 
-                    template += '    <td></td>' +
+                    template += '    <td>{{charsets_json}}</td>' +
+                                '    <td>{{weight}}</td>' +
+                                '    <td>{{task}}</td>' +
                                 '</tr>';
 
                     html = Mustache.to_html(template, row);
@@ -68,7 +75,7 @@ function Dictionary () {
 
                 pages = Math.ceil(count / module.elements_per_page);
 
-                if(count > module.pagination_size) {
+                if(pages > 1) {
 
                     //template = '<ul class="pagination no-padding">' +
                     template = '    <li{{{left_class}}}><a onclick="module.page(0)">&laquo;</a></li>' +
@@ -210,5 +217,15 @@ function Dictionary () {
         });
 
         $("#upload_dictionary_modal").modal("toggle");
+    };
+
+    this.add_charset = function() {
+
+        var entry = '<tr>';
+        entry += '<td>' + $("#mask_token")[0].value + '</td>';
+        entry += '<td>' + $("#mask_value")[0].value + '</td>';
+        entry += '</tr>';
+
+        $("#charsets_table tbody").append(entry);
     };
 };
