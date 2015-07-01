@@ -145,11 +145,19 @@ class Tasker:
                 del(self._cracking_dictionary_channels[channel])
                 work = self._db_mgr.session.query(DictionaryTask).\
                                             filter_by(id=work_id).first()
-                work.state = 'complete'
 
                 task = self._db_mgr.session.query(Task).\
                                             filter_by(id=task_id).first()
-                task.done += count
+
+                if response['status'] == 0:
+                    work.state = 'complete'
+                    task.done += count
+                else:
+                    self._db_mgr.session.delete(work)
+                    task.state = 'error'
+                    if('error' in response):
+                        task.description = response['error']
+
             else:
                 running_tasks.add(task_id)
         self._engine._resp_lock.release()

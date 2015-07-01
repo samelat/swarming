@@ -27,11 +27,10 @@ function Core () {
                 
                 $('#page-wrapper').html(result);
                 //console.log('response :' + result);
+                module = new core.modules[name]();
+                module.start();
             }
         });
-
-        module = new this.modules[name]();
-        module.start();
     };
 };
 

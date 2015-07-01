@@ -17,7 +17,8 @@ class Dictionary:
                 charsets = {}
                 if 'charsets' in element:
                     charsets = element['charsets']
-                yield KeySpace(element[field_name[_type]], charsets)
+                for keyword in KeySpace(element[field_name[_type]], charsets):
+                    yield keyword
         
 
     def join(self):

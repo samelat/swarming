@@ -4,6 +4,7 @@ import json
 import traceback
 from threading import Lock
 
+import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy import UniqueConstraint
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, SmallInteger
@@ -197,7 +198,7 @@ class Unit(ORMBase, ORMCommon):
 class Task(ORMBase, ORMCommon):
     __tablename__ = 'task'
     __table_args__ = (UniqueConstraint('protocol', 'hostname', 'port', 'path',
-                                       'stage', 'attrs'),)
+                                       'stage', 'attrs', 'dependence_id'),)
 
     attributes = ['protocol', 'hostname', 'port', 'path',
                   'stage',    'state',    'done', 'total',

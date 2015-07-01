@@ -21,7 +21,11 @@ class BasicAuth:
             print('[http] Forcing Username: {0} - Password: {1}'.format(username, password))
             request['auth'] = (username, password)
 
-            response = requests.request(**request)
+            try:
+                response = requests.request(**request)
+            except requests.exceptions.ConnectionError:
+                return {'status':-1, 'error':'Connection Error'}
+
             if response.status_code == 200:
                 self.unit.success({'username':username, 'password':password},
                                   {'auth':[username, password]})

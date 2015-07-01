@@ -53,6 +53,8 @@ class Crawler:
 
             try:
                 response = session.request(**request)
+            except requests.exceptions.ConnectionError:
+                return {'status':-1, 'task':{'state':'error', 'description':'Connection Error'}}
             except:
                 print('[crawler] Error requesting {0}'.format(request))
                 continue

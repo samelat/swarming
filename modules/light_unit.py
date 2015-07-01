@@ -44,8 +44,6 @@ class LightUnit(Unit):
 
     def consume(self, message):
 
-        values = {}
-
         try:
             self.task = message['params']['task']
 
@@ -56,7 +54,7 @@ class LightUnit(Unit):
             # self.task['total'] = 0
 
             if not self.task['port']:
-                values['port'] = self.task['port'] = self.protocols[self.task['protocol']]
+                self.task['port'] = self.protocols[self.task['protocol']]
 
             self.prepare()
 
@@ -65,15 +63,7 @@ class LightUnit(Unit):
         except KeyError:
             return {'status':-1, 'error':'Unknown stage'}
 
-        # Task Initialization.
-        if 'task' in result:
-            values.update(result['task'])
-
-        if values:
-            values['id'] = self.task['id']
-            self.set_knowledge({'task':values})
-
-        return {'status':result['status']}
+        return result
 
     ''' ##########################################
     '''

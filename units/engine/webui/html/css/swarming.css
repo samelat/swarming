@@ -14,11 +14,13 @@
     margin-bottom: 10px;
 }
 
-/* #######################
- *   TASK BOARD ELEMENTS  
- * #######################
+/* #########################
+ * DICTIONARY BOARD ELEMENTS  
+ * #########################
  */
-
+.toke-tag {
+    width: 35%;
+}
 
 /* #######################
  *   TASK BOARD ELEMENTS  

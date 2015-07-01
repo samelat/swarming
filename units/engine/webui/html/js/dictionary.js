@@ -8,6 +8,7 @@ function Dictionary () {
 
     this.start = function() {
         this.update();
+        this.install_all();
     };
 
     this.page = function(page) {
@@ -128,22 +129,40 @@ function Dictionary () {
 
     this.add_entry = function() {
 
-        var keywords = {};
-        if($("#username_radio").prop("checked"))
-            keywords.username = $('#username').val();
-
-        else if($('#password_radio').prop("checked"))
-            keywords.password = $('#password').val();
-
-        else {
-            keywords.username = $('#username').val();
-            keywords.password = $('#password').val();
+        // Get dictionary keywords
+        var dictionary = {};
+        if($("#username_radio").prop("checked")) {
+            dictionary.username = $('#username').val();
+            dictionary.type = 0;
+        } else if($('#password_radio').prop("checked")) {
+            dictionary.password = $('#password').val();
+            dictionary.type = 1;
+        } else {
+            dictionary.username = $('#username').val();
+            dictionary.password = $('#password').val();
+            dictionary.type = 2;
         }
+
+        // If it's a dictionart with masks, get the charsets
+        if($('#isMask')[0].checked){
+            dictionary.type += 3;
+
+            var rows = $('#charsets_table tbody tr');
+            if(rows.length) {
+                dictionary.charsets = {};
+                $.each(rows, function(rindex, row) {
+                    var values = $(row).find('td');
+                    dictionary.charsets[values[0].textContent] = values[1].textContent;
+                });
+            }
+        }
+
+        console.log(JSON.stringify(dictionary));
 
         $.ajax({
             type: 'POST',
             url: '/api/set',
-            data: JSON.stringify([{'dictionary':keywords}]),
+            data: JSON.stringify([{'dictionary':dictionary}]),
             contentType: 'application/json',
             dataType: 'json',
             success: function(response) {
@@ -219,13 +238,34 @@ function Dictionary () {
         $("#upload_dictionary_modal").modal("toggle");
     };
 
-    this.add_charset = function() {
+    this.install_all = function() {
+        // ##########################################
+        $('#isMask').change(function () {
+            if (!this.checked) {
+                console.log("Hidding!");
+                $('#charsetPanel').hide();
+                return;
+            }
+            $('#charsetPanel').show();
+        });
 
-        var entry = '<tr>';
-        entry += '<td>' + $("#mask_token")[0].value + '</td>';
-        entry += '<td>' + $("#mask_value")[0].value + '</td>';
-        entry += '</tr>';
+        // ##########################################
+        $('#charsetPanel button').click(function () {
+            var token = $("#mask_token")[0].value;
+            var mask  = $("#mask_value")[0].value;
 
-        $("#charsets_table tbody").append(entry);
+            if((!mask) || (!token))
+                return false;
+
+            var entry = '<tr>';
+            entry += '<td>?' + token + '</td>';
+            entry += '<td>'  + mask + '</td>';
+            entry += '</tr>';
+
+            $("#charsets_table tbody").append(entry);
+        });
+
+        // ##########################################
+        $('#upload_dictionary_modal #file_regex')
     };
 };

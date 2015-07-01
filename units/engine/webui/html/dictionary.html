@@ -87,40 +87,38 @@
                 <hr>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" id="is_mask">
+                        <input type="checkbox" id="isMask">
                         Using Mask
                     </label>
                 </div>
-                <div class="row">
-                    <div class="col-lg-10">
-                        <div class="row">
-                            <div class="col-lg-5 board-menu">
-                            <div class="input-group">
-                                <div class="input-group-addon">?</div>
-                                <input class="form-control input-sm" type="text" id="mask_token" placeholder="Token" maxlength="1">
-                            </div><!-- /input-group -->
-                            </div>
-                            <div class="col-lg-7 board-menu">
-                            <input class="form-control input-sm" type="text" id="mask_value" placeholder="CharSet - E.g: ABC">
+                <div id="charsetPanel" style="display: none;">
+                    <div class="row">
+                        <div class="col-lg-10">
+                            <div class="form-inline">
+                                <div class="input-group toke-tag">
+                                    <div class="input-group-addon">?</div>
+                                    <input class="form-control input-sm" type="text" id="mask_token" placeholder="Token" maxlength="1">
+                                </div><!-- /input-group -->
+                                <input class="form-control input-sm" type="text" id="mask_value" placeholder="CharSet - E.g: ABC">
                             </div>
                         </div>
+                        <div class="col-lg-2 board-menu">
+                            <button type="button" class="btn btn-default btn-sm pull-right">
+                                <i class="fa fa-plus fa-fw"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="col-lg-2 board-menu">
-                        <button type="button" class="btn btn-default btn-sm pull-right" onclick="module.add_charset()">
-                            <i class="fa fa-plus fa-fw"></i>
-                        </button>
-                    </div>
+                    <table id="charsets_table" class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Token</th>
+                                <th>CharSet</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
                 </div>
-                <table id="charsets_table" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Token</th>
-                            <th>CharSet</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>

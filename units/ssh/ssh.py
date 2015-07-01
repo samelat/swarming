@@ -21,11 +21,10 @@ class SSH(LightUnit):
     '''
     def ssh_initial_stage(self, message):
         print('[ssh] Initial Stage method')
+        
+        self.set_knowledge({'task':self.task})
 
-        # We return in 'updates' the self task values we want to change.
-        values = {'stage':'cracking.dictionary', 'state':'ready'}
-
-        return {'status':0, 'task':values}
+        return {'status':0}
 
     ''' ############################################
         Needed methods for cracking hperf module
