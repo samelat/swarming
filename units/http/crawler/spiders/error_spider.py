@@ -17,7 +17,7 @@ class ErrorSpider(Spider):
 
         result = {}
 
-        print('[spider.error] response status_code: {0}'.format(response.status_code))
+        #print('[spider.error] response status_code: {0}'.format(response.status_code))
 
         # Moved Permanently
         if response.status_code == 301:

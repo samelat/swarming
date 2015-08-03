@@ -4,6 +4,8 @@ import json
 from threading import Lock
 from sqlalchemy import func
 
+import logging
+
 from units.engine.orm import *
 from modules.keyspace import KeySpace
 
@@ -47,8 +49,7 @@ class Tasker:
 
         self._db_mgr.session_lock.release()
 
-        print('[engine.protocol_units] {0}'.format(protocol_units))
-
+        #print('[engine.protocol_units] {0}'.format(protocol_units))
         return protocol_units
 
 
@@ -64,7 +65,7 @@ class Tasker:
                                        filter((Dictionary.type >= 3) &\
                                               (Dictionary.type <= 5) &\
                                               (Dictionary.weight == 1)).all()
-        print('[tasker] entries: {0}'.format(entries))
+        #print('[tasker] entries: {0}'.format(entries))
         for entry in entries:
             mask = entry.username + entry.password
             entry.weight = len(KeySpace(mask, json.loads(entry.charsets)))
@@ -115,7 +116,7 @@ class Tasker:
                     _task['complements'] = complements
 
                 response = self._dispatch_task(_task)
-                print('[tasker.crawling_task] Dispatch response: {0}'.format(response))
+                #print('[tasker.crawling_task] Dispatch response: {0}'.format(response))
 
                 if response['status'] < 0:
                     task.state = 'stopped'
@@ -213,7 +214,7 @@ class Tasker:
                 pending_work['complements'] = complements
 
             response = self._dispatch_task(pending_work)
-            print('[tasker] Dispatch response: {0}'.format(response))
+            #print('[tasker] Dispatch response: {0}'.format(response))
 
             tracking_info = (planner.work.id, task.id, planner.get_work_weight())
             self._cracking_dictionary_channels[response['channel']] = tracking_info
@@ -285,12 +286,12 @@ class Tasker:
     '''
     def start(self):
 
-        print('[engine] starting logic')
+        logging.debug('[engine] starting logic')
         self._restart_tasks()
 
         while not self._engine.halt:
 
-            print('[tasker] --------------------- new cycle ---------------------')
+            #print('[tasker] --------------------- new cycle ---------------------')
             # Get units per protocol
             self._units = self._get_protocol_units()
 

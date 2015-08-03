@@ -31,16 +31,18 @@ class Dictionary:
 
             for pair in dictionary['pairs']:
                 if pair['type'] == 2:
-                    username_pairs[pair['username']] = pair
+                    if not pair['username'] in username_pairs:
+                        username_pairs[pair['username']] = []
+                    username_pairs[pair['username']].append(pair)
 
                 elif pair['type'] == 5:
                     pairs.append(pair)
 
         for dictionary in self.dictionaries:
             usernames_iter = self.make_iterator(dictionary['usernames'])
-            passwords_iter = self.make_iterator(dictionary['passwords'])
 
             for username in usernames_iter:
+                passwords_iter = self.make_iterator(dictionary['passwords'])
 
                 if username in username_pairs:
                     for pair in username_pairs[username]:

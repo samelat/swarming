@@ -66,4 +66,4 @@ if __name__ == "__main__":
 
     g = KeySpace('pedro?d?d?d?s', {'?1':'89'})
 
-    print(len(g))
+    #print(len(g))

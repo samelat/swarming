@@ -26,7 +26,7 @@ class Executor(Unit):
                 message = self._sync_msgs.get(timeout=1)
             except queue.Empty:
                 continue
-            print('[executor.async] new message: {0}'.format(message))
+            #print('[executor.async] new message: {0}'.format(message))
             result = self.core.dispatch(message)
 
             if result['status'] <= 0:
@@ -36,7 +36,7 @@ class Executor(Unit):
 
 
     def _launcher(self):
-        print('[executor] starting executor {0}...'.format(self.layer))
+        #print('[executor] starting executor {0}...'.format(self.layer))
         self.core.layer = self.layer
         self.core.clean()
 
@@ -70,7 +70,7 @@ class Executor(Unit):
 
 
     def dispatch(self, message):
-        # print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
+        #print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
         return self._messenger.push(message)
 
 

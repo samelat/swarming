@@ -13,9 +13,9 @@ class Post:
 
     def crack(self, dictionaries):
 
-        print('[<#########>] {0}'.format(self.unit.task))
+        #print('[<#########>] {0}'.format(self.unit.task))
 
-        print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
+        #print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
 
         attrs = self.unit.task['attrs']
 
@@ -29,7 +29,7 @@ class Post:
 
         try:
             for username, password in Dictionary(dictionaries).join():
-                print('[http] Forcing Username: {0} - Password: {1}'.format(username, password))
+                #print('[http] Forcing Username: {0} - Password: {1}'.format(username, password))
 
                 if reload:
                     cicle = 0
@@ -79,9 +79,9 @@ class Post:
                     else:
                         cicle += 1
 
-                print('()()()() CICLE == {0} ()()()()'.format(cicle))
+                #print('()()()() CICLE == {0} ()()()()'.format(cicle))
                 if ('attempts' in attrs) and (cicle >= attrs['attempts']):
-                    print('[][][][] REINICIO!!! [][][][]')
+                    #print('[][][][] REINICIO!!! [][][][]')
                     reload = True
         except requests.exceptions.ConnectionError:
             return {'status':-1, 'error':'Connection Error'}

@@ -12,7 +12,7 @@ class CSV:
 
     def digest(self, file, params):
         reader = csv.DictReader(codecs.iterdecode(file.file, 'utf-8'))
-        print('[csv] reader: {0}'.format(reader))
+        #print('[csv] reader: {0}'.format(reader))
 
         count = 0
 
@@ -30,6 +30,7 @@ class CSV:
                     else:
                         entry[column] = line[column]
 
+                #print('[values] {0}'.format(entry))
                 new_entry = self.orm.entities[params['entity']].suit(entry)
 
                 if new_entry:
@@ -43,11 +44,11 @@ class CSV:
 
             count += 1
             
-            print('[upload] #{0}'.format(count))
+            #print('[upload] #{0}'.format(count))
             self.orm.session_lock.acquire()
             self.orm.add(params['entity'], chunk)
             self.orm.session_lock.release()
 
-        print('[upload] #{0}'.format(count))
+        #print('[upload] #{0}'.format(count))
 
         return {'status':0}

@@ -65,7 +65,6 @@ class WorkPlanner:
 
         while _entries:
             entry = _entries.pop(0)
-            print('[ids] {0}'.format(entry.id))
             entries[entry.id] = entry
             self.index = entry.id
             total_weight += entry.weight
@@ -119,8 +118,6 @@ class WorkPlanner:
 
         while self.get_work_weight() < self.work_limit:
 
-            print('[weight] {0}'.format(self.get_work_weight()))
-
             if self.index == self.current:
                 # last_entry is only to control when current_entry has changed from
                 # username to password or vice versa
@@ -164,17 +161,7 @@ class WorkPlanner:
 
             ####################################
 
-            print('[!] current: {0} - index: {1}'.format(self.current, self.index))
-            print('[cycles] {0}'.format(cycle))
-
             self.merge_cycles(cycle)
-
-        #self.update_dictionary_ids(ids)
-
-        print('[cycles] {0}'.format(self.cycles))
-        print('[weight] {0}'.format(self.get_work_weight()))
-
-        #print(self.get_weight())
 
         if not self.cycles:
             return None

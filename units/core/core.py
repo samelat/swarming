@@ -106,7 +106,7 @@ class Core(Unit):
     '''
     def forward(self, message):
 
-        print('[core.forward] {0}'.format(Message(message)))
+        #print('[core.forward] {0}'.format(Message(message)))
 
         ''' This condition is for cases where one unit send
             a message to another one in the same layer.
@@ -152,7 +152,7 @@ class Core(Unit):
     ''' ############################################
     '''
     def digest(self, message):
-        print('[{0}.digest] {1}'.format(self.name, message))
+        #print('[{0}.digest] {1}'.format(self.name, message))
 
         if (self.layer == 0) and ('layer' in message) and (message['layer'] != 0):
             self.acquire()
@@ -170,11 +170,11 @@ class Core(Unit):
         ############################################
     '''
     def halt(self, message):
-        print('[core:{0}] Halting Layer ...'.format(self.layer))
+        #print('[core:{0}] Halting Layer ...'.format(self.layer))
         return {'status':0}
 
     def response(self, message):
-        print('[core:{0}] Response: {1}'.format(self.layer, message))
+        #print('[core:{0}] Response: {1}'.format(self.layer, message))
         return {'status':0}
 
     def control(self, message):
@@ -183,9 +183,9 @@ class Core(Unit):
 
         params = message['params']
         if params['action'] == 'load':
-            print(dir(self._unit_class[params['unit']]))
+            #print(dir(self._unit_class[params['unit']]))
             result = self._unit_class[params['unit']].build(self)
-            print('[core.control:{0}] result: {1}'.format(self.layer, result))
+            #print('[core.control:{0}] result: {1}'.format(self.layer, result))
 
         elif params['action'] == 'drop':
             result = {'status':-1}

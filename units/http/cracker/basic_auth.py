@@ -12,13 +12,13 @@ class BasicAuth:
 
     def crack(self, dictionaries):
 
-        print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
+        #print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
 
         request = {'method':'get', 'url':self.unit.url}
         request.update(self.unit.complements)
 
         for username, password in Dictionary(dictionaries).join():
-            print('[http] Forcing Username: {0} - Password: {1}'.format(username, password))
+            #print('[http] Forcing Username: {0} - Password: {1}'.format(username, password))
             request['auth'] = (username, password)
 
             try:

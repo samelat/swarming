@@ -4,6 +4,8 @@ import urllib
 import requests
 import traceback
 
+import logging
+
 from modules.light_unit import LightUnit
 
 from units.http import cracker
@@ -20,6 +22,8 @@ class HTTP(LightUnit):
         super(HTTP, self).__init__(core)
 
         self.url = None
+
+        logging.debug('[!] AAAAAAAAAAAAAAAAAAA')
 
         self.crackers = {'get':cracker.Get,
                          'post':cracker.Post,
@@ -49,7 +53,7 @@ class HTTP(LightUnit):
         Command & Stage handlers
     '''
     def http_initial_stage(self, message):
-        print('[http] Initial Stage method')
+        #print('[http] Initial Stage method')
 
         # We return in 'updates' the self task values we want to change.
         self.task.update({'stage':'crawling', 'state':'ready', 'description':'Web Crawling'})
@@ -69,7 +73,7 @@ class HTTP(LightUnit):
         url = urllib.parse.urlsplit(response.url)
 
         if url.hostname != self.task['hostname']:
-            print('[HTTP_INIT] Hostnames: {0} - {1}'.format(url.hostname, self.task['hostname']))
+            #print('[HTTP_INIT] Hostnames: {0} - {1}'.format(url.hostname, self.task['hostname']))
             return {'status':-2, 'error':'HTTP Redirection'}
 
         if url.scheme != self.task['protocol']:
@@ -84,7 +88,7 @@ class HTTP(LightUnit):
     ''' 
     '''
     def http_cracking_stage(self, message):
-        print('HTTP Forcing Stage method')
+        #print('HTTP Forcing Stage method')
 
         auth_scheme = self.task['attrs']['auth_scheme']
         try:
@@ -100,7 +104,7 @@ class HTTP(LightUnit):
     ''' 
     '''
     def http_crawling_stage(self, message):
-        print('HTTP Crawling Stage method')
+        #print('HTTP Crawling Stage method')
 
         try:
             _crawler = crawler.Crawler(self)

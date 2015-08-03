@@ -21,7 +21,7 @@ class UIApi:
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     def get(self):
-        print('[uiapi.get] JSON: {0}'.format(cherrypy.request.json))
+        #print('[uiapi.get] JSON: {0}'.format(cherrypy.request.json))
         queries = cherrypy.request.json
 
         for query in queries:
@@ -73,7 +73,7 @@ class UIApi:
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     def set(self):
-        print('[uiapi.set] JSON: {0}'.format(cherrypy.request.json))
+        #print('[uiapi.set] JSON: {0}'.format(cherrypy.request.json))
 
         results_list = []
         self.orm.session_lock.acquire()
@@ -94,19 +94,19 @@ class UIApi:
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def upload(self, file, json_params):
-        print("UPLOAD")
+        #print("UPLOAD")
 
         params = json.loads(json_params)
 
-        print('[uiapi.upload] file: {0}'.format(file))
-        print('[uiapi.upload] params: {0}'.format(json_params))
+        #print('[uiapi.upload] file: {0}'.format(file))
+        #print('[uiapi.upload] params: {0}'.format(json_params))
 
         try:
             parser = self.file_parsers[params['format']](self.orm)
             result = parser.digest(file, params)
 
         except IndexError:
-            print('[upload] KeyError')
+            #print('[upload] KeyError')
             return {'status':-1}
 
         return result

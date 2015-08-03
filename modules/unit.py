@@ -31,7 +31,8 @@ class Unit:
 
     # Start all the things the unit needs
     def start(self):
-        print('[{0}.start] Starting ...'.format(self.name))
+        pass
+        #print('[{0}.start] Starting ...'.format(self.name))
 
 
     def add_cmd_handler(self, command, handler):
@@ -87,15 +88,6 @@ class Unit:
         message = {'src':self.name, 'dst':'engine', 'cmd':'get',
                    'params':{'unit':values}}
         result = self.core.dispatch(message)
-        '''
-        if not block:
-            return result
-
-        response = self.get_response(result['channel'], True)
-
-        print('[get_knowledge] {0}'.format(response))
-        
-        return response'''
 
         return {'status':0}
 
@@ -134,16 +126,10 @@ class Unit:
             return result
 
         return {'status':-1, 'error':'command not found'}
-        '''
-        if response:
-            response['params'].update(result)
-            print('[{0}.digest] response - {1}'.format(self.name, result))
-            self.dispatch(response)
-        '''
 
 
     def dispatch(self, message):
-        # print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
+        #print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
         if message['dst'] == self.name:
             return self.digest(message)
         else:

@@ -1,0 +1,31 @@
+{
+    "version":1,
+    "formatters":{
+        "simple_format" : {
+            "class"  : "logging.Formatter",
+            "format" : "[SWARMING] %(asctime)s %(message)s"
+        }
+    },
+
+    "handlers":{
+        "console" : {
+            "class" : "logging.StreamHandler",
+            "level" : "DEBUG",
+            "formatter" : "simple_format"
+        },
+
+        "file": {
+            "class" : "logging.handlers.RotatingFileHandler",
+            "filename": "mplog.log",
+            "maxBytes":32,
+            "backupCount":10,
+            "formatter": "simple_format"
+        }
+    },
+
+    "loggers" : {
+        "user" : {
+            "handlers" : ["console", "file"]
+        }
+    }
+}

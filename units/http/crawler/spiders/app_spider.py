@@ -72,11 +72,11 @@ class AppSpider(Spider):
             elif isinstance(resource['path'], str):
                 root_path = resource['path']
             else:
-                print('[ERROR] Unknown template "path" type')
+                #print('[ERROR] Unknown template "path" type')
                 continue
 
-            print('[crawler.spider.app] ES UN JODIDO {0}!!!: {1}'.format(app_name, request['url']))
-            print('[ROOT_PATH] {0}'.format(root_path))
+            #print('[crawler.spider.app] ES UN JODIDO {0}!!!: {1}'.format(app_name, request['url']))
+            #print('[ROOT_PATH] {0}'.format(root_path))
 
             # STEP #3
             # Create the filters

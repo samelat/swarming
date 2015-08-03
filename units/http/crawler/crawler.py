@@ -39,7 +39,7 @@ class Crawler:
     '''
     def crawl(self):
 
-        print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
+        #print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
 
         self.container = Container(self.unit.url)
         session = requests.Session()
@@ -49,14 +49,14 @@ class Crawler:
             request['allow_redirects'] = False
             request.update(self.unit.complements)
 
-            print('[CRAWLER] next url: {0}'.format(request['url']))
+            #print('[CRAWLER] next url: {0}'.format(request['url']))
 
             try:
                 response = session.request(**request)
             except requests.exceptions.ConnectionError:
                 return {'status':-1, 'task':{'state':'error', 'description':'Connection Error'}}
             except:
-                print('[crawler] Error requesting {0}'.format(request))
+                #print('[crawler] Error requesting {0}'.format(request))
                 continue
 
             extra = {'content-type':response.headers['content-type'].split(';')[0]}
@@ -69,7 +69,7 @@ class Crawler:
 
                 result = spider.parse(request, response, extra)
 
-                print(result)
+                #print(result)
 
                 if 'requests' in result:
                     for _request in result['requests']:
@@ -81,7 +81,8 @@ class Crawler:
 
                 if 'dictionaries' in result:
                     for dictionary in result['dictionaries']:
-                        print('[http.crawler] new dictionary: {0}'.format(dictionary))
+                        pass
+                        #print('[http.crawler] new dictionary: {0}'.format(dictionary))
 
                 if ('break' in result) and (result['break']):
                     break

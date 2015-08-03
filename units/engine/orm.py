@@ -62,7 +62,7 @@ class ORM:
         try:
             self._engine.execute(self.entities[entity].__table__.insert(), values)
         except sqlalchemy.exc.IntegrityError:
-            print('[rollback]')
+            #print('[rollback]')
             self.session.rollback()
             for value in values:
                 self.set(entity, value)
@@ -162,12 +162,16 @@ class ORMCommon:
 
     @classmethod
     def suit(cls, values):
-        result = {}
-        if 'timestamp' not in values:
-            result['timestamp'] = ORM.timestamp()
-        for field, value in values.items():
-            if value and field in cls.attributes:
-                result[field] = value
+        result = {'timestamp':ORM.timestamp()}
+        
+        for field in cls.attributes:
+            if field in values:
+                result[field] = values[field]
+            elif getattr(cls, field).default.arg != None:
+                result[field] = getattr(cls, field).default.arg
+            else:
+                return None
+
         return result
 
 
@@ -351,7 +355,7 @@ class Dictionary(ORMBase, ORMCommon):
     id = Column(Integer, primary_key=True)
     task_id = Column(Integer, ForeignKey('task.id'))
 
-    type = Column(SmallInteger, nullable=False, default=2)
+    type = Column(SmallInteger, nullable=False, default=-1)
     username = Column(String(32), nullable=False, default='')
     password = Column(String(32), nullable=False, default='')
     charsets = Column(String(256), nullable=False, default='{}')
@@ -381,9 +385,10 @@ class Dictionary(ORMBase, ORMCommon):
     @classmethod
     def suit(cls, values):
         result = super(cls, cls).suit(values)
-        if 'type' not in result:
-            if 'username' in values:
-                if 'password' in values:
+        #print('[result] {0}'.format(result))
+        if result and (result['type'] < 0):
+            if result['username']:
+                if result['password']:
                     result['type'] = 2 # Pair
                 else:
                     result['type'] = 0 # Username

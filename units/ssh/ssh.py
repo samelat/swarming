@@ -20,7 +20,7 @@ class SSH(LightUnit):
         Command & Stage handlers
     '''
     def ssh_initial_stage(self, message):
-        print('[ssh] Initial Stage method')
+        #print('[ssh] Initial Stage method')
         
         self.set_knowledge({'task':self.task})
 
@@ -30,17 +30,17 @@ class SSH(LightUnit):
         Needed methods for cracking hperf module
     '''
     def ssh_success_callback(self, username, password):
-        print('[!] Login! username: {0} - password: {1}'.format(username, password))
+        #print('[!] Login! username: {0} - password: {1}'.format(username, password))
         self.success({'username':username, 'password':password})
 
     def ssh_retry_callback(self, attempt):
-        print('[!] Retry - Attempt {0}'.format(attempt))
+        #print('[!] Retry - Attempt {0}'.format(attempt))
         if(attempt < 3):
             return True
         return False
 
     def ssh_cracking_stage(self, message):
-        print('[ssh] Forcing Stage method')
+       #print('[ssh] Forcing Stage method')
 
         for dictionary in message['params']['dictionaries']:
             cracker = hperf_ssh.SSH(self.ssh_success_callback,
@@ -53,6 +53,6 @@ class SSH(LightUnit):
     ''' ############################################
     '''
     def ssh_crawling_stage(self, message):
-        print('[ssh] Crawling Stage method [Not yet implemented]')
+        #print('[ssh] Crawling Stage method [Not yet implemented]')
 
         return {'status':0}
