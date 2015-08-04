@@ -3,31 +3,49 @@
     "formatters":{
         "simple_format" : {
             "class"  : "logging.Formatter",
-            "format" : "[SWARMING] %(asctime)s %(message)s"
+            "format" : "[%(asctime)s] (%(name)s) %(levelname)s - %(msg)s"
         }
     },
 
     "handlers":{
         "console" : {
             "class" : "logging.StreamHandler",
-            "level" : "DEBUG",
-            "formatter" : "simple_format"
+            "formatter" : "simple_format",
+            "level":"ERROR"
         },
 
-        "file": {
+        "main_log_file": {
             "class" : "logging.handlers.RotatingFileHandler",
-            "filename": "mplog.log",
+            "filename": "log/main.log",
             "maxBytes":500000,
-            "backupCount":10,
+            "backupCount":5,
             "formatter": "simple_format"
+        },
+
+        "debug_log_file": {
+            "class" : "logging.FileHandler",
+            "filename": "debug.log",
+            "formatter": "simple_format",
+            "level":"DEBUG"
         }
     },
 
     "loggers" : {
-        "user" : {
-            "handlers" : ["console", "file"],
+
+        "unit" : {
+            "handlers" : ["main_log_file"],
+            "level":"DEBUG",
+            "propagate":true
+        },
+
+        "core" : {
+            "handlers" : ["main_log_file"],
             "level":"DEBUG",
             "propagate":true
         }
+    },
+
+    "root" : {
+        "handlers" : ["console"]
     }
 }
