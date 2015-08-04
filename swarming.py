@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 
+import logging
 import argparse
 
-import modules.logging
+from modules.logging import setupLogging
 from units.core.core import Core
 
 
@@ -13,9 +14,16 @@ parser.add_argument('-l', '--log', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR',
 
 args = parser.parse_args()
 
-#logger.critical("Error!!!!")
+setupLogging("")
 
+root_logger = logging.getLogger('')
+root_logger.setLevel(logging.DEBUG)
 
+root_logger.debug("ALGO")
+
+logger = logging.getLogger('user')
+
+logger.info("Error!!!!")
 
 #core = Core()
 #core.start()

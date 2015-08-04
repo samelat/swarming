@@ -17,7 +17,7 @@
         "file": {
             "class" : "logging.handlers.RotatingFileHandler",
             "filename": "mplog.log",
-            "maxBytes":32,
+            "maxBytes":500000,
             "backupCount":10,
             "formatter": "simple_format"
         }
@@ -25,7 +25,9 @@
 
     "loggers" : {
         "user" : {
-            "handlers" : ["console", "file"]
+            "handlers" : ["console", "file"],
+            "level":"DEBUG",
+            "propagate":true
         }
     }
 }
