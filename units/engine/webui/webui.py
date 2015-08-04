@@ -27,8 +27,12 @@ class WebUI:
 
         global_conf = {
             'engine.autoreload_on': False,
-            'log.error_file':'log/webui.global.error.log'
+            'log.error_file':'log/webui.global.error.log',
+            'log.access_file':'log/webui.global.access.log'
         }
+
+        cherrypy.log.error_log.propagate = True
+        cherrypy.log.access_log.propagate = True
 
         cherrypy.config.update(global_conf)
 
@@ -42,7 +46,8 @@ class WebUI:
 
         api_conf = {
             '/':{
-                'log.error_file':'log/webui.api.error.log'
+                'log.error_file':'log/webui.api.error.log',
+                'log.access_file':'log/webui.api.access.log',
             }
         }
         

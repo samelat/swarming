@@ -6,7 +6,6 @@ import json
 import logging
 import logging.config
 
-from modules.logging import setupLogging
 from units.core.core import Core
 
 with open('config/log.json', 'r') as log_conf:

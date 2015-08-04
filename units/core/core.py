@@ -17,10 +17,12 @@ class Core(Unit):
 
     def __init__(self):
         super(Core, self).__init__()
-        # I have to change this to load the unit dinamicaly
+        #TODO: I have to change this to load the unit dinamicaly
         self._unit_class = {'executor':Executor,
                             'http':HTTP,
                             'ssh':SSH}
+        self.logger.critical(__name__)
+
         self._condition = Condition()
         self._accesses = 0
 
@@ -98,8 +100,10 @@ class Core(Unit):
                 msg = {'dst':unit.name, 'src':'core', 'cmd':'register', 'params':{}, 'async':False}
                 self.dispatch(msg)
         '''
-        
-        self.units['engine'].logic.start()
+        try:
+            self.units['engine'].logic.start()
+        except KeyboardInterrupt:
+            pass
 
     ''' ############################################
         Messages Handlers
