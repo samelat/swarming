@@ -35,7 +35,7 @@ class Engine(Unit):
     def start(self):
         #print('[engine] Starting')
         self.knowledge = Knowledge(self)
-        self.logic = Tasker(self)
+        self.tasker = Tasker(self)
         self.webui = WebUI(self)
         self.webui.start()
 

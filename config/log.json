@@ -3,7 +3,7 @@
     "formatters":{
         "simple_format" : {
             "class"  : "logging.Formatter",
-            "format" : "[%(asctime)s] (%(name)s) %(levelname)s - %(msg)s"
+            "format" : "[%(levelname)0.1s] %(asctime)0.19s (%(name)s) - %(msg)s"
         }
     },
 
@@ -14,7 +14,7 @@
             "level":"ERROR"
         },
 
-        "main_log_file": {
+        "units_log_file": {
             "class" : "logging.handlers.RotatingFileHandler",
             "filename": "log/main.log",
             "maxBytes":500000,
@@ -32,14 +32,8 @@
 
     "loggers" : {
 
-        "unit" : {
-            "handlers" : ["main_log_file"],
-            "level":"DEBUG",
-            "propagate":true
-        },
-
-        "core" : {
-            "handlers" : ["main_log_file"],
+        "units" : {
+            "handlers" : ["units_log_file"],
             "level":"DEBUG",
             "propagate":true
         }

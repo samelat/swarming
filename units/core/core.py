@@ -1,4 +1,5 @@
 
+import logging
 import random
 from threading import Condition
 
@@ -21,7 +22,7 @@ class Core(Unit):
         self._unit_class = {'executor':Executor,
                             'http':HTTP,
                             'ssh':SSH}
-        self.logger.critical(__name__)
+        self.logger = logging.getLogger(__name__)
 
         self._condition = Condition()
         self._accesses = 0
@@ -68,6 +69,8 @@ class Core(Unit):
     ''' ############################################
     '''
     def start(self):
+        self.logger.debug("Starting main Core instance ...")
+
         self.add_cmd_handler('control', self.control)
 
         ''' TODO: It is better if we take the list of
@@ -101,9 +104,11 @@ class Core(Unit):
                 self.dispatch(msg)
         '''
         try:
-            self.units['engine'].logic.start()
+            self.units['engine'].tasker.start()
         except KeyboardInterrupt:
             pass
+
+        
 
     ''' ############################################
         Messages Handlers
@@ -111,26 +116,6 @@ class Core(Unit):
     def forward(self, message):
 
         #print('[core.forward] {0}'.format(Message(message)))
-
-        ''' This condition is for cases where one unit send
-            a message to another one in the same layer.
-        '''
-
-        '''
-        if not 'jump' in message:
-            message['jump'] = message['src']
-
-
-        if message['layer'] == self.layer:
-            if self.units[message['dst']].light and (message['jump'] != 'executor'):
-                message['jump'] = 'executor'
-                return self._executors[self.layer].dispatch(message)
-            else:
-                return self.units[message['dst']].dispatch(message)
-        
-        message['jump'] = 'executor'
-        return self._executors[message['layer']].dispatch(message)
-        '''
 
         self.acquire()
 

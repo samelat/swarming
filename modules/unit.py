@@ -14,7 +14,6 @@ class Unit:
         self.core = core
         self._commands  = {'halt':self.halt,
                            'response':self.response}
-        self.logger = logging.getLogger()
 
         self._responses = {}
         self._resp_lock = Condition()

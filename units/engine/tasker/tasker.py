@@ -1,6 +1,7 @@
 
 import time
 import json
+import logging
 from threading import Lock
 from sqlalchemy import func
 
@@ -15,11 +16,12 @@ from units.engine.tasker.work_planner import WorkPlanner
 class Tasker:
 
     def __init__(self, engine):
+
         self._engine = engine
         self._db_mgr = ORM()
         self._cycle_delay = 10
         self._units = {}
-
+        self.logger = logging.getLogger(__name__)
         self._cracking_dictionary_channels = {}
         self._ready_task_channels = {}
 
@@ -286,12 +288,12 @@ class Tasker:
     '''
     def start(self):
 
-        logging.debug('[engine] starting logic')
+        self.logger.debug('Starting tasker ...')
         self._restart_tasks()
 
         while not self._engine.halt:
+            self.logger.debug('--------------------- new tasker cycle ---------------------')
 
-            #print('[tasker] --------------------- new cycle ---------------------')
             # Get units per protocol
             self._units = self._get_protocol_units()
 
