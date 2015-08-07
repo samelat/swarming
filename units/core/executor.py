@@ -1,5 +1,6 @@
 
 import queue
+import logging
 from multiprocessing import Process
 
 from modules.unit import Unit
@@ -13,18 +14,21 @@ class Executor(Unit):
 
     def __init__(self, core, layer):
         super(Executor, self).__init__(core)
+        self.logger = logging.getLogger(__name__)
         self.layer = layer
         self._messenger = Messenger(self)
 
         self._sync_msgs = None
         self._process = None
 
-
     def _handler(self):
         while not self.halt:
             try:
                 message = self._sync_msgs.get(timeout=1)
             except queue.Empty:
+                continue
+            except KeyboardInterrupt:
+                self.halt = True
                 continue
             #print('[executor.async] new message: {0}'.format(message))
             result = self.core.dispatch(message)
@@ -36,7 +40,7 @@ class Executor(Unit):
 
 
     def _launcher(self):
-        #print('[executor] starting executor {0}...'.format(self.layer))
+        self.logger.info('Starting Executor ...')
         self.core.layer = self.layer
         self.core.clean()
 

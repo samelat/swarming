@@ -3,7 +3,7 @@
     "formatters":{
         "simple_format" : {
             "class"  : "logging.Formatter",
-            "format" : "[%(levelname)0.1s] %(asctime)0.19s (%(name)s) - %(msg)s"
+            "format" : "[%(levelname)0.1s] %(asctime)0.19s [ %(process)d | %(threadName)s | %(name)s ] - %(message)s"
         }
     },
 

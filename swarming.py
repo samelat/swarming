@@ -1,12 +1,17 @@
 #!/usr/bin/python3
 
 import argparse
+import threading
 
 import json
 import logging
 import logging.config
 
+from modules.config import config
 from units.core.core import Core
+
+main_thread = threading.main_thread()
+main_thread.name = "main"
 
 with open('config/log.json', 'r') as log_conf:
     json_conf = json.loads(log_conf.read())

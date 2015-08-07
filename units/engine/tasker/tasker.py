@@ -8,6 +8,7 @@ from sqlalchemy import func
 import logging
 
 from units.engine.orm import *
+from modules.config import config
 from modules.keyspace import KeySpace
 
 from units.engine.tasker.work_planner import WorkPlanner
@@ -288,7 +289,7 @@ class Tasker:
     '''
     def start(self):
 
-        self.logger.debug('Starting tasker ...')
+        self.logger.info('Starting Tasker ...')
         self._restart_tasks()
 
         while not self._engine.halt:

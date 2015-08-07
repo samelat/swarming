@@ -69,7 +69,7 @@ class Core(Unit):
     ''' ############################################
     '''
     def start(self):
-        self.logger.debug("Starting main Core instance ...")
+        self.logger.info('Starting Core ...')
 
         self.add_cmd_handler('control', self.control)
 

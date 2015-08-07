@@ -40,7 +40,7 @@ class Messenger:
 
     def start(self):
         #print('[{0}.messenger] starting'.format(self._owner.name))
-        self._thread = Thread(target=self._handler)
+        self._thread = Thread(target=self._handler, name='messenger')
         self._thread.start()
 
     def halt(self):

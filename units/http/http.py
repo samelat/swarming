@@ -11,6 +11,8 @@ from modules.light_unit import LightUnit
 from units.http import cracker
 from units.http.crawler import crawler
 
+from modules.config import config
+
 
 class HTTP(LightUnit):
 
@@ -22,8 +24,7 @@ class HTTP(LightUnit):
         super(HTTP, self).__init__(core)
 
         self.url = None
-
-        logging.debug('[!] AAAAAAAAAAAAAAAAAAA')
+        self.logger = logging.getLogger(__name__)
 
         self.crackers = {'get':cracker.Get,
                          'post':cracker.Post,
