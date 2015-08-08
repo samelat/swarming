@@ -12,7 +12,7 @@ class Unit:
 
     def __init__(self, core=None):
         self.core = core
-        self._commands  = {'halt':self.halt,
+        self._commands  = {'stop':self.stop,
                            'response':self.response}
 
         self._responses = {}
@@ -96,7 +96,7 @@ class Unit:
     ''' ############################################
         These are default handlers for basic commands
     '''
-    def halt(self, message):
+    def stop(self, message):
         self.halt = True
 
         return {'status':0}

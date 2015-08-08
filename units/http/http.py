@@ -25,6 +25,7 @@ class HTTP(LightUnit):
 
         self.url = None
         self.logger = logging.getLogger(__name__)
+        self.logger.info('Starting HTTP unit ...')
 
         self.crackers = {'get':cracker.Get,
                          'post':cracker.Post,

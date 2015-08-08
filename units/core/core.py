@@ -105,9 +105,13 @@ class Core(Unit):
         '''
         try:
             self.units['engine'].tasker.start()
-        except KeyboardInterrupt:
+        except:
             pass
 
+        self.logger.info('Please wait until Swarming stop.')
+        for executor in self.executors.values():
+            executor.stop()
+        self.units['engine'].stop()
         
 
     ''' ############################################
@@ -158,7 +162,7 @@ class Core(Unit):
         Core Unit Commands
         ############################################
     '''
-    def halt(self, message):
+    def stop(self, message):
         #print('[core:{0}] Halting Layer ...'.format(self.layer))
         return {'status':0}
 

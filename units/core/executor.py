@@ -37,6 +37,7 @@ class Executor(Unit):
                 response = Message(message).make_response(result)
                 if response:
                     self.core.dispatch(response)
+        self._messenger.stop()
 
 
     def _launcher(self):
@@ -46,8 +47,8 @@ class Executor(Unit):
 
         self._sync_msgs = queue.Queue()
         self._messenger.start()
-
         self._handler()
+        self._messenger.stop()
 
 
     @classmethod
@@ -81,8 +82,13 @@ class Executor(Unit):
     ''' ############################################
         Command Handlers
     '''
-    def halt(self, message):
-        self.halt = True
-        self._messenger.halt()
+    def stop(self, message=None):
+        # If the method is called by a message...
+        if message:
+            self.halt = True
+            return {'status':0}
 
-        return {'status':0}
+        else:
+            msg = {'dst':'executor', 'src':'core', 'cmd':'stop', 'layer':self.layer, 'params':{}}
+            self.dispatch(msg)
+            self._process.join()

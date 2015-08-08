@@ -73,3 +73,7 @@ class WebUI:
         #print('[webui] Starting')
         self._thread = Thread(target=self._launcher)
         self._thread.start()
+
+    def stop(self):
+        cherrypy.engine.exit()
+        self._thread.join()

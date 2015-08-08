@@ -87,6 +87,11 @@ class Engine(Unit):
         #print('[core.start] Unit Register Response: {0}'.format(response))
 
 
+    def stop(self):
+        self.halt = True
+        self._messenger.stop()
+        self.webui.stop()
+
     def dispatch(self, message):
         result = self._messenger.push(message)
         return result
@@ -94,10 +99,11 @@ class Engine(Unit):
     ''' ############################################
         Command Handlers
     '''
+    '''
     def halt(self, message):
         self.halt = True
         self._messenger.halt()
-
+    '''
 
     def schedule(self, message):
         #print('[core.schedule] message: {0}'.format(message))

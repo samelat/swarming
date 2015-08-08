@@ -11,7 +11,6 @@ class Messenger:
 
     def __init__(self, owner):
         self._owner = owner
-        self._halt = False
         
         self._messages = Queue()
         self._thread = None
@@ -19,7 +18,7 @@ class Messenger:
     ''' 
     '''
     def _handler(self):
-        while not self._halt:
+        while not self._owner.halt:
             try:
                 message = self._messages.get(timeout=1)
             except queue.Empty:
@@ -43,8 +42,8 @@ class Messenger:
         self._thread = Thread(target=self._handler, name='messenger')
         self._thread.start()
 
-    def halt(self):
-        self._halt = True
+    def stop(self):
+        self._thread.join()
 
     def push(self, message):
         #print('[{0}.messenger.push] {1}'.format(self._owner.name, Message(message)))
