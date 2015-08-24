@@ -2,6 +2,9 @@
 import re
 import urllib
 
+from units.http.crawler.container.opac import OPaC
+
+
 class Container:
 
     def __init__(self, url):
@@ -10,7 +13,9 @@ class Container:
         self.requests = [{'method':'get', 'url':url}]
         self.filters = set()
 
-        self.filter = re.compile('\w+://[^?#]+')
+        self.opac = OPaC()
+
+        self.filter = re.compile('https?://[^?#]+')
 
     def __iter__(self):
         return self
@@ -48,7 +53,7 @@ class Container:
 
             request['url'] = url
             self.requests.append(request)
-
+    
 
     def add_filter(self, _filter):
         _cfilter = re.compile(_filter)
