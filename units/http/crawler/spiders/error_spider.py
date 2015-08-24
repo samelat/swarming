@@ -26,6 +26,14 @@ class ErrorSpider(Spider):
                 new_request['url'] = response.headers['location']
                 result['requests'] = [new_request]
 
+        # Redirection
+        elif response.status_code == 302:
+            redirection = urllib.parse.urljoin(request['url'], response.headers['location'])
+            if re.search('^' + re.escape(request['url']), redirection):
+                new_request = request.copy()
+                new_request['url'] = redirection
+                result['requests'] = [new_request]
+
         # www-Authentication
         elif response.status_code == 401:
 

@@ -32,7 +32,7 @@ class WebUI:
         }
 
         cherrypy.log.error_log.propagate = True
-        cherrypy.log.access_log.propagate = True
+        cherrypy.log.access_log.propagate = False
 
         cherrypy.config.update(global_conf)
 

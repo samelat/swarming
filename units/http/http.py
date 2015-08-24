@@ -73,7 +73,6 @@ class HTTP(LightUnit):
         '''
 
         url = urllib.parse.urlsplit(response.url)
-
         if url.hostname != self.task['hostname']:
             #print('[HTTP_INIT] Hostnames: {0} - {1}'.format(url.hostname, self.task['hostname']))
             return {'status':-2, 'error':'HTTP Redirection'}
