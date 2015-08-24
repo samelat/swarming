@@ -115,15 +115,4 @@ class HTTP(LightUnit):
             traceback.print_exc()
             return {'status':-1}
 
-        # new_task = {'task':{'stage':'cracking.dictionary', 'state':'stopped'}}
-        # new_task['task']['resource'] = {'service':{'id':1}, 'attrs':{'auth_scheme':'basic'}, 'path':'/'}
-
-        # self.set_knowledge(new_task, True)
-
-        #values = {'task':{'id':task['id'], 'state':'complete'}}
-
-        #self.set_knowledge(values, True)
-
-        #return {'status':0, 'values':result}
-
-        return {'status':0}
+        return result

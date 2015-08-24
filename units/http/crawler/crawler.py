@@ -19,6 +19,10 @@ class Crawler:
         self.container = None
         self.timestamp = time.time()
 
+        self.content_types = set()
+        for spider in self.spiders:
+            self.content_types.update(spider.content_types)
+
     ''' Each unit is responsable of the 'done' and 'total'
         values update. That is what this method do.
     '''
@@ -34,30 +38,45 @@ class Crawler:
                                              'done':done,
                                              'total':total}})
 
+    def is_interesting(self, request):
+        head_request = request.copy()
+        head_request['method'] = 'head'
+
+        # TODO: Try to detect if It's a valid resource analyzing the extension
+
+        response = self.session.request(**head_request)
+        if response.headers['content-type'].split(';')[0] in self.content_types:
+            return True
+
+        return False
+
     '''
 
     '''
     def crawl(self):
 
-        #print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
+        print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
 
         self.container = Container(self.unit.url)
-        session = requests.Session()
+        self.session = requests.Session()
         
         for request in self.container:
 
             request['allow_redirects'] = False
             request.update(self.unit.complements)
 
-            #print('[CRAWLER] next url: {0}'.format(request['url']))
-
+            print('[CRAWLER] next url: {0}'.format(request['url']))
             try:
-                response = session.request(**request)
+                if not self.is_interesting(request):
+                    continue
+                response = self.session.request(**request)
+
             except requests.exceptions.ConnectionError:
                 return {'status':-1, 'task':{'state':'error', 'description':'Connection Error'}}
-            except:
-                #print('[crawler] Error requesting {0}'.format(request))
-                continue
+
+            #except:
+            #    print('[crawler] Error requesting {0}'.format(request))
+            #    continue
 
             extra = {'content-type':response.headers['content-type'].split(';')[0]}
             if 'text/html' == extra['content-type']:
@@ -90,6 +109,7 @@ class Crawler:
             # Syncronize the total and done work
             self.sync(self)
 
+        self.session = None
         self.sync(self, True)
 
         return {'status':0}
