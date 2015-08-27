@@ -19,8 +19,10 @@ class Crawler:
         self.container = None
         self.timestamp = time.time()
 
+        self.status_codes = set()
         self.content_types = set()
         for spider in self.spiders:
+            self.status_codes.update(spider.status_codes)
             self.content_types.update(spider.content_types)
 
     ''' Each unit is responsable of the 'done' and 'total'
@@ -45,10 +47,29 @@ class Crawler:
         # TODO: Try to detect if It's a valid resource analyzing the extension
 
         response = self.session.request(**head_request)
-        if response.headers['content-type'].split(';')[0] in self.content_types:
+
+        content = self.get_content(response, digest=False)
+        if content['content-type'] in self.content_types:
+            return True
+
+        if response.status_code in self.status_codes:
             return True
 
         return False
+
+
+    def get_content(self, response, digest=True):
+        content = {'content-type':'text/plain'}
+        if 'content-type' in response.headers:
+            content['content-type'] = response.headers['content-type'].split(';')[0]
+
+        if not digest:
+            return content
+
+        if content['content-type'] == 'text/html':
+            content['html'] = HTML(response.text)
+
+        return content
 
     '''
 
@@ -78,15 +99,15 @@ class Crawler:
             #    print('[crawler] Error requesting {0}'.format(request))
             #    continue
 
-            extra = {'content-type':response.headers['content-type'].split(';')[0]}
-            if 'text/html' == extra['content-type']:
-                extra['html'] = HTML(response.text)
+            print('[CRAWLER] CODE: {0}'.format(response.status_code))
+
+            content = self.get_content(response)
 
             for spider in self.spiders:
-                if not spider.accept(response, extra):
+                if not spider.accept(response, content):
                     continue
 
-                result = spider.parse(request, response, extra)
+                result = spider.parse(request, response, content)
 
                 #print(result)
 
