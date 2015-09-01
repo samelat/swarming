@@ -8,7 +8,7 @@ from units.http.crawler.spiders.spider import Spider
 class DefaultSpider(Spider):
 
     def __init__(self, unit):
-        self.unit = unit
+        super(self, DefaultSpider).__init__(unit)
         self.tags = {'a':'href', 'frame':'src'}
 
     def parse(self, request, response, extra):

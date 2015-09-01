@@ -2,17 +2,17 @@
 
 class Spider:
 
-    content_types = ['text/html']
     status_codes  = [200]
+    content_types = ['text/html']
 
     def __init__(self, unit):
         self.unit = unit
 
-    def accept(self, response, extra):
-        if extra['content-type'] not in self.content_types:
-            return False
+    def accept(self, response, content):
+        if content['content-type'] in self.content_types:
+            return True
 
-        if response.status_code not in self.status_codes:
-            return False
+        if response.status_code in self.status_codes:
+            return True
 
-        return True
+        return False

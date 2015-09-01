@@ -10,7 +10,7 @@ class Container:
 
     def __init__(self, url):
         self.root = urllib.parse.urljoin(url, './')
-        self.seen_urls = {url}
+        self.seen_urls = {}
         self.requests = []
         self.filters = set()
 

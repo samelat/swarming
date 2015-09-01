@@ -1,5 +1,6 @@
 
 import time
+import socket
 import requests
 
 from units.http.tools import HTML
@@ -9,21 +10,25 @@ from units.http.crawler import spiders
 
 class Crawler:
 
+    request_attempts = 3
+
     def __init__(self, unit):
         self.unit = unit
 
         # This list of Spiders has been ordered. Don't change its order.
-        self.spiders = [spiders.ErrorSpider(unit),
-                        spiders.AppSpider(unit),
-                        spiders.DefaultSpider(unit)]
+        self.spiders = {'app:'spiders.AppSpider(unit),
+                        'error':spiders.ErrorSpider(unit),
+                        'default':spiders.DefaultSpider(unit)}
         self.container = None
         self.timestamp = time.time()
 
+        '''
         self.status_codes = set()
         self.content_types = set()
         for spider in self.spiders:
             self.status_codes.update(spider.status_codes)
             self.content_types.update(spider.content_types)
+        '''
 
     ''' Each unit is responsable of the 'done' and 'total'
         values update. That is what this method do.
@@ -78,22 +83,36 @@ class Crawler:
 
         print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
 
+        result = {'status':0}
+
         self.container = Container(self.unit.url)
         self.session = requests.Session()
         
         for request in self.container:
 
+            request['timeout'] = self.timeout
             request['allow_redirects'] = False
             request.update(self.unit.complements)
 
             print('[CRAWLER] next url: {0}'.format(request['url']))
-            try:
-                if not self.is_interesting(request):
-                    continue
-                response = self.session.request(**request)
+            attempts = request_attempts
+            while attempts:
+                try:
+                    head_request = request.copy()
+                    head_request['method'] = 'head'
+                    response = self.session.request(**request)
+                    response = self.session.request(**request)
 
-            except requests.exceptions.ConnectionError:
-                return {'status':-1, 'task':{'state':'error', 'description':'Connection Error'}}
+                    break
+
+                except requests.exceptions.ConnectionError:
+                    result = {'status':-1, 'task':{'state':'error', 'description':'Connection Error'}}
+
+                except socket.timeout:
+                    print('[!] Timeout: {0}'.format(request))
+                    result = {'status':-2, 'task':{'state':'error', 'description':'No response'}}
+
+                attempts += 1
 
             #except:
             #    print('[crawler] Error requesting {0}'.format(request))
@@ -103,13 +122,11 @@ class Crawler:
 
             content = self.get_content(response)
 
-            for spider in self.spiders:
+            for spider_name, spider in self.spiders.items():
                 if not spider.accept(response, content):
                     continue
 
                 result = spider.parse(request, response, content)
-
-                #print(result)
 
                 if 'requests' in result:
                     for _request in result['requests']:
@@ -133,4 +150,4 @@ class Crawler:
         self.session = None
         self.sync(self, True)
 
-        return {'status':0}
+        return result

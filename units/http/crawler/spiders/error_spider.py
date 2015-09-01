@@ -10,10 +10,17 @@ class ErrorSpider(Spider):
     status_codes = [301, 302, 401, 407]
 
     def __init__(self, unit):
-        self.unit = unit
+        super(self, ErrorSpider).__init__(unit)
+        self.parsed_status_codes = set()
 
 
-    def parse(self, request, response, extra):
+    def accept(self, response, content):
+        if response.status_code in self.parsed_status_codes:
+            return False
+        return super(self, ErrorSpider).accept(response, content)
+
+
+    def parse(self, request, response, content):
 
         result = {}
 
@@ -21,10 +28,12 @@ class ErrorSpider(Spider):
 
         # Moved Permanently
         if response.status_code == 301:
+            print('[!] Error 301')
             if re.search('^' + re.escape(request['url']), response.headers['location']):
                 new_request = request.copy()
                 new_request['url'] = response.headers['location']
                 result['requests'] = [new_request]
+                print('[!] Nuevo request: {0}'.format(new_request))
 
         # Redirection
         elif response.status_code == 302:
@@ -55,6 +64,11 @@ class ErrorSpider(Spider):
             result['filters'] = [urllib.parse.urljoin(request['url'], '.*')]
 
             result['break'] = True
+
+        # Not Found
+        elif response.status_code == 404:
+            self.parsed_status_codes.add(404)
+            result = self.unit.spiders['default'].parse(request, response, content)
 
         # Proxy Authentication
         elif response.status_code == 407:
