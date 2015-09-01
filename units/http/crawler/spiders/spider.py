@@ -9,8 +9,8 @@ class Spider:
         self.unit = unit
 
     def accept(self, response, content):
-        if content['content-type'] in self.content_types:
-            return True
+        if content['content-type'] not in self.content_types:
+            return False
 
         if response.status_code in self.status_codes:
             return True

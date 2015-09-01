@@ -45,45 +45,51 @@ class Crawler:
                                              'done':done,
                                              'total':total}})
 
-    def is_interesting(self, request):
-        head_request = request.copy()
-        head_request['method'] = 'head'
+    def request(self, request):
+        result = {'status':0}
 
-        # TODO: Try to detect if It's a valid resource analyzing the extension
+        attempts = self.request_attempts
+        while attempts:
+            try:
+                head_request = request.copy()
+                head_request['method'] = 'head'
+                response = self.session.request(**request)
+                response = self.session.request(**request)
 
-        response = self.session.request(**head_request)
+                break
 
-        content = self.get_content(response, digest=False)
-        if content['content-type'] in self.content_types:
-            return True
+            except requests.exceptions.ConnectionError:
+                result = {'status':-1, 'task':{'state':'error', 'description':'Connection Error'}}
 
-        if response.status_code in self.status_codes:
-            return True
+            except socket.timeout:
+                print('[!] Timeout: {0}'.format(request))
+                result = {'status':-2, 'task':{'state':'error', 'description':'No response'}}
 
-        return False
+            attempts -= 1
 
 
-    def get_content(self, response, digest=True):
+    def get_content(self, request, response=None):
         content = {'content-type':'text/plain'}
+
+        
+
+        if not response:
+            return content
+
         if 'content-type' in response.headers:
             content['content-type'] = response.headers['content-type'].split(';')[0]
-
-        if not digest:
-            return content
 
         if content['content-type'] == 'text/html':
             content['html'] = HTML(response.text)
 
         return content
 
-    '''
+    ''' 
 
     '''
     def crawl(self):
 
         print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
-
-        result = {'status':0}
 
         self.container = Container(self.unit.url)
         self.session = requests.Session()
@@ -95,28 +101,8 @@ class Crawler:
             request.update(self.unit.complements)
 
             print('[CRAWLER] next url: {0}'.format(request['url']))
-            attempts = request_attempts
-            while attempts:
-                try:
-                    head_request = request.copy()
-                    head_request['method'] = 'head'
-                    response = self.session.request(**request)
-                    response = self.session.request(**request)
-
-                    break
-
-                except requests.exceptions.ConnectionError:
-                    result = {'status':-1, 'task':{'state':'error', 'description':'Connection Error'}}
-
-                except socket.timeout:
-                    print('[!] Timeout: {0}'.format(request))
-                    result = {'status':-2, 'task':{'state':'error', 'description':'No response'}}
-
-                attempts += 1
-
-            #except:
-            #    print('[crawler] Error requesting {0}'.format(request))
-            #    continue
+            
+            content = self.get_content(request)
 
             print('[CRAWLER] CODE: {0}'.format(response.status_code))
 
