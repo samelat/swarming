@@ -18,7 +18,7 @@ from units.http.crawler.spiders.spider import Spider
 class AppSpider(Spider):
 
     def __init__(self, unit):
-        super(self, AppSpider).__init__(unit)
+        super(AppSpider, self).__init__(unit)
         self.apps = self.load_apps('json/apps')
 
 

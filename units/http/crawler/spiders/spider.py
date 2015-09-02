@@ -8,11 +8,12 @@ class Spider:
     def __init__(self, unit):
         self.unit = unit
 
-    def accept(self, response, content):
+    def accept(self, content):
+        print(content)
         if content['content-type'] not in self.content_types:
             return False
 
-        if response.status_code in self.status_codes:
+        if content['status-code'] in self.status_codes:
             return True
 
         return False

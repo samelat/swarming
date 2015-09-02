@@ -10,14 +10,18 @@ class ErrorSpider(Spider):
     status_codes = [301, 302, 401, 407]
 
     def __init__(self, unit):
-        super(self, ErrorSpider).__init__(unit)
+        super(ErrorSpider, self).__init__(unit)
         self.parsed_status_codes = set()
 
 
-    def accept(self, response, content):
-        if response.status_code in self.parsed_status_codes:
+    def accept(self, content):
+        if content['status-code'] in self.parsed_status_codes:
             return False
-        return super(self, ErrorSpider).accept(response, content)
+        
+        if content['status-code'] in self.status_codes:
+            return True
+
+        return False
 
 
     def parse(self, request, response, content):

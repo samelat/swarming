@@ -65,18 +65,21 @@ class Crawler:
 
     def get_content(self, request, response=None):
 
-        if not response:
+        content = {'status-code':200}
+
+        if response:
+            content['content-type'] = 'text/plain'
+            content['status-code'] = response.status_code
+            if 'content-type' in response.headers:
+                content['content-type'] = response.headers['content-type'].split(';')[0]
+
+            if content['content-type'] == 'text/html':
+                content['html'] = HTML(response.text)
+
+        if 'content-type' not in content:
             content_type, _ = self.mimetypes.guess_type(request['url'])
-            if not content_type:
-
-            return {'content-type':content_type}
-
-        content = {'content-type':'text/plain'}
-        if 'content-type' in response.headers:
-            content['content-type'] = response.headers['content-type'].split(';')[0]
-
-        if content['content-type'] == 'text/html':
-            content['html'] = HTML(response.text)
+            if content_type:
+                content['content-type'] = content_type
 
         return content
 
@@ -85,7 +88,7 @@ class Crawler:
     '''
     def crawl(self):
 
-        result = {'status':0}
+        crawl_result = {'status':0}
 
         print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
 
@@ -94,7 +97,7 @@ class Crawler:
         
         for request in self.container:
 
-            request['timeout'] = self.timeout
+            request['timeout'] = 16
             request['allow_redirects'] = False
             request.update(self.unit.complements)
 
@@ -102,32 +105,36 @@ class Crawler:
             
             # Take the content-type to check if It is interesting for any spider
             content = self.get_content(request)
-            if not content:
+            if 'content-type' not in content:
                 head_request = request.copy()
                 head_request['method'] = 'head'
                 result, response = self.request(head_request)
                 if result['status'] < 0:
+                    crawl_result = result
                     break
 
                 content = self.get_content(request, response)
 
             interested_spiders = {}
             for spider_name, spider in self.spiders.items():
-                if spider.accept(response, content):
+                if spider.accept(content):
                     interested_spiders[spider_name] = spider
+
+            print(interested_spiders)
 
             if not interested_spiders:
                 continue
 
             # Make the original (complete) request
-            result, response = self.request(head_request)
+            result, response = self.request(request)
             if result['status'] < 0:
+                crawl_result = result
                 break
 
             print('[CRAWLER] CODE: {0}'.format(response.status_code))
 
-            for spider_name, spider in interested_spiders:
-                if not spider.accept(response, content):
+            for spider_name, spider in interested_spiders.items():
+                if not spider.accept(content):
                     continue
 
                 result = spider.parse(request, response, content)
@@ -154,4 +161,4 @@ class Crawler:
         self.session = None
         self.sync(self, True)
 
-        return result
+        return crawl_result
