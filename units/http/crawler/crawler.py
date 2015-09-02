@@ -2,6 +2,7 @@
 import time
 import socket
 import requests
+import mimetypes
 
 from units.http.tools import HTML
 from units.http.crawler.container import Container
@@ -16,19 +17,14 @@ class Crawler:
         self.unit = unit
 
         # This list of Spiders has been ordered. Don't change its order.
-        self.spiders = {'app:'spiders.AppSpider(unit),
+        self.spiders = {'app':spiders.AppSpider(unit),
                         'error':spiders.ErrorSpider(unit),
                         'default':spiders.DefaultSpider(unit)}
         self.container = None
         self.timestamp = time.time()
 
-        '''
-        self.status_codes = set()
-        self.content_types = set()
-        for spider in self.spiders:
-            self.status_codes.update(spider.status_codes)
-            self.content_types.update(spider.content_types)
-        '''
+        self.mimetypes = mimetypes.MimeTypes()
+        self.mimetypes.read('data/mime.types')
 
     ''' Each unit is responsable of the 'done' and 'total'
         values update. That is what this method do.
@@ -47,15 +43,12 @@ class Crawler:
 
     def request(self, request):
         result = {'status':0}
+        response = None
 
         attempts = self.request_attempts
         while attempts:
             try:
-                head_request = request.copy()
-                head_request['method'] = 'head'
                 response = self.session.request(**request)
-                response = self.session.request(**request)
-
                 break
 
             except requests.exceptions.ConnectionError:
@@ -67,15 +60,18 @@ class Crawler:
 
             attempts -= 1
 
+        return result, response
+
 
     def get_content(self, request, response=None):
-        content = {'content-type':'text/plain'}
-
-        
 
         if not response:
-            return content
+            content_type, _ = self.mimetypes.guess_type(request['url'])
+            if not content_type:
 
+            return {'content-type':content_type}
+
+        content = {'content-type':'text/plain'}
         if 'content-type' in response.headers:
             content['content-type'] = response.headers['content-type'].split(';')[0]
 
@@ -88,6 +84,8 @@ class Crawler:
 
     '''
     def crawl(self):
+
+        result = {'status':0}
 
         print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
 
@@ -102,13 +100,33 @@ class Crawler:
 
             print('[CRAWLER] next url: {0}'.format(request['url']))
             
+            # Take the content-type to check if It is interesting for any spider
             content = self.get_content(request)
+            if not content:
+                head_request = request.copy()
+                head_request['method'] = 'head'
+                result, response = self.request(head_request)
+                if result['status'] < 0:
+                    break
+
+                content = self.get_content(request, response)
+
+            interested_spiders = {}
+            for spider_name, spider in self.spiders.items():
+                if spider.accept(response, content):
+                    interested_spiders[spider_name] = spider
+
+            if not interested_spiders:
+                continue
+
+            # Make the original (complete) request
+            result, response = self.request(head_request)
+            if result['status'] < 0:
+                break
 
             print('[CRAWLER] CODE: {0}'.format(response.status_code))
 
-            content = self.get_content(response)
-
-            for spider_name, spider in self.spiders.items():
+            for spider_name, spider in interested_spiders:
                 if not spider.accept(response, content):
                     continue
 
