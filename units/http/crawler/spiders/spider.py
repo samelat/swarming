@@ -9,11 +9,14 @@ class Spider:
         self.unit = unit
 
     def accept(self, content):
-        print(content)
-        if content['content-type'] not in self.content_types:
+        try:
+            if content['content-type'] not in self.content_types:
+                return False
+
+            if content['status-code'] not in self.status_codes:
+                return False
+
+        except KeyError:
             return False
 
-        if content['status-code'] in self.status_codes:
-            return True
-
-        return False
+        return True

@@ -23,6 +23,10 @@ class Crawler:
         self.container = None
         self.timestamp = time.time()
 
+        # This flag existis beacause some servers do not respond with the
+        # same status_code|content-type to HEAD and GET requests.
+        self.use_head_content = True
+
         self.mimetypes = mimetypes.MimeTypes()
         self.mimetypes.read('data/mime.types')
 
@@ -45,6 +49,8 @@ class Crawler:
         result = {'status':0}
         response = None
 
+        print('[request] {0}'.format(request))
+
         attempts = self.request_attempts
         while attempts:
             try:
@@ -65,10 +71,10 @@ class Crawler:
 
     def get_content(self, request, response=None):
 
-        content = {'status-code':200}
+        content = {'content-type':'text/html', 'status-code':200}
 
         if response:
-            content['content-type'] = 'text/plain'
+            #content['content-type'] = 'text/plain'
             content['status-code'] = response.status_code
             if 'content-type' in response.headers:
                 content['content-type'] = response.headers['content-type'].split(';')[0]
@@ -104,8 +110,8 @@ class Crawler:
             print('[CRAWLER] next url: {0}'.format(request['url']))
             
             # Take the content-type to check if It is interesting for any spider
-            content = self.get_content(request)
-            if 'content-type' not in content:
+            response = None
+            if self.use_head_content:
                 head_request = request.copy()
                 head_request['method'] = 'head'
                 result, response = self.request(head_request)
@@ -113,11 +119,11 @@ class Crawler:
                     crawl_result = result
                     break
 
-                content = self.get_content(request, response)
+            sham_content = self.get_content(request, response)
 
             interested_spiders = {}
             for spider_name, spider in self.spiders.items():
-                if spider.accept(content):
+                if spider.accept(sham_content):
                     interested_spiders[spider_name] = spider
 
             print(interested_spiders)
@@ -131,13 +137,21 @@ class Crawler:
                 crawl_result = result
                 break
 
+            real_content = self.get_content(request, response)
+
+            if self.use_head_content:
+                if (real_content['status-code'] != sham_content['status-code']) or\
+                   (real_content['content-type'] != sham_content['content-type']):
+                    self.use_head_content = False
+
             print('[CRAWLER] CODE: {0}'.format(response.status_code))
 
             for spider_name, spider in interested_spiders.items():
-                if not spider.accept(content):
+                if not spider.accept(real_content):
                     continue
 
-                result = spider.parse(request, response, content)
+                print('[real_content] {0}'.format(real_content))
+                result = spider.parse(request, response, real_content)
 
                 if 'requests' in result:
                     for _request in result['requests']:

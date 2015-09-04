@@ -7,7 +7,7 @@ from units.http.crawler.spiders.spider import Spider
 
 class ErrorSpider(Spider):
 
-    status_codes = [301, 302, 401, 407]
+    status_codes = [200, 301, 302, 401, 407]
 
     def __init__(self, unit):
         super(ErrorSpider, self).__init__(unit)
