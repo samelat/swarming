@@ -7,7 +7,8 @@ from units.http.crawler.spiders.spider import Spider
 
 class ErrorSpider(Spider):
 
-    status_codes = [200, 301, 302, 401, 407]
+    status_codes = [301, 302, 401, 407]
+    content_types = []
 
     def __init__(self, unit):
         super(ErrorSpider, self).__init__(unit)
@@ -18,10 +19,7 @@ class ErrorSpider(Spider):
         if content['status-code'] in self.parsed_status_codes:
             return False
         
-        if content['status-code'] in self.status_codes:
-            return True
-
-        return False
+        return super(ErrorSpider, self).accept(content)
 
 
     def parse(self, request, response, content):

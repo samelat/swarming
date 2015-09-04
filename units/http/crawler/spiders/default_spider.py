@@ -17,6 +17,7 @@ class DefaultSpider(Spider):
 
         forms = extra['html'].get_login_forms()
         if forms:
+            print(forms)
             # Create a new Cracking Task over the form we have found.
             crack_task = self.unit.task.copy()
             del(crack_task['id'])

@@ -49,8 +49,6 @@ class Crawler:
         result = {'status':0}
         response = None
 
-        print('[request] {0}'.format(request))
-
         attempts = self.request_attempts
         while attempts:
             try:
@@ -69,11 +67,13 @@ class Crawler:
         return result, response
 
 
-    def get_content(self, request, response=None):
+    def get_content(self, request, response):
 
         content = {'content-type':'text/html', 'status-code':200}
 
-        if response:
+        # I don't know why "requests" developers thought that an Error
+        # response (404, ...) should be taken as False during bool(response) :S.
+        if response != None:
             #content['content-type'] = 'text/plain'
             content['status-code'] = response.status_code
             if 'content-type' in response.headers:
@@ -82,7 +82,7 @@ class Crawler:
             if content['content-type'] == 'text/html':
                 content['html'] = HTML(response.text)
 
-        if 'content-type' not in content:
+        else:
             content_type, _ = self.mimetypes.guess_type(request['url'])
             if content_type:
                 content['content-type'] = content_type
@@ -119,14 +119,15 @@ class Crawler:
                     crawl_result = result
                     break
 
-            sham_content = self.get_content(request, response)
+            thin_content = self.get_content(request, response)
 
-            interested_spiders = {}
-            for spider_name, spider in self.spiders.items():
-                if spider.accept(sham_content):
-                    interested_spiders[spider_name] = spider
+            interested_spiders = False
+            for spider in self.spiders.values():
+                if spider.accept(thin_content):
+                    interested_spiders = True
+                    break
 
-            print(interested_spiders)
+            print('[CRAWLER] {0}'.format(thin_content))
 
             if not interested_spiders:
                 continue
@@ -137,21 +138,22 @@ class Crawler:
                 crawl_result = result
                 break
 
-            real_content = self.get_content(request, response)
+            thick_content = self.get_content(request, response)
 
+            # Here we check if the thin_content got by HEAD, is working properly or not;
+            # If not, we stop using It.
             if self.use_head_content:
-                if (real_content['status-code'] != sham_content['status-code']) or\
-                   (real_content['content-type'] != sham_content['content-type']):
+                if (thick_content['status-code'] != thin_content['status-code']) or\
+                   (thick_content['content-type'] != thin_content['content-type']):
                     self.use_head_content = False
 
-            print('[CRAWLER] CODE: {0}'.format(response.status_code))
+            print('[CRAWLER] CODE: {0}'.format(thick_content['status-code']))
 
-            for spider_name, spider in interested_spiders.items():
-                if not spider.accept(real_content):
+            for spider_name, spider in self.spiders.items():
+                if not spider.accept(thick_content):
                     continue
 
-                print('[real_content] {0}'.format(real_content))
-                result = spider.parse(request, response, real_content)
+                result = spider.parse(request, response, thick_content)
 
                 if 'requests' in result:
                     for _request in result['requests']:

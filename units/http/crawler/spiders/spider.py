@@ -2,21 +2,19 @@
 
 class Spider:
 
-    status_codes  = [200]
+    status_codes  = []
     content_types = ['text/html']
 
     def __init__(self, unit):
         self.unit = unit
 
     def accept(self, content):
-        try:
-            if content['content-type'] not in self.content_types:
-                return False
+        if ('content-type' in content) and \
+           (content['content-type'] in self.content_types):
+            return True
 
-            if content['status-code'] not in self.status_codes:
-                return False
+        if ('status-code' in content) and \
+           (content['status-code'] in self.status_codes):
+            return True
 
-        except KeyError:
-            return False
-
-        return True
+        return False

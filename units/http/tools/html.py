@@ -15,6 +15,20 @@ class HTML(BeautifulSoup):
         return False
 
 
+    def get_css_sign(self, tag):
+        css_sign = []
+
+        parent = tag
+        while parent:
+            attrs = parent.attrs
+            if ('id' in attrs) and attrs['id']:
+                css_sign.append(('id', attrs['id']))
+            else:
+                css_sign.append(('name', parent.name))
+
+        return tuple(css_sign)
+
+
     def get_login_forms(self):
         results = []
 
@@ -34,7 +48,8 @@ class HTML(BeautifulSoup):
 
             json_form = {'usr_field':usr_field.attrs['name'],
                          'pwd_field':pwd_field.attrs['name'],
-                         'fields':{}}
+                         'fields':{},
+                         'sign':self.get_css_sign(form)}
 
             for inp in form.find_all('input', attrs={'name':True, 'value':True}):
                 json_form['fields'][inp.attrs['name']] = inp.attrs['value']
