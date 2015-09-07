@@ -1,92 +1,111 @@
 
+import logging
 import requests
 from urllib.parse import urlencode
 
-from units.http.tools import HTML
 from modules.dictionary import Dictionary
 
+from units.http.support import HTML
+from units.http.support import Protocol
 
-class Post:
+
+class Post(Protocol):
 
     def __init__(self, unit):
+        super().__init__()
         self.unit = unit
+        self.logger = logging.getLogger(__name__)
+
+        self.session = None
+        self.status_codes = {200:True, 403:False} # OK|FAIL Status Codes
+
 
     def crack(self, dictionaries):
 
         #print('[<#########>] {0}'.format(self.unit.task))
 
+        result = {'status':0}
         #print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
 
         attrs = self.unit.task['attrs']
 
         if 'form' not in attrs:
-            return {'status':-1, 'msg':'No "form" attribute'}
+            return {'status':-3, 'error':'No "form" attribute'}
 
         cicle = 0
         reload = True
-        session = None
         login_form = None
 
-        try:
-            for username, password in Dictionary(dictionaries).join():
-                #print('[http] Forcing Username: {0} - Password: {1}'.format(username, password))
+        for username, password in Dictionary(dictionaries).join():
+            self.logger.debug('Trying {0}:{1} over {2}'.format(username, password, self.unit.url))
 
-                if reload:
-                    cicle = 0
-                    if session:
-                        session.close()
-                    session = requests.Session()
-                    
-                    # Get indexed form
-                    if 'index' in attrs['form']:
-                        # First request to take all info we need to continue.
-                        request = {'method':'get', 'url':self.unit.url,
-                                   'allow_redirects':False}
-                        request.update(self.unit.complements)
-                        
-                        response = session.request(**request)
-
-                        html = HTML(response.text)
-                        login_form = html.get_login_forms()[attrs['form']['index']]
-                    else:
-                        login_form = attrs['form']
-
-                    request = {'method':'post', 'url':self.unit.url, 'data':{}}
+            if reload:
+                cicle = 0
+                if self.session:
+                    self.session.close()
+                self.session = requests.Session()
+                
+                # Get indexed form
+                if 'index' in attrs['form']:
+                    # First request to take all info we need to continue.
+                    request = {'method':'get', 'url':self.unit.url,
+                               'allow_redirects':False}
                     request.update(self.unit.complements)
-                    if 'fields' in login_form:
-                        request['data'].update(login_form['fields'])
+                    
+                    result, response = self.request(request)
+                    if result['status'] < 0:
+                        break
 
-                    if not (('usr_field' in login_form) and ('pwd_field' in login_form)):
-                        return {'status':-2, 'msg':'Incomplete form tag information'}
+                    if response.status_code not in self.status_codes:
+                        result = {'status':-4, 'error':'Bad Status Code {0}'.format(response.status_code)}
+                        break
 
-                    reload = False
-
-                request['data'][login_form['usr_field']] = username
-                request['data'][login_form['pwd_field']] = password
-
-                response = session.request(**request)
-                html = HTML(response.text)
-
-                # Detect if the login was successful
-                if 'fail' in attrs:
-                    # This will be a complex structure
-                    pass
+                    html = HTML(response.text)
+                    login_form = html.get_login_forms()[attrs['form']['index']]
                 else:
-                    if login_form not in html:
-                        self.unit.success({'username':username, 'password':password},
-                                          {'data':request['data']})
-                        reload = True
-                    else:
-                        cicle += 1
+                    login_form = attrs['form']
 
-                #print('()()()() CICLE == {0} ()()()()'.format(cicle))
-                if ('attempts' in attrs) and (cicle >= attrs['attempts']):
-                    #print('[][][][] REINICIO!!! [][][][]')
+                request = {'method':'post', 'url':self.unit.url, 'data':{}}
+                request.update(self.unit.complements)
+                if 'fields' in login_form:
+                    request['data'].update(login_form['fields'])
+
+                if not (('usr_field' in login_form) and ('pwd_field' in login_form)):
+                    return {'status':-5, 'error':'Incomplete form tag information'}
+
+                reload = False
+
+            request['data'][login_form['usr_field']] = username
+            request['data'][login_form['pwd_field']] = password
+
+            result, response = self.request(request)
+            if result['status'] < 0:
+                break
+
+            if response.status_code not in self.status_codes:
+                result = {'status':-4, 'error':'Bad Status Code {0}'.format(response.status_code)}
+                break
+
+
+
+            html = HTML(response.text)
+
+            # Detect if the login was successful
+            if 'fail' in attrs:
+                # This will be a complex structure
+                pass
+            else:
+                if self.status_codes[response.status_code] and (login_form not in html):
+                    self.unit.success({'username':username, 'password':password},
+                                      {'data':request['data']})
                     reload = True
-        except requests.exceptions.ConnectionError:
-            return {'status':-1, 'error':'Connection Error'}
+                else:
+                    cicle += 1
 
-        if session:
-            session.close()
+            if ('attempts' in attrs) and (cicle >= attrs['attempts']):
+                reload = True
 
-        return {'status':0}
+        if self.session:
+            self.session.close()
+
+        return result

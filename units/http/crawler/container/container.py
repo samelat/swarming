@@ -8,16 +8,16 @@ from units.http.crawler.container.opac import OPaC
 
 class Container:
 
-    def __init__(self, url):
-        self.root = urllib.parse.urljoin(url, './')
-        self.seen_urls = {}
-        self.requests = []
+    def __init__(self, first_request):
+        self.roots = {}
+        self.requests = [first_request]
+        self.seen_requests = set()
+        self.done_counter = 0
         self.filters = set()
 
-        self.opac = OPaC()
-        self.opac.add_path(url)
-
-        self.url_pattern = re.compile('^https?://[^?#]+')
+        #self.opac_done = 0
+        #self.opac = {'http':OPaC(), 'https':OPaC()
+        #self.opac.add_path(url)
 
     def __iter__(self):
         return self
@@ -25,38 +25,52 @@ class Container:
 
     def __next__(self):
         if self.requests:
+            self.done_counter += 1
             return self.requests.pop()
-        url = parse.urljoin(self.root, next(self.opac))
-        return {'method':'get', 'url':url}
+
+        for root, opac in self.roots.items():
+            if len(opac):
+                url = parse.urljoin(root, next(opac))
+                self.done_counter += 1
+                return {'method':'get', 'url':url}
+        raise StopIteration
 
 
     def total(self):
-        return (len(self.seen_urls) + len(self.requests))
+        roots_len = sum([len(root) for root in self.roots.values()])
+        return self.done_counter + roots_len + len(self.requests)
 
 
     def done(self):
-        return len(self.seen_urls)
+        return self.done_counter
 
 
     def add_request(self, request):
-        match = self.url_pattern.match(request['url'])
-        if not match:
-            return
+        try:
+            url = re.match('^https?://[^?#]+', request['url']).group()
+            request_root = parse.urljoin(url, './')
 
-        url = match.group()
-        if re.match('^' + self.root, url):
+            for root in self.roots:
+                if re.match('^' + root, request_root):
+                    request_root = root
+                    break
 
-            #for _filter in self.filters:
-            #    if _filter.match(url):
-            #        return
+            if request_root not in self.roots:
+                self.roots[request_root] = OPaC()
 
             if request['method'] == 'get':
-                self.opac.add_path(parse.urlparse(url).path)
-
-            elif (request['method'], url) not in self.seen_urls:
-                self.seen_urls.add((request['method'], url))
                 request['url'] = url
+                self.roots[request_root].add_path(parse.urlparse(url).path)
+
+            elif (request['method'], url) not in self.done_requests:
+                self.done_requests.add((request['method'], url))
                 self.requests.append(request)
+
+        except Exception as e:
+            print(e)
+            return False
+
+        return True
 
 
     def add_filter(self, _filter):

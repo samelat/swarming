@@ -61,7 +61,7 @@ class HTTP(LightUnit):
         self.task.update({'stage':'crawling', 'state':'ready', 'description':'Web Crawling'})
 
         try:
-            response = requests.request(method='head', url=self.url)
+            response = requests.request(method='head', url=self.url, verify=False)
         except requests.exceptions.ConnectionError:
             return {'status':-1, 'error':'Connection Error'}
 
@@ -89,13 +89,11 @@ class HTTP(LightUnit):
     ''' 
     '''
     def http_cracking_stage(self, message):
-        #print('HTTP Forcing Stage method')
-
         auth_scheme = self.task['attrs']['auth_scheme']
         try:
             _cracker = self.crackers[auth_scheme](self)
-
             result = _cracker.crack(message['params']['dictionaries'])
+
         except KeyError:
             traceback.print_exc()
             return {'status':-1, 'error':'Unknown Authentication Scheme "{0}"'.format(auth_scheme)}
@@ -105,12 +103,10 @@ class HTTP(LightUnit):
     ''' 
     '''
     def http_crawling_stage(self, message):
-        #print('HTTP Crawling Stage method')
-
         try:
             _crawler = crawler.Crawler(self)
-            
             result = _crawler.crawl()
+            
         except KeyError:
             traceback.print_exc()
             return {'status':-1}

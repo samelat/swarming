@@ -25,6 +25,7 @@ class HTML(BeautifulSoup):
                 css_sign.append(('id', attrs['id']))
             else:
                 css_sign.append(('name', parent.name))
+            parent = parent.parent
 
         return tuple(css_sign)
 
@@ -54,8 +55,8 @@ class HTML(BeautifulSoup):
             for inp in form.find_all('input', attrs={'name':True, 'value':True}):
                 json_form['fields'][inp.attrs['name']] = inp.attrs['value']
 
+            json_form['index'] = len(results)
             results.append(json_form)
-            json_form['index'] = len(results) - 1
 
         return results
 

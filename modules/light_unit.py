@@ -63,6 +63,7 @@ class LightUnit(Unit):
         except KeyError:
             return {'status':-1, 'error':'Unknown stage'}
 
+        print(result)
         return result
 
     ''' ##########################################

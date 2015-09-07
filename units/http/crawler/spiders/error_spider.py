@@ -31,19 +31,20 @@ class ErrorSpider(Spider):
         # Moved Permanently
         if response.status_code == 301:
             print('[!] Error 301')
-            if re.search('^' + re.escape(request['url']), response.headers['location']):
-                new_request = request.copy()
-                new_request['url'] = response.headers['location']
-                result['requests'] = [new_request]
-                print('[!] Nuevo request: {0}'.format(new_request))
+            redirection = urllib.parse.urljoin(request['url'], response.headers['location'])
+            new_request = request.copy()
+            new_request['url'] = redirection
+            result['requests'] = [new_request]
+            print('[!] Nuevo request: {0}'.format(new_request))
 
         # Redirection
         elif response.status_code == 302:
+            print('[!] Error 302')
             redirection = urllib.parse.urljoin(request['url'], response.headers['location'])
-            if re.search('^' + re.escape(request['url']), redirection):
-                new_request = request.copy()
-                new_request['url'] = redirection
-                result['requests'] = [new_request]
+            new_request = request.copy()
+            new_request['url'] = redirection
+            result['requests'] = [new_request]
+            print('[!] Nuevo request: {0}'.format(new_request))
 
         # www-Authentication
         elif response.status_code == 401:

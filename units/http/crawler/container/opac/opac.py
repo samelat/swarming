@@ -27,7 +27,7 @@ class OPaC:
                 return self.paths[depth].pop()
         raise StopIteration
 
-    def size(self):
+    def __len__(self):
         return sum([len(paths) for paths in self.paths.values()])
 
 
@@ -43,8 +43,7 @@ class OPaC:
 
             if self.trees[self.current_depth].add_path(splitted_path):
                 self.paths[self.current_depth].append(complete_path)
-
-            return True
+                return True
 
         return False
 
