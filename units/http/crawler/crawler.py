@@ -97,8 +97,6 @@ class Crawler(Protocol):
         
         for request in self.container:
 
-            self.logger.debug('next request: {0}'.format(request))
-
             request['timeout'] = 16
             request['allow_redirects'] = False
             request.update(self.unit.complements)
@@ -159,9 +157,6 @@ class Crawler(Protocol):
                     for dictionary in result['dictionaries']:
                         pass
                         #print('[http.crawler] new dictionary: {0}'.format(dictionary))
-
-                if ('break' in result) and (result['break']):
-                    break
 
             # Syncronize the total and done work
             self.sync(self)
