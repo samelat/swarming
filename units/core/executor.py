@@ -1,5 +1,6 @@
 
 import queue
+import logging
 from multiprocessing import Process
 
 from modules.unit import Unit
@@ -13,12 +14,12 @@ class Executor(Unit):
 
     def __init__(self, core, layer):
         super(Executor, self).__init__(core)
+        self.logger = logging.getLogger(__name__)
         self.layer = layer
         self._messenger = Messenger(self)
 
         self._sync_msgs = None
         self._process = None
-
 
     def _handler(self):
         while not self.halt:
@@ -27,23 +28,30 @@ class Executor(Unit):
             except queue.Empty:
                 continue
 
+            except KeyboardInterrupt:
+                self.halt = True
+                continue
+            #print('[executor.async] new message: {0}'.format(message))
+
             result = self.core.dispatch(message)
 
             if result['status'] <= 0:
                 response = Message(message).make_response(result)
                 if response:
                     self.core.dispatch(response)
+        self._messenger.stop()
 
 
     def _launcher(self):
-        
+        self.logger.info('Starting Executor ...')
+
         self.core.layer = self.layer
         self.core.clean()
 
         self._sync_msgs = queue.Queue()
         self._messenger.start()
-
         self._handler()
+        self._messenger.stop()
 
 
     @classmethod
@@ -76,8 +84,13 @@ class Executor(Unit):
     ''' ############################################
         Command Handlers
     '''
-    def halt(self, message):
-        self.halt = True
-        self._messenger.halt()
+    def stop(self, message=None):
+        # If the method is called by a message...
+        if message:
+            self.halt = True
+            return {'status':0}
 
-        return {'status':0}
+        else:
+            msg = {'dst':'executor', 'src':'core', 'cmd':'stop', 'layer':self.layer, 'params':{}}
+            self.dispatch(msg)
+            self._process.join()

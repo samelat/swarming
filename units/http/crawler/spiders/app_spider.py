@@ -12,15 +12,13 @@ from units.http.crawler.spiders.spider import Spider
 
     If a web application is too complex to be
     molded this wey, you may have to implement
-    a Spider to detect it.
+    a complete Spider to detect it.
 '''
 
 class AppSpider(Spider):
 
-    content_types = ['text/html']
-
     def __init__(self, unit):
-        self.unit = unit
+        super(AppSpider, self).__init__(unit)
         self.apps = self.load_apps('json/apps')
 
 
@@ -74,7 +72,7 @@ class AppSpider(Spider):
             elif isinstance(resource['path'], str):
                 root_path = resource['path']
             else:
-                print('[ERROR] Unknown template "path" type')
+                #print('[ERROR] Unknown template "path" type')
                 continue
 
             # STEP #3
@@ -90,6 +88,9 @@ class AppSpider(Spider):
             
             result['filters'] = [urllib.parse.urljoin(response.url, root_path + regex)]
 
+            # Tell to crawler stop processing this request/response
+            result['break'] = True
+
             # STEP #4
             # Search for the login form. If this page is not Administrator panel, form may not exist.
             login_forms = extra['html'].get_login_forms()
@@ -102,9 +103,12 @@ class AppSpider(Spider):
             crack_task = self.unit.task.copy()
             del(crack_task['id'])
             crack_task['description'] = app['description']
+            attrs = {'auth_scheme':'post', 'form':{'index':0}}
+            if 'attrs' in resource:
+                attrs.update(resource['attrs'])
 
-            crack_task.update({'path': urllib.parse.urlparse(response.url).path,
-                               'attrs': {'auth_scheme':'post', 'form':{'index':0}},
+            crack_task.update({'attrs': attrs,
+                               'path' : urllib.parse.urlparse(response.url).path,
                                'stage':'cracking.dictionary', 'state':'ready'})
 
             self.unit.set_knowledge({'task':crack_task}, block=False)

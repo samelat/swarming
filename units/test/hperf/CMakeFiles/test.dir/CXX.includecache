@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/samelat/code/swarming/units/test/hperf/test.cpp
+boost/python.hpp
+-
+cracker.hpp
+-
+
+modules/hperf/include/cracker.hpp
+

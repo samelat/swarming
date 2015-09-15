@@ -1,6 +1,4 @@
 
-import time
-
 from modules.unit import Unit
 
 
@@ -14,18 +12,15 @@ class LightUnit(Unit):
         self.task = None
         self.stages = {}
         self.complements = {}
-        self.timestamp = time.time()
 
         self.add_cmd_handler('consume', self.consume)
         self.add_cmd_handler('register', self.register)
-
 
     @classmethod
     def build(cls, core):
         core.units[cls.name] = cls(core)
         core.units[cls.name].start()
         return {'status':0}
-
 
     # Once the message was received, this method is called
     def prepare(self):
@@ -43,16 +38,17 @@ class LightUnit(Unit):
                                         'done':done,
                                         'total':total}})
 
-
-    def success(self, credentials, complement):
-
+    def success(self, credentials, complement=None):
         rows = {'success':{'credentials':credentials, 'task':{'id':self.task['id']}}}
         if not 'complement' in self.task:
-            self.task['complement'] = complement
+            if complement:
+                self.task['complement'] = complement
+            else:
+                self.task['complement'] = credentials
+
             rows['complement'] = {'values':complement, 'task':{'id':self.task['id']}}
 
         self.set_knowledge(rows)
-
 
     def consume(self, message):
         try:
@@ -61,16 +57,20 @@ class LightUnit(Unit):
             if 'complements' in message['params']:
                 self.complements = message['params']['complements']
 
-            self.task['done'] = 0
-            self.task['total'] = 0
+            # self.task['done'] = 0
+            # self.task['total'] = 0
+
+            if not self.task['port']:
+                self.task['port'] = self.protocols[self.task['protocol']]
 
             self.prepare()
 
-            stage = self.task['stage']
-            result = self.stages[stage](message)
+            result = self.stages[self.task['stage']](message)
+
         except KeyError:
             return {'status':-1, 'error':'Unknown stage'}
 
+        print(result)
         return result
 
     ''' ##########################################
@@ -79,7 +79,7 @@ class LightUnit(Unit):
 
         support = [{'unit':{'name':self.name, 
                             'protocol':protocol,
-                            'port':port}} for protocol, port in self.protocols]
+                            'port':port}} for protocol, port in self.protocols.items()]
         result = self.set_knowledge(rows=support)
 
         return {'status':0}

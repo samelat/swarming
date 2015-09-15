@@ -11,7 +11,6 @@ class Messenger:
 
     def __init__(self, owner):
         self._owner = owner
-        self._halt = False
         
         self._messages = Queue()
         self._thread = None
@@ -19,12 +18,12 @@ class Messenger:
     ''' 
     '''
     def _handler(self):
-        while not self._halt:
+        while not self._owner.halt:
             try:
                 message = self._messages.get(timeout=1)
             except queue.Empty:
                 continue
-            
+
             if message['dst'] == self._owner.name:
                 result = self._owner.digest(message)
             else:
@@ -32,22 +31,23 @@ class Messenger:
             
             if result['status'] <= 0:
                 response = Message(message).make_response(result)
+
                 if response:
                     self._owner.core.dispatch(response)
 
-
     def start(self):
-        self._thread = Thread(target=self._handler)
+        self._thread = Thread(target=self._handler, name='messenger')
         self._thread.start()
 
-    def halt(self):
-        self._halt = True
+    def stop(self):
+        self._thread.join()
 
     def push(self, message):
+
         try:
             _message = Message(message)
         except ValueError:
-            return {'status':-1, 'error':'message format error'}
+            return {'status':3, 'error':'message format error'}
 
         _message.add_channel()
         self._messages.put(_message.raw)

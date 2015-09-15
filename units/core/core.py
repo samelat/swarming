@@ -1,10 +1,12 @@
 
+import logging
 import random
 from threading import Condition
 
 from modules.unit import Unit
 from modules.message import Message
 
+from units.ssh.ssh import SSH
 from units.http.http import HTTP
 from units.engine.engine import Engine
 from units.core.executor import Executor
@@ -16,9 +18,12 @@ class Core(Unit):
 
     def __init__(self):
         super(Core, self).__init__()
-        # I have to change this to load the unit dinamicaly
+        #TODO: I have to change this to load the unit dinamicaly
         self._unit_class = {'executor':Executor,
-                            'http':HTTP}
+                            'http':HTTP,
+                            'ssh':SSH}
+        self.logger = logging.getLogger(__name__)
+
         self._condition = Condition()
         self._accesses = 0
 
@@ -26,7 +31,6 @@ class Core(Unit):
         self.executors = {}
 
         self.layer = 0
-
 
     def acquire(self, modify=False):
         self._condition.acquire()
@@ -40,7 +44,6 @@ class Core(Unit):
             self._accesses += 1
         self._condition.release()
 
-
     def release(self, modify=False):
         self._condition.acquire()
         if modify:
@@ -49,7 +52,6 @@ class Core(Unit):
             self._accesses -= 1
         self._condition.notify_all()
         self._condition.release()
-
 
     def clean(self):
         self._accesses = 0
@@ -60,22 +62,37 @@ class Core(Unit):
             units[name] = unit
         self.units = units
 
-
     ''' ############################################
     '''
     def start(self):
+        self.logger.info('Starting Core ...')
+
         self.add_cmd_handler('control', self.control)
 
         # HEAVY UNITS
         self.units['engine'] = Engine(self)
         self.units['engine'].start()
-        self.units['engine'].logic.start()
+
+        '''
+        for unit in self.units.values():
+            if unit.light:
+                msg = {'dst':unit.name, 'src':'core', 'cmd':'register', 'params':{}, 'async':False}
+                self.dispatch(msg)
+        '''
+        try:
+            self.units['engine'].tasker.start()
+        except:
+            pass
+
+        self.logger.info('Please wait until Swarming stop.')
+        for executor in self.executors.values():
+            executor.stop()
+        self.units['engine'].stop()
 
     ''' ############################################
         Messages Handlers
     '''
     def forward(self, message):
-
         self.acquire()
 
         if (message['dst'] in self.units):
@@ -95,7 +112,6 @@ class Core(Unit):
         self.release()
 
         return result
-        
 
     ''' ############################################
     '''
@@ -111,23 +127,24 @@ class Core(Unit):
 
         return result
 
-
     ''' ############################################
         Core Unit Commands
         ############################################
     '''
-    def halt(self, message):
+    def stop(self, message):
+        #print('[core:{0}] Halting Layer ...'.format(self.layer))
         return {'status':0}
 
     def response(self, message):
+        #print('[core:{0}] Response: {1}'.format(self.layer, message))
         return {'status':0}
 
     def control(self, message):
-
         self.acquire(True)
 
         params = message['params']
         if params['action'] == 'load':
+            #print(dir(self._unit_class[params['unit']]))
             result = self._unit_class[params['unit']].build(self)
 
         elif params['action'] == 'drop':

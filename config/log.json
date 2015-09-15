@@ -1,0 +1,45 @@
+{
+    "version":1,
+    "formatters":{
+        "simple_format" : {
+            "class"  : "logging.Formatter",
+            "format" : "[%(levelname)0.1s] %(asctime)0.19s [ %(process)d | %(threadName)s | %(name)s ] - %(message)s"
+        }
+    },
+
+    "handlers":{
+        "console" : {
+            "class" : "logging.StreamHandler",
+            "formatter" : "simple_format",
+            "level":"ERROR"
+        },
+
+        "units_log_file": {
+            "class" : "logging.handlers.RotatingFileHandler",
+            "filename": "log/main.log",
+            "maxBytes":500000,
+            "backupCount":5,
+            "formatter": "simple_format"
+        },
+
+        "debug_log_file": {
+            "class" : "logging.FileHandler",
+            "filename": "debug.log",
+            "formatter": "simple_format",
+            "level":"DEBUG"
+        }
+    },
+
+    "loggers" : {
+
+        "units" : {
+            "handlers" : ["units_log_file"],
+            "level":"DEBUG",
+            "propagate":true
+        }
+    },
+
+    "root" : {
+        "handlers" : ["console"]
+    }
+}

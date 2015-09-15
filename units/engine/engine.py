@@ -34,7 +34,7 @@ class Engine(Unit):
     '''
     def start(self):
         self.knowledge = Knowledge(self)
-        self.logic = Tasker(self)
+        self.tasker = Tasker(self)
         self.webui = WebUI(self)
         self.webui.start()
 
@@ -58,11 +58,35 @@ class Engine(Unit):
             result = self.core.dispatch(message)
             response = self.get_response(result['channel'], True)
 
+
         # Register HTTP Unit (Just the unit knows its protocols)
         message = {'dst':'http', 'src':'engine', 'cmd':'register', 'params':{}, 'async':False}
         result = self.core.dispatch(message)
         response = self.get_response(result['channel'], True)
 
+        #####################################################################
+
+        # Load SSH in the 3 layers
+        message = {'dst':'core', 'src':'engine', 'cmd':'control',
+                   'params':{'action':'load', 'unit':'ssh'}}
+        for lid in range(1, 4):
+            message['layer'] = lid
+            result = self.core.dispatch(message)
+            #print('[engine.start] Starting ssh, result: {0}'.format(result))
+            response = self.get_response(result['channel'], True)
+            #print('[engine.start] Unit ssh, ready: {0}'.format(response))
+
+        # Register HTTP Unit (Just the unit knows its protocols)
+        message = {'dst':'ssh', 'src':'engine', 'cmd':'register', 'params':{}, 'async':False}
+        result = self.core.dispatch(message)
+        response = self.get_response(result['channel'], True)
+
+        #print('[core.start] Unit Register Response: {0}'.format(response))
+
+    def stop(self):
+        self.halt = True
+        self._messenger.stop()
+        self.webui.stop()
 
     def dispatch(self, message):
         result = self._messenger.push(message)
@@ -71,10 +95,11 @@ class Engine(Unit):
     ''' ############################################
         Command Handlers
     '''
+    '''
     def halt(self, message):
         self.halt = True
         self._messenger.halt()
-
+    '''
 
     def schedule(self, message):
         ''' This is called, for example when a layer should be

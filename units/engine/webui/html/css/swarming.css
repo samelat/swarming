@@ -1,5 +1,34 @@
 
-/*@grid-columns: 24;*/
+
+/* ##########################
+ *  GENERAL BOARD PROPERTIES
+ * ##########################
+ */
+.board-header {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    color: #2F3949;
+}
+
+.board-menu {
+    margin-bottom: 10px;
+}
+
+/* #########################
+ * DICTIONARY BOARD ELEMENTS  
+ * #########################
+ */
+.toke-tag {
+    width: 35%;
+}
+
+/* #######################
+ *   TASK BOARD ELEMENTS  
+ * #######################
+ */
+.table-responsive {
+    overflow: auto;
+}
 
 .table .list-unstyled {
     margin-bottom: 0px;
@@ -10,8 +39,33 @@
 }
 
 .progress {
-    height: 16px;
+    height: 20px;
+    min-width: 100px;
+    position: relative;
 }
+
+.progress span {
+    position: absolute;
+    display: block;
+    width: 100%;
+}
+
+button.start {
+    padding: 0px 2px;
+    color: #fff;
+    background-color: #5cb85c;
+    border-color: #4cae4c;
+    border-radius: 5px;
+}
+
+button.stop {
+    padding: 0px 2px;
+    color: #fff;
+    background-color: #d9534f;
+    border-color: #d43f3a;
+    border-radius: 5px;
+}
+
 /* ######## GREEN ######## */
 .progress-bar.initial {
     background-color: #5CB85C;
@@ -52,24 +106,102 @@
    margin: 0 !important;
 }
 
+/*
 .row > .top-margin-16 {
     margin-top: 16px;
-}
+}*/
 
+/*
 .row > .bottom-margin {
     margin-bottom: 10px;
-}
+}*/
 
 /*
 .row > div > button {
     margin-top: 25px;
 }*/
 
-.no-right-padding > div {
-    padding-right: 0px;
+.padding-4 > div {
+    padding: 4px;
 }
 
 textarea {
     resize: vertical;
     font-family: Monospace;
+}
+
+/* ########################
+ * hotlink style definition
+ * ########################
+ */
+.hotlink {
+    padding-right: 30px;
+    font-family: 'Lato', sans-serif;
+    min-width: 320px;
+}
+
+.hotlink-base {
+    padding: 0;
+    margin-bottom: 20px;
+    border-radius: 3px;
+    width: 100%;
+    height: 100px;
+    overflow: hidden;
+    box-shadow: 0px 3px 0px 0px #dbdfe0;
+}
+
+.hotlink-header {
+    display: inline-block;
+    vertical-align: top;
+    height: 100px;
+    width: 30%;
+    padding: 16px 0px;
+    color: #fff;
+    text-align: center;
+}
+
+.hotlink-body {
+    display: inline-block;
+    vertical-align: top;
+    height: 100px;
+    width: 70%;
+    background-color: #F8F8F8;
+    margin-left: -4px;
+}
+
+.hotlink-body > h3 {
+    margin-top: 60px;
+    margin-left: 16px;
+}
+
+.hotlink-header.success {
+    background-color: #428BCA;
+}
+
+.hotlink-header.task {
+    background-color: #6C7681;
+}
+
+.hotlink-header.dictionary {
+    background-color: #9F90E4;
+}
+
+.hotlink-header.error {
+    background-color: #F15722;
+}
+
+.notify {
+    position: absolute;
+    top: -8px;
+    right: 16px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #f86868;
+    width: 50px;
+    height: 50px;
+    color: #ffffff;
+    line-height: 50px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
 }

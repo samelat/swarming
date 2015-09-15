@@ -1,4 +1,5 @@
 
+import logging
 from threading import Condition
 
 from modules.message import Message
@@ -11,7 +12,7 @@ class Unit:
 
     def __init__(self, core=None):
         self.core = core
-        self._commands  = {'halt':self.halt,
+        self._commands  = {'stop':self.stop,
                            'response':self.response}
 
         self._responses = {}
@@ -24,19 +25,17 @@ class Unit:
     def build(cls, core):
         return {'status':-1, 'msg':'Not implemented'}
 
-
     def clean(self):
         pass
-    
 
     # Start all the things the unit needs
     def start(self):
-        print('[{0}.start] Starting ...'.format(self.name))
+        pass
+        #print('[{0}.start] Starting ...'.format(self.name))
 
 
     def add_cmd_handler(self, command, handler):
         self._commands[command] = handler
-
 
     def get_response(self, channel, block=False):
 
@@ -79,30 +78,14 @@ class Unit:
         
         if not block:
             return result
-
-        # print('[{0}] set_knowledge dispatch result: {1}'.format(self.name, result))
-        responses = self.get_response(result['channel'], True)
-
-        # print('[{0}] set_knowledge response: {1}'.format(self.name, response))
         
-        return responses
-
-        #return {'status':0}
+        return self.get_response(result['channel'], True)
 
 
     def get_knowledge(self, values, block=True):
         message = {'src':self.name, 'dst':'engine', 'cmd':'get',
                    'params':{'unit':values}}
         result = self.core.dispatch(message)
-        '''
-        if not block:
-            return result
-
-        response = self.get_response(result['channel'], True)
-
-        print('[get_knowledge] {0}'.format(response))
-        
-        return response'''
 
         return {'status':0}
 
@@ -110,7 +93,7 @@ class Unit:
     ''' ############################################
         These are default handlers for basic commands
     '''
-    def halt(self, message):
+    def stop(self, message):
         self.halt = True
 
         return {'status':0}
@@ -141,16 +124,10 @@ class Unit:
             return result
 
         return {'status':-1, 'error':'command not found'}
-        '''
-        if response:
-            response['params'].update(result)
-            print('[{0}.digest] response - {1}'.format(self.name, result))
-            self.dispatch(response)
-        '''
 
 
     def dispatch(self, message):
-        # print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
+        #print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
         if message['dst'] == self.name:
             return self.digest(message)
         else:

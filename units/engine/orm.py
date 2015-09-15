@@ -4,8 +4,10 @@ import json
 import traceback
 from threading import Lock
 
+import sqlalchemy
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import UniqueConstraint
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, SmallInteger
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -19,9 +21,12 @@ class ORM:
     _singleton_session_lock = None
 
     def __init__(self):
-
         self._engine = create_engine('sqlite:///context.db', echo=False,
                                      connect_args={'check_same_thread':False})
+        '''
+        self._engine = create_engine('sqlite://', echo=False,
+                                     connect_args={'check_same_thread':False})
+        '''
         ORMBase.metadata.create_all(self._engine)
         Session.configure(bind=self._engine)
 
@@ -37,15 +42,39 @@ class ORM:
         self.classes = [Unit, Task, Dictionary, Success, Complement]
         self.entities = dict([(c.__tablename__, c) for c in self.classes])
 
-
-    def timestamp(self):
+    @classmethod
+    def timestamp(cls):
         return int(time.time() * 1000)
+
+    '''
+    def check(self, entity, fields):
+        if entity not in self.entities:
+            return False
+
+        if not set(fields).issubset(self.entities[entity].attributes):
+            return False
+
+        return True
+    '''
+
+    def add(self, entity, values):
+        #for chunk in [values[i:i+400] for i in range(0, len(values), 400)]:
+        try:
+            self._engine.execute(self.entities[entity].__table__.insert(), values)
+        except sqlalchemy.exc.IntegrityError:
+            #print('[rollback]')
+            self.session.rollback()
+            for value in values:
+                self.set(entity, value)
+            self.session.commit()
+
+        return {'status':0}
 
 
     def set(self, entity, values):
         cls = self.entities[entity]
         error, values = cls.from_json(values, self)
-        self.session.commit()
+        #self.session.commit()
 
         return {'status':error, 'values':values}
 
@@ -131,6 +160,20 @@ class ORMCommon:
                                      if  attr in cls.attributes])
         return (0, to_set)
 
+    @classmethod
+    def suit(cls, values):
+        result = {'timestamp':ORM.timestamp()}
+        
+        for field in cls.attributes:
+            if field in values:
+                result[field] = values[field]
+            elif getattr(cls, field).default.arg != None:
+                result[field] = getattr(cls, field).default.arg
+            else:
+                return None
+
+        return result
+
 
 ''' ################################################
     ################################################
@@ -141,9 +184,9 @@ class Unit(ORMBase, ORMCommon):
     attributes = ['name', 'protocol', 'port']
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String(32), nullable=False)
     port = Column(Integer, nullable=False)
-    protocol = Column(String, nullable=False)
+    protocol = Column(String(32), nullable=False)
     timestamp = Column(Integer)
 
     def to_json(self):
@@ -158,6 +201,8 @@ class Unit(ORMBase, ORMCommon):
 '''
 class Task(ORMBase, ORMCommon):
     __tablename__ = 'task'
+    __table_args__ = (UniqueConstraint('protocol', 'hostname', 'port', 'path',
+                                       'stage', 'attrs', 'dependence_id'),)
 
     attributes = ['protocol', 'hostname', 'port', 'path',
                   'stage',    'state',    'done', 'total',
@@ -167,17 +212,17 @@ class Task(ORMBase, ORMCommon):
     dependence_id = Column(Integer, ForeignKey('task.id'))
 
     # Task
-    stage = Column(String, default='initial') # (initial, crawling, cracking, waiting)
-    state = Column(String, default='ready') # (ready, stopped, running, complete)
-    description = Column(String, default='')
+    stage = Column(String(64), nullable=False, default='initial') # (initial, crawling, cracking, waiting)
+    state = Column(String(64), nullable=False, default='ready') # (ready, stopped, running, complete, error)
+    description = Column(String(128), nullable=False, default='')
     timestamp = Column(Integer, default=0)
 
     # Resource
-    protocol = Column(String)
-    hostname = Column(String)
+    protocol = Column(String(32), nullable=False)
+    hostname = Column(String(128), nullable=False)
     port = Column(Integer)
-    path = Column(String, default='/')
-    attrs = Column(String, default='{}')
+    path = Column(String(128), nullable=False, default='/')
+    attrs = Column(String(1024), nullable=False, default='{}')
 
     # Work
     done = Column(Integer, default=0)
@@ -190,7 +235,8 @@ class Task(ORMBase, ORMCommon):
     def get_conditions(cls, to_set):
         return [getattr(cls, attr)==to_set[attr] for attr in to_set.keys()
                                                  if  attr not in ['state', 'stage',
-                                                                  'done',  'total']]
+                                                                  'done',  'total',
+                                                                  'description']]
 
     @classmethod
     def get_to_set(cls, values, mgr):
@@ -241,7 +287,8 @@ class Success(ORMBase, ORMCommon):
     id = Column(Integer, primary_key=True)
     task_id = Column(Integer, ForeignKey('task.id'))
 
-    credentials = Column(String, nullable=False)
+    # The string lenght should be greater for other types of credencials
+    credentials = Column(String(512), nullable=False)
     timestamp = Column(Integer)
 
     task = relationship('Task', uselist=False)
@@ -253,6 +300,8 @@ class Success(ORMBase, ORMCommon):
         to_set['credentials'] = json.dumps(values['credentials'])
         return (0, to_set)
 
+    # The attribute Stage in the JSON response is precent to help
+    # in the identification of what kind of credentials the entry have.
     def to_json(self):
         return {'id':self.id,
                 'credentials':json.loads(self.credentials),
@@ -270,7 +319,7 @@ class Complement(ORMBase, ORMCommon):
     id = Column(Integer, primary_key=True)
     task_id = Column(Integer, ForeignKey('task.id'))
 
-    values = Column(String, nullable=False)
+    values = Column(String(1024), nullable=False)
     timestamp = Column(Integer)
 
     @classmethod
@@ -287,31 +336,79 @@ class Complement(ORMBase, ORMCommon):
 
 
 ''' ################################################
+    Dictionary Types
+    0: plain username
+    1: plain password 
+    2: plain pair
+    3: mask username
+    4: mask password
+    5: mask pair
     ################################################
 '''
+
 class Dictionary(ORMBase, ORMCommon):
     __tablename__ = 'dictionary'
+    __table_args__ = (UniqueConstraint('type', 'username', 'password', 'charsets'),)
 
-    attributes = ['username', 'password']
+    attributes = ['type', 'username', 'password']
 
     id = Column(Integer, primary_key=True)
     task_id = Column(Integer, ForeignKey('task.id'))
 
-    username = Column(String)
-    password = Column(String)
+    type = Column(SmallInteger, nullable=False, default=-1)
+    username = Column(String(32), nullable=False, default='')
+    password = Column(String(32), nullable=False, default='')
+    charsets = Column(String(256), nullable=False, default='{}')
+    weight   = Column(Integer, nullable=False, default=1)
     timestamp = Column(Integer)
 
     @classmethod
     def get_to_set(cls, values, mgr):
-        _, to_set = super(Dictionary, cls).get_to_set(values, mgr)
+        _, to_set = super(cls, cls).get_to_set(values, mgr)
+        if 'type' in values:
+            to_set['type'] = values['type']
+        elif 'username' in values:
+            if 'password' in values:
+                to_set['type'] = 2 # Pair
+            else:
+                to_set['type'] = 0 # Username
+        else:
+            to_set['type'] = 1 # Password
+
+        if 'charsets' in values:
+            to_set['charsets'] = json.dumps(values['charsets'])
+
         if 'task' in values:
             to_set['task_id'] = values['task']['id']
         return (0, to_set)
 
+    @classmethod
+    def suit(cls, values):
+        result = super(cls, cls).suit(values)
+        #print('[result] {0}'.format(result))
+        if result and (result['type'] < 0):
+            if result['username']:
+                if result['password']:
+                    result['type'] = 2 # Pair
+                else:
+                    result['type'] = 0 # Username
+            else:
+                result['type'] = 1 # Password
+        return result
+
     def to_json(self):
-        values = {'id':self.id,
-                  'username':self.username,
-                  'password':self.password}
+        values = {'id':self.id, 'weight':self.weight, 'type':self.type}
+        if self.type in [0, 3]:
+            values['username'] = self.username
+        elif self.type in [1, 4]:
+            values['password'] = self.password
+        else:
+            values['username'] = self.username
+            values['password'] = self.password
+
+        if self.charsets != '{}':
+            values['charsets'] = json.loads(self.charsets)
+
         if self.task_id:
             values['task'] = {'id':self.task_id}
         return values
@@ -330,7 +427,7 @@ class DictionaryTask(ORMBase):
     index = Column(Integer)
     current = Column(Integer)
     # channel = Column(Integer)
-    state = Column(String, default='stopped') # (stopped, running, complete)
+    state = Column(String(64), default='running') # (running, complete)
     timestamp = Column(Integer)
 
     task = relationship('Task')

@@ -2,7 +2,7 @@
 function Core () {
 
     this.interval_id = null;
-    this.modules = {'main':Main, 'task':Task, 'dictionary':Dictionary, 'debug':Debug, 'success':Success};
+    this.modules = {'main':Main, 'task':Task, 'dictionary':Dictionary, 'log':Log, 'success':Success};
 
     this.start = function(){
         this.load('main');
@@ -27,11 +27,10 @@ function Core () {
                 
                 $('#page-wrapper').html(result);
                 //console.log('response :' + result);
+                module = new core.modules[name]();
+                module.start();
             }
         });
-
-        module = new this.modules[name]();
-        module.start();
     };
 };
 

@@ -11,11 +11,11 @@ class Get:
 
     def crack(self, dictionaries):
 
-        print('[<#########>] {0}'.format(self.unit.task))
+        #print('[<#########>] {0}'.format(self.unit.task))
 
-        for dictionary in dictionaries:
-            for username, password in Dictionary(**dictionary).pairs():
-                print('[http] Forcing Username: {0} - Password: {1}'.format(username, password))
+        for username, password in Dictionary(dictionaries).join():
+            pass
+            #print('[http] Forcing Username: {0} - Password: {1}'.format(username, password))
         time.sleep(5)
 
         return {'status':0}

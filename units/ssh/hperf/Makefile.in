@@ -1,0 +1,13 @@
+CXX          = @CXX@
+FLAGS        = -std=c++0x @PYTHON_CPPFLAGS@ -I ./
+CFLAGS       = -fPIC -shared
+LIBS         = @LIBS@ @PYTHON_LDFLAGS@
+
+TARGET  = ssh2.so
+SOURCES = ssh2.cpp ssh2_mod.cpp
+
+all: $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(CXX) $(CFLAGS) $(SOURCES) $(CFLAGS) -o $(TARGET) $(FLAGS) $(LIBS)
+	mv $(TARGET) ../../

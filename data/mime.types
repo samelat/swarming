@@ -1,0 +1,16 @@
+
+# PHP
+text/html    phtml pht php
+text/html    php3
+text/html    php4
+text/html    php5
+
+# Active Server Pages
+text/html    asp
+
+# ColdFusion
+text/html    cfm
+text/html    cfc
+
+# Java Server Page
+text/html    jsp

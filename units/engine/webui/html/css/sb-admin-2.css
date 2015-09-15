@@ -27,6 +27,10 @@ body {
     }
 }
 
+.navbar-top-links {
+    margin-right: 0;
+}
+
 .navbar-top-links li {
     display: inline-block;
 }
@@ -64,20 +68,22 @@ body {
     min-width: 0;
 }
 
+/*
 .navbar-top-links .dropdown-messages {
     margin-left: 5px;
-}
+}*/
 
 .navbar-top-links .dropdown-tasks {
-    margin-left: -59px;
+    margin-left: 4px;
 }
 
+/*
 .navbar-top-links .dropdown-alerts {
     margin-left: -123px;
-}
+}*/
 
 .navbar-top-links .dropdown-user {
-    right: 0;
+    /*right: -40px;*/
     left: auto;
 }
 
@@ -218,6 +224,11 @@ body {
 .flot-chart-content {
     width: 100%;
     height: 100%;
+}
+
+.dataTables_wrapper {
+    position: relative;
+    clear: both;
 }
 
 table.dataTable thead .sorting,

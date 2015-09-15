@@ -12,11 +12,14 @@ function Task () {
     this.page = function(page) {
         this.index = page;
         this.update();
+
+        $('#task-table thead input[type="checkbox"]')[0].checked = false;
     };
 
     this.update = function() {
 
-        data = {'entity':'task', 'limit':this.limit, 'offset':(this.index * this.limit)};
+        data = [{'entity':'task', 'aggregate':'count'},
+                {'entity':'task', 'limit':this.limit, 'offset':(this.index * this.limit)}];
 
         $.ajax({
             type: 'POST',
@@ -29,15 +32,16 @@ function Task () {
                 console.log('[task.update] request error');
             },
 
-            success: function(result) {
+            success: function(response) {
 
-                console.log('task size: ' + result.size);
+                var count = response.results[0].count;
+                var rows  = response.results[1].rows;
 
                 var table = $('#task-table tbody');
-                table.html('');
+                
+                var table_html = '';
 
-                $.each(result.rows, function(index, row){
-                    console.log('row[' + index + ']: ' + JSON.stringify(row));
+                $.each(rows, function(index, row){
 
                     if(row.state != 'complete') {
                         row.striped = 'progress-bar-striped';
@@ -45,25 +49,36 @@ function Task () {
                             row.striped += ' active';
                     }
 
-                    row.stage_name = row.stage.split('.')[0];
-                    if(row.stage_name == 'cracking')
-                        if('complement' in row)
-                            row.lock = 'unlock';
-                        else
-                            row.lock = 'lock';
-                    
+                    if(row.state == 'error')
+                        row.progress_name = 'error';
+                    else {
+                        row.progress_name = row.stage.split('.')[0];
+                        if(row.progress_name == 'cracking')
+                            if('complement' in row)
+                                row.lock = 'unlock';
+                            else
+                                row.lock = 'lock';
+                    }
                     
                     row.percentage = 0;
                     if(row.total > 0)
                         row.percentage = Math.round((row.done/row.total)*100);
 
+                    if(row.state != 'complete') {
+                        var cbox = $('#task_checkbox_' + row.id)[0];
+                        if(cbox && cbox.checked)
+                            row.checked = 'checked="checked"';
+                    } else
+                        row.checked = 'disabled';
+
                     template = '<tr>' +
+                               '    <td><input id="task_checkbox_{{id}}" type="checkbox" {{checked}}></td>' +
                                '    <td>{{id}}</td>' +
                                '    <td>{{protocol}}://{{hostname}}:{{port}}{{path}}</td>' +
                                '    <td>' +
-                               '        <div class="progress {{stage_name}}">' +
-                               '            <div class="progress-bar {{stage_name}} {{striped}}" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: {{percentage}}%">' +
-                               '                {{percentage}}%' +
+                               '        <div class="progress {{progress_name}}">' +
+                               '            <div class="progress-bar {{progress_name}} {{striped}}" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: {{percentage}}%">' +
+                               '                <span>{{percentage}}%</span>' +
                                '            </div>' +
                                '        </div>' +
                                '    </td>' +
@@ -80,16 +95,14 @@ function Task () {
                                '    </td>' +
                                '</tr>';
 
-                    html = Mustache.to_html(template, row);
-                    table.append(html);
+                    table_html += Mustache.to_html(template, row);
                 });
 
-                pages = Math.ceil(result.size / module.limit);
+                table.html(table_html);
 
-                console.log('result.size: ' + result.size);
-                console.log('module.limit: ' + module.limit);
-                console.log('module.index: ' + module.index);
-                if(result.size > module.limit) {
+                pages = Math.ceil(count / module.limit);
+
+                if(count > module.limit) {
 
                     template = '<ul class="pagination no-padding">' +
                                '    <li{{{left_class}}}><a onclick="module.page({{bottom}})">&laquo;</a></li>';
@@ -117,7 +130,6 @@ function Task () {
                         v.top = module.index + 1;
 
                     var html = Mustache.to_html(template, v);
-                    console.log(html);
 
                     $('#pagination_bar').html(html);
                 } else
@@ -126,35 +138,10 @@ function Task () {
         });
     };
 
-    this.add_attr = function() {
-
-        template = '<tr>' +
-                   '    <td class="pair">{"{{key}}":{{value}}}</td>' +
-                   '    <td></td>' +
-                   '</tr>';
-
-        var key = $('.row input[name="key"]').val();
-        var value = $('.row input[name="value"]').val();
-
-        if((key.length == 0) || (value.length == 0))
-            return;
-
-        html = Mustache.to_html(template, {"key":key, "value":value});
-
-        $('#attr_table tbody').append(html);
-    };
-
     this.add_task = function() {
-
-        var attrs = {};
-        $('#attr_table tbody .pair').each(function(index, tag){
-            var tmp = JSON.parse(tag.innerText);
-            $.extend(attrs, tmp);
-        });
 
         var uri = $('.row input[name="uri"]').val();
         var state = $('.row select[name="state"]').val();
-        var stage = $('.row select[name="stage"]').val();
 
         // ... "http", "127.0.0.1", "9090", "/index.php", "var1=val1&var2=val2&var3=val3"]
         values = {};
@@ -171,7 +158,6 @@ function Task () {
         if(split[5] != undefined)
             attrs['query'] = split[5];
 
-        values['stage'] = stage;
         values['state'] = state;
 
         $.ajax({
@@ -181,10 +167,107 @@ function Task () {
             contentType: 'application/json',
             dataType: 'json',
             success: function(response) {
-                        console.log('[ADD_TASK.RESPONSE] ' + JSON.stringify(response));
-                     }
+                console.log('[ADD_TASK.RESPONSE] ' + JSON.stringify(response));
+             }
         });
 
-        //console.log(JSON.stringify(attrs));
+        $('#add_task_modal').modal('toggle');
     };
+
+    this.change_state = function() {
+
+        var state = $('select.form-control')[0].value;
+
+        var changes = [];
+        $('tbody input[type="checkbox"]').each(function(index, tag){
+            if(tag.checked)
+                changes.push({'task':{'id':parseInt(tag.id.split('_')[2]), 'state':state}});
+
+            tag.checked = false;
+        });
+
+        if(changes.length)
+            $.ajax({
+                type: 'POST',
+                url: '/api/set',
+                data: JSON.stringify(changes),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function(response) {
+                    console.log('[ADD_TASK.RESPONSE] ' + JSON.stringify(response));
+                 }
+            });
+
+        $('#task-table thead input[type="checkbox"]')[0].checked = false;
+    };
+
+    this.toggle_checkboxs = function(checkbox_tag) {
+        var value = checkbox_tag.checked;
+        $('tbody input[type="checkbox"]').each(function(index, tag){
+            if(!tag.disabled)
+                tag.checked = value;
+        });
+    };
+
+    /*
+     * Upload File Modal Methods
+     */
+    this.show_upload_modal = function() {
+        $('#upload_task_modal .alert').hide();
+        //$("#upload_form").submit(module.upload_file);
+        $("#upload_task_modal").modal("toggle");
+    };
+
+    this.upload_file = function() {
+
+        var alert_box = $('#upload_dictionary_modal .alert');
+        var error_tmp = '<span class="fa fa-exclamation-circle" aria-hidden="true"></span>';
+
+        var file = $('#dictionary_file')[0].files[0];
+        if(file == undefined) {
+            alert_box.html(error_tmp + "You haven't specified a File");
+            alert_box.show();
+            return false;
+        }
+        
+        var params = {};
+        params.format = $('#file_type')[0].value;
+        if(params.format == 'custom') {
+            var regex = $('#file_regex')[0].value;
+            if(regex == "") {
+                alert_box.html(error_tmp + "You haven't specified a Regex");
+                alert_box.show();
+                return false;
+            }
+
+            params.regex = regex;
+        }
+
+        // <table_name> => {<table_field> : <how_to_identify_it>, ...}
+        params.entity = 'task';
+        //params.fields = {'protocol':'protocol', 'hostname':'hostname',
+        //                 'port':'port', 'path':'path', 'url':'url'};
+        
+        var data = new FormData();
+        data.append('file', file);
+        data.append('json_params', JSON.stringify(params));
+        
+        $.ajax({
+            type: 'POST',
+            url: '/api/upload',
+            data: data,
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                console.log('File Upload Success.');
+            },
+            error: function() {
+                
+            }
+        });
+
+        $("#upload_task_modal").modal("toggle");
+    };
+
 };

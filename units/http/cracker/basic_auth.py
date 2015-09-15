@@ -1,30 +1,42 @@
 
 import time
+import logging
 import requests
 
 from modules.dictionary import Dictionary
 
+from units.http.support import Protocol
 
-class BasicAuth:
+
+class BasicAuth(Protocol):
 
     def __init__(self, unit):
+        super().__init__()
         self.unit = unit
+        self.logger = logging.getLogger(__name__)
+        self.session = requests
 
     def crack(self, dictionaries):
 
-        print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
+        result = {'status':0}
+
+        #print('[COMPLEMENT] {0} - {1}'.format(self.unit.url, self.unit.complements))
 
         request = {'method':'get', 'url':self.unit.url}
         request.update(self.unit.complements)
 
-        for dictionary in dictionaries:
-            for username, password in Dictionary(**dictionary).pairs():
-                print('[http] Forcing Username: {0} - Password: {1}'.format(username, password))
-                request['auth'] = (username, password)
+        for username, password in Dictionary(dictionaries).join():
 
-                response = requests.request(**request)
-                if response.status_code == 200:
-                    self.unit.success({'username':username, 'password':password},
-                                      {'auth':[username, password]})
+            self.logger.debug('Trying {0}:{1} over {2}'.format(username, password, self.unit.url))
 
-        return {'status':0}
+            request['auth'] = (username, password)
+
+            result, response = self.request(request)
+            if result['status'] < 0:
+                break
+
+            if response.status_code == 200:
+                self.unit.success({'username':username, 'password':password},
+                                  {'auth':[username, password]})
+
+        return result
