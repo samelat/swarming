@@ -51,8 +51,16 @@ class Container:
             request_root = parse.urljoin(url, './')
 
             for root in self.roots:
+                # if "http://example.com/" is root of "http://example.com/chori/" (the request_root)
                 if re.match('^' + root, request_root):
                     request_root = root
+                    break
+
+                # if "http://example.com/chori/" (request_root) is root of "http://example.com/chori/pan/"
+                # This could happen because we don't know when a less deep root could appear.
+                if re.match('^' + request_root, root):
+                    self.roots[request_root] = self.roots[root]
+                    del(self.roots[root])
                     break
 
             if request_root not in self.roots:

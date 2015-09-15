@@ -25,6 +25,7 @@ class Crawler(Protocol):
         self.spiders = {'app':spiders.AppSpider(unit),
                         'error':spiders.ErrorSpider(unit),
                         'default':spiders.DefaultSpider(unit)}
+        self.session = None
         self.container = None
         self.timestamp = time.time()
 
@@ -35,8 +36,7 @@ class Crawler(Protocol):
         self.mimetypes = mimetypes.MimeTypes()
         self.mimetypes.read('data/mime.types')
 
-
-    ''' Each unit is responsable of the 'done' and 'total'
+    ''' Each unit is responsible of the 'done' and 'total'
         values update. That is what this method do.
     '''
     def sync(self, component, force=False):
@@ -51,15 +51,14 @@ class Crawler(Protocol):
                                              'done':done,
                                              'total':total}})
 
-
     def get_content(self, request, response):
 
         content = {'content-type':'text/html', 'status-code':200}
 
         # I don't know why "requests" developers thought that an Error
         # response (404, ...) should be taken as False during bool(response) :S.
-        if response != None:
-            #content['content-type'] = 'text/plain'
+        if response is not None:
+            # content['content-type'] = 'text/plain'
             content['status-code'] = response.status_code
             if 'content-type' in response.headers:
                 content['content-type'] = response.headers['content-type'].split(';')[0]
@@ -75,9 +74,9 @@ class Crawler(Protocol):
         return content
 
     ''' TODO:
-
     '''
     def add_request(self, request):
+        print(request)
         url = parse.urlparse(request['url'])
         if url.scheme not in ['http', 'https']:
             return
@@ -85,8 +84,7 @@ class Crawler(Protocol):
         if url.hostname in self.domains:
             self.container.add_request(request)
 
-    ''' 
-
+    '''
     '''
     def crawl(self):
 
@@ -156,9 +154,9 @@ class Crawler(Protocol):
                 if 'dictionaries' in result:
                     for dictionary in result['dictionaries']:
                         pass
-                        #print('[http.crawler] new dictionary: {0}'.format(dictionary))
+                        # print('[http.crawler] new dictionary: {0}'.format(dictionary))
 
-            # Syncronize the total and done work
+            # Synchronize the total and done work
             self.sync(self)
 
         print('[!] Crawl result {0}'.format(crawl_result))

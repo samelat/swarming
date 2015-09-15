@@ -1,6 +1,6 @@
 
 import re
-import urllib.parse
+from urllib import parse
 
 from units.http.crawler.spiders.spider import Spider
 
@@ -24,18 +24,10 @@ class ErrorSpider(Spider):
         #print('[spider.error] response status_code: {0}'.format(response.status_code))
 
         # Moved Permanently
-        if response.status_code == 301:
-            print('[!] Error 301')
-            redirection = urllib.parse.urljoin(request['url'], response.headers['location'])
-            new_request = request.copy()
-            new_request['url'] = redirection
-            result['requests'] = [new_request]
-            print('[!] Nuevo request: {0}'.format(new_request))
-
         # Redirection
-        elif response.status_code == 302:
-            print('[!] Error 302')
-            redirection = urllib.parse.urljoin(request['url'], response.headers['location'])
+        if response.status_code in [301, 302]:
+            print('[!] Error 301')
+            redirection = parse.urljoin(request['url'], response.headers['location'])
             new_request = request.copy()
             new_request['url'] = redirection
             result['requests'] = [new_request]
@@ -50,7 +42,7 @@ class ErrorSpider(Spider):
 
                 self.status_data[401].add(scheme['realm'])
 
-                url = urllib.parse.urlparse(parse.urljoin(request['url'], './'))
+                url = parse.urlparse(parse.urljoin(request['url'], './'))
 
                 crack_task = self.unit.task.copy()
                 del(crack_task['id'])
@@ -65,7 +57,7 @@ class ErrorSpider(Spider):
 
                 self.unit.set_knowledge({'task':crawl_task}, block=False)
 
-                result['filters'] = [urllib.parse.urljoin(request['url'], '.*')]
+                result['filters'] = [parse.urljoin(request['url'], '.*')]
 
         # Not Found
         elif response.status_code == 404:
