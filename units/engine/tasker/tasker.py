@@ -29,14 +29,12 @@ class Tasker:
         # Forcing Dictionary
         self.work_limit = 200
 
-
     def _dispatch_task(self, task):
         protocol = task['task']['protocol']
-        message = {'dst':self._units[protocol], 'src':'engine', 'async':False,
-                   'cmd':'consume', 'params':task}
+        message = {'dst': self._units[protocol], 'src': 'engine', 'async': False,
+                   'cmd': 'consume', 'params': task}
 
         return self._engine.core.dispatch(message)
-
 
     ''' #################################################
     
@@ -52,12 +50,10 @@ class Tasker:
 
         self._db_mgr.session_lock.release()
 
-        #print('[engine.protocol_units] {0}'.format(protocol_units))
+        # print('[engine.protocol_units] {0}'.format(protocol_units))
         return protocol_units
 
-
     ''' #################################################
-
         #################################################
     '''
     def _control_dictionary(self):
@@ -68,29 +64,41 @@ class Tasker:
                                        filter((Dictionary.type >= 3) &\
                                               (Dictionary.type <= 5) &\
                                               (Dictionary.weight == 1)).all()
-        #print('[tasker] entries: {0}'.format(entries))
+        # print('[tasker] entries: {0}'.format(entries))
         for entry in entries:
             mask = entry.username + entry.password
             entry.weight = len(KeySpace(mask, json.loads(entry.charsets)))
         self._db_mgr.session.commit()
         self._db_mgr.session_lock.release()
 
-
     ''' #################################################
-
         #################################################
     '''
     def _ready_tasks(self):
+
+        # First we are going to handle responses.
 
         self._db_mgr.session_lock.acquire()
 
         self._engine._resp_lock.acquire()
         for channel in list(self._ready_task_channels.keys()):
             if channel in self._engine._responses:
+                response = self._engine._responses[channel]
                 task_id = self._ready_task_channels[channel]
+
+                del(self._engine._responses[channel])
+                del(self._ready_task_channels[channel])
+
                 task = self._db_mgr.session.query(Task).\
                                             filter_by(id=task_id).first()
-                task.state = 'complete'
+
+                if response['status'] == 0:
+                    task.state = 'complete'
+                else:
+                    task.state = 'error'
+                    if 'error' in response:
+                        task.description = response['error']
+
                 self._db_mgr.session.commit()
 
         self._engine._resp_lock.release()
@@ -99,11 +107,10 @@ class Tasker:
         #################################################################
 
         crawling_tasks = self._db_mgr.session.query(Task).\
-                                              filter_by(state = 'ready').\
+                                              filter_by(state='ready').\
                                               filter(Task.protocol == Unit.protocol).\
-                                              filter(Task.stage.like('crawling')|Task.stage.like('initial')).\
+                                              filter(Task.stage.like('crawling') | Task.stage.like('initial')).\
                                               all()
-
         if crawling_tasks:
             for task in crawling_tasks:
                 task.state = 'running'
@@ -114,25 +121,22 @@ class Tasker:
                     complements.update(json.loads(dependence.complement.values))
                     dependence = dependence.dependence
 
-                _task = {'task':task.to_json()}
+                _task = {'task': task.to_json()}
                 if complements:
                     _task['complements'] = complements
 
                 response = self._dispatch_task(_task)
-                #print('[tasker.crawling_task] Dispatch response: {0}'.format(response))
 
                 if response['status'] < 0:
                     task.state = 'stopped'
-                elif task.stage != 'initial':
+                else:
                     self._ready_task_channels[response['channel']] = task.id
 
             self._db_mgr.session.commit()
 
         self._db_mgr.session_lock.release()
 
-
     ''' #################################################
-
         #################################################
     '''
     def _cracking_dictionary_tasks(self):
@@ -159,7 +163,7 @@ class Tasker:
                 else:
                     self._db_mgr.session.delete(work)
                     task.state = 'error'
-                    if('error' in response):
+                    if 'error' in response:
                         task.description = response['error']
 
             else:
@@ -192,7 +196,7 @@ class Tasker:
                                              filter((Dictionary.type == row_type) |\
                                                     (Dictionary.type == row_type + 3)).first()[0]
                 
-                if value != None:
+                if value is not None:
                     weights[row_type] = value
 
             task.total = (weights[0] * weights[1]) + weights[2]
@@ -217,16 +221,14 @@ class Tasker:
                 pending_work['complements'] = complements
 
             response = self._dispatch_task(pending_work)
-            #print('[tasker] Dispatch response: {0}'.format(response))
+            # print('[tasker] Dispatch response: {0}'.format(response))
 
             tracking_info = (planner.work.id, task.id, planner.get_work_weight())
             self._cracking_dictionary_channels[response['channel']] = tracking_info
 
         self._db_mgr.session_lock.release()
 
-
     ''' #################################################
-
         #################################################
     '''
     def _waiting_tasks(self):
@@ -244,7 +246,7 @@ class Tasker:
             stage = task.stage.split('.')
 
             # waiting.dependence
-            if (stage[1] == 'dependence') and (task.dependence.complement):
+            if (stage[1] == 'dependence') and task.dependence.complement:
                 task.stage = '.'.join(stage[2:])
 
             # waiting.time
@@ -256,7 +258,6 @@ class Tasker:
 
         self._db_mgr.session_lock.release()
 
-
     ''' #################################################
         This method change de state field of every task
         to set them to 'stopped'
@@ -265,7 +266,9 @@ class Tasker:
     def _restart_tasks(self):
         self._db_mgr.session_lock.acquire()
         tasks = self._db_mgr.session.query(Task).\
-                                     filter(Task.state != 'stopped', Task.state != 'complete').\
+                                     filter(Task.state != 'error',
+                                            Task.state != 'complete',
+                                            Task.state != 'stopped').\
                                      all()
         for task in tasks:
             task.state = 'ready'
@@ -282,9 +285,7 @@ class Tasker:
         self._db_mgr.session.commit()
         self._db_mgr.session_lock.release()
 
-
     ''' #################################################
-
         #################################################
     '''
     def start(self):

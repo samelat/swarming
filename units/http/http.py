@@ -35,7 +35,6 @@ class HTTP(LightUnit):
         self.stages['crawling'] = self.http_crawling_stage
         self.stages['cracking.dictionary']  = self.http_cracking_stage
 
-
     # This method exist to adapt the dependencies to Unit needs
     def prepare(self):
         if 'auth' in self.complements:
@@ -49,13 +48,12 @@ class HTTP(LightUnit):
         self.url = '{protocol}://{0}{path}'.format(netloc, **self.task)
         if 'query' in self.task['attrs']:
             self.url += self.task['attrs']['query']
-        
 
     ''' ############################################
         Command & Stage handlers
     '''
     def http_initial_stage(self, message):
-        #print('[http] Initial Stage method')
+        # print('[http] Initial Stage method')
 
         # We return in 'updates' the self task values we want to change.
         self.task.update({'stage':'crawling', 'state':'ready', 'description':'Web Crawling'})
@@ -74,7 +72,7 @@ class HTTP(LightUnit):
 
         url = urllib.parse.urlsplit(response.url)
         if url.hostname != self.task['hostname']:
-            #print('[HTTP_INIT] Hostnames: {0} - {1}'.format(url.hostname, self.task['hostname']))
+            # print('[HTTP_INIT] Hostnames: {0} - {1}'.format(url.hostname, self.task['hostname']))
             return {'status':-2, 'error':'HTTP Redirection'}
 
         if url.scheme != self.task['protocol']:

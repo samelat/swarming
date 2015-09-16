@@ -22,14 +22,14 @@ class Crawler(Protocol):
         # The list of domains in which crawler are interested
         self.domains = set([parse.urlparse(self.unit.url).hostname])
         # This list of Spiders has been ordered. Don't change its order.
-        self.spiders = {'app':spiders.AppSpider(unit),
-                        'error':spiders.ErrorSpider(unit),
-                        'default':spiders.DefaultSpider(unit)}
+        self.spiders = {'app': spiders.AppSpider(unit),
+                        'error': spiders.ErrorSpider(unit),
+                        'default': spiders.DefaultSpider(unit)}
         self.session = None
         self.container = None
         self.timestamp = time.time()
 
-        # This flag existis beacause some servers do not respond with the
+        # This flag exist because some servers do not respond with the
         # same status_code|content-type to HEAD and GET requests.
         self.use_head_content = True
 
@@ -76,7 +76,6 @@ class Crawler(Protocol):
     ''' TODO:
     '''
     def add_request(self, request):
-        print(request)
         url = parse.urlparse(request['url'])
         if url.scheme not in ['http', 'https']:
             return
@@ -87,10 +86,9 @@ class Crawler(Protocol):
     '''
     '''
     def crawl(self):
+        crawl_result = {'status': 0}
 
-        crawl_result = {'status':0}
-
-        self.container = Container({'method':'get', 'url':self.unit.url})
+        self.container = Container({'method': 'get', 'url': self.unit.url})
         self.session = requests.Session()
         
         for request in self.container:

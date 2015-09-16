@@ -73,16 +73,13 @@ class Core(Unit):
         self.units['engine'] = Engine(self)
         self.units['engine'].start()
 
-        '''
-        for unit in self.units.values():
-            if unit.light:
-                msg = {'dst':unit.name, 'src':'core', 'cmd':'register', 'params':{}, 'async':False}
-                self.dispatch(msg)
-        '''
         try:
             self.units['engine'].tasker.start()
-        except:
+            print('########### :S')
+        except KeyboardInterrupt:
             pass
+        except Exception as e:
+            self.logger.critical(e)
 
         self.logger.info('Please wait until Swarming stop.')
         for executor in self.executors.values():
