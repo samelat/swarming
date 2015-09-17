@@ -1,6 +1,5 @@
 
 import re
-import urllib
 from urllib import parse
 
 from units.http.crawler.container.opac import OPaC
@@ -8,20 +7,20 @@ from units.http.crawler.container.opac import OPaC
 
 class Container:
 
-    def __init__(self, first_request):
+    def __init__(self, first_request, limit=False):
         self.roots = {}
         self.requests = [first_request]
-        self.seen_requests = set()
+        self.done_requests = set()
         self.done_counter = 0
         self.filters = set()
+        self.limit = limit
 
-        #self.opac_done = 0
-        #self.opac = {'http':OPaC(), 'https':OPaC()
-        #self.opac.add_path(url)
+        if self.limit:
+            request_root = parse.urljoin(first_request['url'], './')
+            self.roots[request_root] = OPaC()
 
     def __iter__(self):
         return self
-
 
     def __next__(self):
         if self.requests:
@@ -32,46 +31,35 @@ class Container:
             if len(opac):
                 url = parse.urljoin(root, next(opac))
                 self.done_counter += 1
-                return {'method':'get', 'url':url}
+                return {'method': 'get', 'url': url}
         raise StopIteration
-
 
     def total(self):
         roots_len = sum([len(root) for root in self.roots.values()])
         return self.done_counter + roots_len + len(self.requests)
 
-
     def done(self):
         return self.done_counter
 
-
     def add_request(self, request):
         try:
-            url = re.match('^https?://[^?#]+', request['url']).group()
-            request_root = parse.urljoin(url, './')
-
+            request_root = None
             for root in self.roots:
-                # if "http://example.com/" is root of "http://example.com/chori/" (the request_root)
-                if re.match('^' + root, request_root):
+                if re.match('^' + root, request['url']):
                     request_root = root
                     break
 
-                # if "http://example.com/chori/" (request_root) is root of "http://example.com/chori/pan/"
-                # This could happen because we don't know when a less deep root could appear.
-                if re.match('^' + request_root, root):
-                    self.roots[request_root] = self.roots[root]
-                    del(self.roots[root])
-                    break
-
-            if request_root not in self.roots:
+            if not request_root:
+                if self.limit:
+                    return False
+                request_root = parse.urljoin(request['url'], '/')
                 self.roots[request_root] = OPaC()
 
             if request['method'] == 'get':
-                request['url'] = url
-                self.roots[request_root].add_path(parse.urlparse(url).path)
+                self.roots[request_root].add_path(parse.urlparse(request['url']).path)
 
-            elif (request['method'], url) not in self.done_requests:
-                self.done_requests.add((request['method'], url))
+            elif (request['method'], request['url']) not in self.done_requests:
+                self.done_requests.add((request['method'], request['url']))
                 self.requests.append(request)
 
         except Exception as e:

@@ -1,4 +1,5 @@
 
+import re
 import time
 import logging
 import requests
@@ -9,6 +10,7 @@ from units.http.crawler.container import Container
 from units.http.crawler import spiders
 
 from units.http.support import HTML
+from units.http.support import Delimiter
 from units.http.support import Protocol
 
 
@@ -20,7 +22,8 @@ class Crawler(Protocol):
         self.logger = logging.getLogger(__name__)
 
         # The list of domains in which crawler are interested
-        self.domains = set([parse.urlparse(self.unit.url).hostname])
+        self.suggested_targets = set()
+        self.delimiter = Delimiter(parse.urlparse(self.unit.url).hostname)
         # This list of Spiders has been ordered. Don't change its order.
         self.spiders = {'app': spiders.AppSpider(unit),
                         'error': spiders.ErrorSpider(unit),
@@ -76,12 +79,33 @@ class Crawler(Protocol):
     ''' TODO:
     '''
     def add_request(self, request):
-        url = parse.urlparse(request['url'])
+
+        url = re.match('^https?://[^?#]+', request['url']).group()
+        url = parse.urlparse(url)
+
         if url.scheme not in ['http', 'https']:
             return
 
-        if url.hostname in self.domains:
+        if (url.scheme, url.hostname, url.port) in self.suggested_targets:
+            return
+
+        if not self.delimiter.in_dns_zone(url.hostname):
+            return
+
+        if not self.delimiter.in_host(url.hostname):
+            self.suggested_targets.add((url.scheme, url.hostname, url.port))
+            crawl_task = self.unit.task.copy()
+            del(crawl_task['id'])
+            crawl_task.update({'protocol': url.scheme, 'hostname': url.hostname,
+                               'stage': 'crawling', 'state': 'stopped'})
+            if url.port:
+                crawl_task['port'] = url.port
+            self.unit.set_knowledge({'task': crawl_task}, block=False)
+            return
+
+        if not self.delimiter.in_site():
             self.container.add_request(request)
+            return
 
     '''
     '''
