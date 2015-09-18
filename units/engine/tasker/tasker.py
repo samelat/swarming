@@ -92,9 +92,7 @@ class Tasker:
                 task = self._db_mgr.session.query(Task).\
                                             filter_by(id=task_id).first()
 
-                if response['status'] == 0:
-                    task.state = 'complete'
-                else:
+                if response['status'] < 0:
                     task.state = 'error'
                     if 'error' in response:
                         task.description = response['error']

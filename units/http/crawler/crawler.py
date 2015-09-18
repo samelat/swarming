@@ -80,8 +80,10 @@ class Crawler(Protocol):
     '''
     def add_request(self, request):
 
-        url = re.match('^https?://[^?#]+', request['url']).group()
-        url = parse.urlparse(url)
+        match = re.match('^https?://[^?#]+', request['url'])
+        if not match:
+            return
+        url = parse.urlparse(match.group())
 
         if url.scheme not in ['http', 'https']:
             return
@@ -103,9 +105,10 @@ class Crawler(Protocol):
             self.unit.set_knowledge({'task': crawl_task}, block=False)
             return
 
-        if not self.delimiter.in_site():
-            self.container.add_request(request)
+        if not self.delimiter.in_site(url.hostname):
             return
+
+        self.container.add_request(request)
 
     '''
     '''

@@ -10,11 +10,11 @@ class Delimiter:
         return '.'.join(domain.split('.')[1:])
 
     def in_site(self, domain):
-        pass
+        return True
 
     def in_host(self, domain):
-        pass
+        return True
 
     def in_dns_zone(self, domain):
-        pass
+        return True
 
