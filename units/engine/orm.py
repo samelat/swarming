@@ -58,11 +58,11 @@ class ORM:
     '''
 
     def add(self, entity, values):
-        #for chunk in [values[i:i+400] for i in range(0, len(values), 400)]:
+        # for chunk in [values[i:i+400] for i in range(0, len(values), 400)]:
         try:
             self._engine.execute(self.entities[entity].__table__.insert(), values)
         except sqlalchemy.exc.IntegrityError:
-            #print('[rollback]')
+            # print('[rollback]')
             self.session.rollback()
             for value in values:
                 self.set(entity, value)
@@ -70,14 +70,12 @@ class ORM:
 
         return {'status':0}
 
-
     def set(self, entity, values):
         cls = self.entities[entity]
         error, values = cls.from_json(values, self)
-        #self.session.commit()
+        # self.session.commit()
 
         return {'status':error, 'values':values}
-
 
     def get(self, entity, values):
         cls = self.entities[entity]
@@ -100,17 +98,15 @@ class ORM:
 
         return {'rows':json_rows}
 
-
     def halt(self):
         self.session.commit()
         self.session.close()
 
 
-''' ################################################
-                    ORM Classes
-                    Common Class
-    ################################################
-'''
+################################################
+#                 ORM Classes
+#                 Common Class
+################################################
 class ORMCommon:
 
     @classmethod
@@ -120,7 +116,7 @@ class ORMCommon:
         if error < 0:
             return (error, None)
 
-        #print('[orm.from_json] values: {0}'.format(values))
+        # print('[orm.from_json] values: {0}'.format(values))
         if 'id' in values:
             row = mgr.session.query(cls).\
                                filter_by(id=values['id']).\
@@ -212,8 +208,8 @@ class Task(ORMBase, ORMCommon):
     dependence_id = Column(Integer, ForeignKey('task.id'))
 
     # Task
-    stage = Column(String(64), nullable=False, default='initial') # (initial, crawling, cracking, waiting)
-    state = Column(String(64), nullable=False, default='ready') # (ready, stopped, running, complete, error)
+    stage = Column(String(64), nullable=False, default='initial')  # (initial, crawling, cracking, waiting)
+    state = Column(String(64), nullable=False, default='ready')  # (ready, stopped, running, complete, error)
     description = Column(String(128), nullable=False, default='')
     timestamp = Column(Integer, default=0)
 
@@ -233,10 +229,11 @@ class Task(ORMBase, ORMCommon):
 
     @classmethod
     def get_conditions(cls, to_set):
-        return [getattr(cls, attr)==to_set[attr] for attr in to_set.keys()
-                                                 if  attr not in ['state', 'stage',
-                                                                  'done',  'total',
-                                                                  'description']]
+        return [getattr(cls, attr) == to_set[attr]
+                for attr in to_set.keys()
+                if attr not in ['state', 'stage',
+                                'done',  'total',
+                                'description']]
 
     @classmethod
     def get_to_set(cls, values, mgr):
