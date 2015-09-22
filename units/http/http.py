@@ -17,8 +17,8 @@ from modules.config import config
 class HTTP(LightUnit):
 
     name = 'http'
-    protocols = {'http' :80,
-                 'https':443}
+    protocols = {'http': 80,
+                 'https': 443}
 
     def __init__(self, core):
         super(HTTP, self).__init__(core)
@@ -27,27 +27,37 @@ class HTTP(LightUnit):
         self.logger = logging.getLogger(__name__)
         self.logger.info('Starting HTTP unit ...')
 
-        self.crackers = {'get':cracker.Get,
-                         'post':cracker.Post,
-                         'basic':cracker.BasicAuth}
+        self.request = {}
+        self.crackers = {'get': cracker.Get,
+                         'post': cracker.Post,
+                         'basic': cracker.BasicAuth}
 
-        self.stages['initial']  = self.http_initial_stage
+        self.stages['initial'] = self.http_initial_stage
         self.stages['crawling'] = self.http_crawling_stage
-        self.stages['cracking.dictionary']  = self.http_cracking_stage
+        self.stages['cracking.dictionary'] = self.http_cracking_stage
 
-    # This method exist to adapt the dependencies to Unit needs
+    # This method exist to prepare the context for the stage handler execution.
     def prepare(self):
-        if 'auth' in self.complements:
-            self.complements['auth'] = tuple(self.complements['auth'])
 
-        # If the task's port is the protocol defaul port, we do not add it
-        netloc = self.task['hostname']
-        if self.task['port'] != self.protocols[self.task['protocol']]:
-            netloc += ':{0}'.format(self.task['port'])
+        auth = None
+        if 'auth' in self.task['attrs']:
+            auth = self.task['attrs']['auth']
+
+        if auth:
+            if auth['method'] == 'basic':
+                self.request['auth'] = (auth['username'], auth['password'])
+
+            elif auth['method'] == 'digest':
+                self.logger.error('Digest authentication not supported')
 
         self.url = '{protocol}://{0}{path}'.format(netloc, **self.task)
         if 'query' in self.task['attrs']:
             self.url += self.task['attrs']['query']
+
+        # If the task's port is the protocol default port, we do not add it
+        netloc = self.task['hostname']
+        if self.task['port'] != self.protocols[self.task['protocol']]:
+            netloc += ':{0}'.format(self.task['port'])
 
     ''' ############################################
         Command & Stage handlers
@@ -94,7 +104,7 @@ class HTTP(LightUnit):
 
         except KeyError:
             traceback.print_exc()
-            return {'status':-1, 'error':'Unknown Authentication Scheme "{0}"'.format(auth_scheme)}
+            return {'status': -1, 'error': 'Unknown Authentication Scheme "{0}"'.format(auth_scheme)}
 
         return result
 

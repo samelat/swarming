@@ -22,7 +22,7 @@ class Post(Protocol):
 
     def crack(self, dictionaries):
 
-        result = {'status':0}
+        result = {'status': 0}
 
         attrs = self.unit.task['attrs']
 

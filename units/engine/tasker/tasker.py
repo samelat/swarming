@@ -60,10 +60,10 @@ class Tasker:
         # We are going to update all entries without weight
         # First, usernames and password
         self._db_mgr.session_lock.acquire()
-        entries = self._db_mgr.session.query(Dictionary).\
-                                       filter((Dictionary.type >= 3) &\
-                                              (Dictionary.type <= 5) &\
-                                              (Dictionary.weight == 1)).all()
+        entries = self._db_mgr.session.query(Dictionary).filter((Dictionary.type >= 3) &
+                                                                (Dictionary.type <= 5) &
+                                                                (Dictionary.weight == 1)).all()
+
         # print('[tasker] entries: {0}'.format(entries))
         for entry in entries:
             mask = entry.username + entry.password
@@ -105,23 +105,24 @@ class Tasker:
         #################################################################
 
         crawling_tasks = self._db_mgr.session.query(Task).\
-                                              filter_by(state='ready').\
-                                              filter(Task.protocol == Unit.protocol).\
-                                              filter(Task.stage.like('crawling') | Task.stage.like('initial')).\
-                                              all()
+        crawling_tasks = self._db_mgr.session.query(Task).\
+            filter_by(state='ready').\
+            filter(Task.protocol == Unit.protocol).\
+            filter(Task.stage.like('crawling') | Task.stage.like('initial')).\
+            all()
+
         if crawling_tasks:
             for task in crawling_tasks:
                 task.state = 'running'
 
-                complements = {}
-                dependence = task.dependence
-                while dependence:
-                    complements.update(json.loads(dependence.complement.values))
-                    dependence = dependence.dependence
+                # Load all task's related logs
+                logs = []
+                parent = task
+                while parent:
+                    logs.extend([json.loads(log) for log in parent.logs])
+                    parent = parent.parent
 
-                _task = {'task': task.to_json()}
-                if complements:
-                    _task['complements'] = complements
+                _task = {'task': task.to_json(), 'logs': logs}
 
                 response = self._dispatch_task(_task)
 
@@ -140,6 +141,8 @@ class Tasker:
     def _cracking_dictionary_tasks(self):
 
         self._db_mgr.session_lock.acquire()
+
+        # First we handle the responses
 
         running_tasks = set()
         self._engine._resp_lock.acquire()
@@ -171,17 +174,16 @@ class Tasker:
         self._db_mgr.session.commit()
 
         #################################################################
+        #   Now we check if there're more work to do.
         #################################################################
         
         cracking_tasks = self._db_mgr.session.query(Task).\
-                                              filter_by(stage = 'cracking.dictionary').\
-                                              filter(Task.protocol == Unit.protocol).\
-                                              filter((Task.state == 'running')|
-                                                     (Task.state == 'ready')).\
-                                              all()
+            filter_by(stage='cracking.dictionary').\
+            filter(Task.protocol == Unit.protocol).\
+            filter((Task.state == 'running') | (Task.state == 'ready')).\
+            all()
 
         for task in cracking_tasks:
-
             # This is only to update the task's state
             if task.id not in running_tasks:
                 task.state = 'ready'
@@ -210,13 +212,14 @@ class Tasker:
             task.state = 'running'
             pending_work['task'] = task.to_json()
 
-            complements = {}
-            dependence = task.dependence
-            while dependence:
-                complements.update(json.loads(dependence.complement.values))
-                dependence = dependence.dependence
-            if complements:
-                pending_work['complements'] = complements
+            # Load all task's related logs
+            logs = []
+            parent = task
+            while parent:
+                logs.extend([json.loads(log) for log in parent.logs])
+                parent = parent.parent
+
+            pending_work['logs'] = logs
 
             response = self._dispatch_task(pending_work)
             # print('[tasker] Dispatch response: {0}'.format(response))
@@ -243,14 +246,15 @@ class Tasker:
         for task in waiting_tasks:
             stage = task.stage.split('.')
 
-            # waiting.dependence
-            if (stage[1] == 'dependence') and task.dependence.complement:
-                task.stage = '.'.join(stage[2:])
-
             # waiting.time
-            elif stage[1] == 'time':
+            if stage[1] == 'time':
                 if int(stage[2]) < (self._db_mgr.timestamp() - task.timestamp)/1000:
                     task.stage = '.'.join(stage[3:])
+
+            # waiting.<log_type>
+            # check for log_type (stage[1])
+            elif list(filter(lambda log: log['type'] == stage[1], task.parent.logs)):
+                task.stage = '.'.join(stage[2:])
 
         self._db_mgr.session.commit()
 

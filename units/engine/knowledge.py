@@ -2,45 +2,102 @@
 from units.engine.orm import *
 
 
+# The idea of this class is implement a RESTful interface
+# to access to database.
 class Knowledge:
 
     def __init__(self, engine):
         self._engine = engine
         self._db_mgr = ORM()
 
+    ############################################
+    #
+    ############################################
+    def post(self, message):
+        result = {'status': 0, 'results': []}
 
-    ''' ############################################
-        These set and get methods are just to keep an abstract
-        implementation of the database manager. This allow us
-        to change to mongodb (for example) in the future if we
-        want to.
-    '''
-    def set(self, message):
-
-        results_list = []
         self._db_mgr.session_lock.acquire()
-        for transaction in message['params']:
-            results = {}
-            for table, values in transaction.items():
-                results[table] = self._db_mgr.set(table, values)
-            results_list.append(results)
-        self._db_mgr.session.commit()
-        self._db_mgr.session_lock.release()
+        try:
+            table = message['params']['entity']
+            entries = message['params']['entries']
+            entries = entries if isinstance(entries, list) else [entries]
 
-        return {'status':0, 'results':results_list}
+            result['result'] = self._db_mgr.post(table, entries)
 
+            self._db_mgr.session.commit()
+            self._db_mgr.session_lock.release()
 
+        except KeyError:
+            result = {'status': -1}
+
+        return result
+
+    ############################################
+    #
+    ############################################
+    def put(self, message):
+        result = {'status': 0, 'results': []}
+
+        self._db_mgr.session_lock.acquire()
+        try:
+            table = message['params']['entity']
+            entries = message['params']['entries']
+            entries = entries if isinstance(entries, list) else [entries]
+            entries = [entry for entry in entries if 'id' in entry]
+
+            result['result'] = self._db_mgr.put(table, entries)
+
+            self._db_mgr.session.commit()
+            self._db_mgr.session_lock.release()
+
+        except KeyError:
+            result = {'status': -1}
+
+        return result
+
+    ############################################
+    #
+    ############################################
     def get(self, message):
+        result = {'status': 0, 'results': []}
 
-        results = []
         self._db_mgr.session_lock.acquire()
-        for query in message['params']:
-            values = {}
-            for table, _values in params.items():
-                rows = self._db_mgr.get(table, _values)
-                values[table] = {table:rows}
-            results.append(values)
+        try:
+            table = message['params']['entity']
+            conditions = message['params']['conditions']
+
+            if isinstance(conditions, dict):
+                result['result'] = self._db_mgr.get(table, conditions)
+            else:
+                result = {'status': -2, 'error': 'Bad "conditions" object.'}
+
+            self._db_mgr.session.commit()
+            self._db_mgr.session_lock.release()
+
+        except KeyError:
+            result = {'status': -1}
+
+        return result
+
+    ############################################
+    #
+    ############################################
+    def delete(self, message):
+        result = {'status': 0}
+
+        self._db_mgr.session_lock.acquire()
+
+        try:
+            table = message['params']['entity']
+            entries = message['params']['entries']
+            entries = [entry for entry in entries if 'id' in entry]
+
+            self._db_mgr.delete(table, entries)
+
+        except KeyError:
+            result = {'status': -1}
+
         self._db_mgr.session_lock.release()
 
-        return {'status':0, 'results':results}
+        return result
 

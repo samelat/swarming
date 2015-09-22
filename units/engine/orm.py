@@ -22,7 +22,7 @@ class ORM:
 
     def __init__(self):
         self._engine = create_engine('sqlite:///context.db', echo=False,
-                                     connect_args={'check_same_thread':False})
+                                     connect_args={'check_same_thread': False})
         '''
         self._engine = create_engine('sqlite://', echo=False,
                                      connect_args={'check_same_thread':False})
@@ -39,64 +39,60 @@ class ORM:
         self.session = ORM._singleton_session
         self.session_lock = ORM._singleton_session_lock
 
-        self.classes = [Unit, Task, Dictionary, Success, Complement]
+        self.classes = [Unit, Task, Dictionary, Success, Record, Log]
         self.entities = dict([(c.__tablename__, c) for c in self.classes])
 
     @classmethod
     def timestamp(cls):
         return int(time.time() * 1000)
 
-    '''
-    def check(self, entity, fields):
-        if entity not in self.entities:
-            return False
-
-        if not set(fields).issubset(self.entities[entity].attributes):
-            return False
-
-        return True
-    '''
-
-    def add(self, entity, values):
-        # for chunk in [values[i:i+400] for i in range(0, len(values), 400)]:
+    def post(self, entity, entries):
         try:
-            self._engine.execute(self.entities[entity].__table__.insert(), values)
+            self._engine.execute(self.entities[entity].__table__.insert(), entries)
         except sqlalchemy.exc.IntegrityError:
-            # print('[rollback]')
             self.session.rollback()
-            for value in values:
-                self.set(entity, value)
-            self.session.commit()
 
-        return {'status':0}
+        for entry in entries:
+            try:
+                self.entities[entity].session.add(**entry)
+            except sqlalchemy.exc.IntegrityError:
+                self.session.rollback()
 
-    def set(self, entity, values):
+        self.session.commit()
+
+        return {'status': 0}
+
+    def put(self, entity, entries):
         cls = self.entities[entity]
-        error, values = cls.from_json(values, self)
+
+        error, values = cls.from_json(entries, self)
         # self.session.commit()
 
-        return {'status':error, 'values':values}
+        return {'status': error, 'values': values}
 
-    def get(self, entity, values):
+    def get(self, entity, conditions):
         cls = self.entities[entity]
 
         timestamp = 0
-        if 'timestamp' in values:
-            timestamp = values['timestamp']
+        if 'timestamp' in conditions:
+            timestamp = conditions['timestamp']
 
-        json_rows = []
+        query = self.session.query(cls)
 
-        if 'id' in values:
-            condition = (cls.id==values['id'])
+        if 'id' in conditions:
+            query = query.filter(cls.id == conditions['id'])
         else:
-            condition = (cls.timestamp > timestamp)
+            query = query.filter(cls.timestamp > timestamp)
 
-        for row in self.session.query(cls).\
-                                filter(condition).\
-                                all():
-            json_rows.append(row.to_json())
+        json_rows = [row.to_json() for row in query.all()]
+        return {'rows': json_rows}
 
-        return {'rows':json_rows}
+    def delete(self, entity, entries):
+        cls = self.entities[entity]
+
+        for entry in entries:
+            obj = self.session.query(cls).filter(cls.id == entry['id']).first()
+            obj.delete()
 
     def halt(self):
         self.session.commit()
@@ -108,6 +104,8 @@ class ORM:
 #                 Common Class
 ################################################
 class ORMCommon:
+
+    attributes = []
 
     @classmethod
     def from_json(cls, values, mgr):
@@ -153,17 +151,17 @@ class ORMCommon:
     @classmethod
     def get_to_set(cls, values, mgr):
         to_set = dict([(attr, value) for attr, value in values.items()
-                                     if  attr in cls.attributes])
+                                     if attr in cls.attributes])
         return (0, to_set)
 
     @classmethod
     def suit(cls, values):
-        result = {'timestamp':ORM.timestamp()}
+        result = {'timestamp': ORM.timestamp()}
         
         for field in cls.attributes:
             if field in values:
                 result[field] = values[field]
-            elif getattr(cls, field).default.arg != None:
+            elif getattr(cls, field).default.arg is not None:
                 result[field] = getattr(cls, field).default.arg
             else:
                 return None
@@ -171,11 +169,12 @@ class ORMCommon:
         return result
 
 
-''' ################################################
-    ################################################
-'''
+#################################################
+#
+#################################################
 class Unit(ORMBase, ORMCommon):
     __tablename__ = 'unit'
+    __table_args__ = (UniqueConstraint('name', 'protocol'),)
 
     attributes = ['name', 'protocol', 'port']
 
@@ -192,20 +191,18 @@ class Unit(ORMBase, ORMCommon):
                 'protocol':self.protocol}
 
 
-''' ################################################
-    ################################################
-'''
+#################################################
+#
+#################################################
 class Task(ORMBase, ORMCommon):
     __tablename__ = 'task'
-    __table_args__ = (UniqueConstraint('protocol', 'hostname', 'port', 'path',
-                                       'stage', 'attrs', 'dependence_id'),)
+    __table_args__ = (UniqueConstraint('protocol', 'hostname', 'port', 'path', 'stage', 'attrs'),)
 
     attributes = ['protocol', 'hostname', 'port', 'path',
-                  'stage',    'state',    'done', 'total',
-                  'description']
+                  'stage', 'state', 'done', 'total', 'description']
 
     id = Column(Integer, primary_key=True)
-    dependence_id = Column(Integer, ForeignKey('task.id'))
+    parent_id = Column(Integer, ForeignKey('task.id'), nullable=True)
 
     # Task
     stage = Column(String(64), nullable=False, default='initial')  # (initial, crawling, cracking, waiting)
@@ -224,8 +221,8 @@ class Task(ORMBase, ORMCommon):
     done = Column(Integer, default=0)
     total = Column(Integer, default=0)
 
-    dependence = relationship('Task', remote_side=[id])
-    complement = relationship('Complement', uselist=False)
+    logs = relationship('Log', uselist=True)
+    parent = relationship('Task', remote_side=[id])
 
     @classmethod
     def get_conditions(cls, to_set):
@@ -252,20 +249,20 @@ class Task(ORMBase, ORMCommon):
         return (0, to_set)
 
     def to_json(self):
-        values = {'id':self.id,
-                  'protocol':self.protocol,
-                  'hostname':self.hostname,
-                  'port':self.port,
-                  'path':self.path,
-                  'attrs':json.loads(self.attrs),
-                  'stage':self.stage,
-                  'state':self.state,
-                  'done':self.done,
-                  'total':self.total,
-                  'description':self.description,
-                  'timestamp':self.timestamp}
+        values = {'id': self.id,
+                  'protocol': self.protocol,
+                  'hostname': self.hostname,
+                  'port': self.port,
+                  'path': self.path,
+                  'attrs': json.loads(self.attrs),
+                  'stage': self.stage,
+                  'state': self.state,
+                  'done': self.done,
+                  'total': self.total,
+                  'description': self.description,
+                  'timestamp': self.timestamp}
         if self.dependence_id:
-            values['dependence'] = {'id':self.dependence.id}
+            values['dependence'] = {'id': self.dependence.id}
 
         if self.complement:
             values['complement'] = self.complement.to_json()
@@ -273,9 +270,9 @@ class Task(ORMBase, ORMCommon):
         return values
 
 
-''' ################################################
-    ################################################
-'''
+#################################################
+#
+#################################################
 class Success(ORMBase, ORMCommon):
     __tablename__ = 'success'
 
@@ -300,23 +297,24 @@ class Success(ORMBase, ORMCommon):
     # The attribute Stage in the JSON response is precent to help
     # in the identification of what kind of credentials the entry have.
     def to_json(self):
-        return {'id':self.id,
-                'credentials':json.loads(self.credentials),
-                'task':{'id':self.task_id, 'stage':self.task.stage}}
+        return {'id': self.id,
+                'credentials': json.loads(self.credentials),
+                'task': {'id': self.task_id, 'stage': self.task.stage}}
 
 
-''' ################################################
-    ################################################
-'''
-class Complement(ORMBase, ORMCommon):
-    __tablename__ = 'complement'
+#################################################
+#
+#################################################
+class Record(ORMBase, ORMCommon):
+    __tablename__ = 'record'
 
     attributes = []
 
     id = Column(Integer, primary_key=True)
     task_id = Column(Integer, ForeignKey('task.id'))
 
-    values = Column(String(1024), nullable=False)
+    type = Column(String(64), nullable=False)
+    content = Column(String(1024), nullable=False)
     timestamp = Column(Integer)
 
     @classmethod
@@ -328,21 +326,51 @@ class Complement(ORMBase, ORMCommon):
         return (0, to_set)
 
     def to_json(self):
-        return {'id':self.id,
-                'values':json.loads(self.values)}
+        return {'id': self.id,
+                'type': self.type,
+                'content': json.loads(self.values),
+                'task': {'id': self.task_id}}
 
 
-''' ################################################
-    Dictionary Types
-    0: plain username
-    1: plain password 
-    2: plain pair
-    3: mask username
-    4: mask password
-    5: mask pair
-    ################################################
-'''
+#################################################
+#
+#################################################
+class Log(ORMBase, ORMCommon):
+    __tablename__ = 'log'
 
+    attributes = []
+
+    id = Column(Integer, primary_key=True)
+    task_id = Column(Integer, ForeignKey('task.id'))
+
+    type = Column(String(64), nullable=False)
+    content = Column(String(1024), nullable=False)
+    timestamp = Column(Integer)
+
+    @classmethod
+    def get_to_set(cls, values, mgr):
+        to_set = {}
+        if 'task' in values:
+            to_set['task_id'] = values['task']['id']
+        to_set['values'] = json.dumps(values['values'])
+        return (0, to_set)
+
+    def to_json(self):
+        return {'id': self.id,
+                'type': self.type,
+                'content': json.loads(self.values),
+                'task': {'id': self.task_id}}
+
+
+#################################################
+#   Dictionary Types
+#   0: plain username
+#   1: plain password
+#   2: plain pair
+#   3: mask username
+#   4: mask password
+#   5: mask pair
+#################################################
 class Dictionary(ORMBase, ORMCommon):
     __tablename__ = 'dictionary'
     __table_args__ = (UniqueConstraint('type', 'username', 'password', 'charsets'),)
@@ -382,7 +410,7 @@ class Dictionary(ORMBase, ORMCommon):
     @classmethod
     def suit(cls, values):
         result = super(cls, cls).suit(values)
-        #print('[result] {0}'.format(result))
+        # print('[result] {0}'.format(result))
         if result and (result['type'] < 0):
             if result['username']:
                 if result['password']:
@@ -411,10 +439,9 @@ class Dictionary(ORMBase, ORMCommon):
         return values
 
 
-''' ################################################
-    These classes are for internal use only
-    ################################################
-'''
+#################################################
+# These classes are for internal use only
+#################################################
 class DictionaryTask(ORMBase):
     __tablename__ = 'dictionary_task'
 

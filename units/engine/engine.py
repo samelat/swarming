@@ -22,16 +22,14 @@ class Engine(Unit):
         self.tasker = None
         self.webui = None
 
-
     def clean(self):
         self.knowledge = None
         self.tasker = None
         self.webui = None
 
-
-    ''' ############################################
-
-    '''
+    #############################################
+    #
+    #############################################
     def start(self):
         self.knowledge = Knowledge(self)
         self.tasker = Tasker(self)
@@ -45,8 +43,8 @@ class Engine(Unit):
         self._messenger.start()
 
         # Create 3 executor layers
-        message = {'dst':'core', 'src':'engine', 'cmd':'control',
-                   'params':{'action':'load', 'unit':'executor'}}
+        message = {'dst': 'core', 'src': 'engine', 'cmd': 'control',
+                   'params': {'action': 'load', 'unit': 'executor'}}
         for i in range(0, 3):
             result = self.core.dispatch(message)
 
@@ -57,7 +55,6 @@ class Engine(Unit):
             message['layer'] = lid
             result = self.core.dispatch(message)
             response = self.get_response(result['channel'], True)
-
 
         # Register HTTP Unit (Just the unit knows its protocols)
         message = {'dst':'http', 'src':'engine', 'cmd':'register', 'params':{}, 'async':False}
