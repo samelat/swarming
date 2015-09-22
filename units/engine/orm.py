@@ -47,18 +47,21 @@ class ORM:
         return int(time.time() * 1000)
 
     def post(self, entity, entries):
+        print(entries)
         try:
             self._engine.execute(self.entities[entity].__table__.insert(), entries)
+
         except sqlalchemy.exc.IntegrityError:
-            self.session.rollback()
+            size = len(entries)
+            if size > 1:
+                increment = int(size/4) if size > 7 else 1
+                size += 1 if not size % increment else increment
 
-        for entry in entries:
-            try:
-                self.entities[entity].session.add(**entry)
-            except sqlalchemy.exc.IntegrityError:
-                self.session.rollback()
-
-        self.session.commit()
+                begin = 0
+                for end in range(increment, size, increment):
+                    print('begin: {0} - end: {1}'.format(begin, end))
+                    self.post(entity, entries[begin:end])
+                    begin = end
 
         return {'status': 0}
 
@@ -73,19 +76,14 @@ class ORM:
     def get(self, entity, conditions):
         cls = self.entities[entity]
 
-        timestamp = 0
-        if 'timestamp' in conditions:
-            timestamp = conditions['timestamp']
-
         query = self.session.query(cls)
 
         if 'id' in conditions:
             query = query.filter(cls.id == conditions['id'])
-        else:
-            query = query.filter(cls.timestamp > timestamp)
+        elif 'timestamp' in conditions:
+            query = query.filter(cls.timestamp > conditions['timestamp'])
 
-        json_rows = [row.to_json() for row in query.all()]
-        return {'rows': json_rows}
+        return [row.to_json() for row in query.all()]
 
     def delete(self, entity, entries):
         cls = self.entities[entity]
@@ -146,7 +144,7 @@ class ORMCommon:
 
     @classmethod
     def get_conditions(cls, to_set):
-        return [getattr(cls, attr)==to_set[attr] for attr in to_set.keys()]
+        return [getattr(cls, attr) == to_set[attr] for attr in to_set.keys()]
 
     @classmethod
     def get_to_set(cls, values, mgr):
@@ -185,10 +183,10 @@ class Unit(ORMBase, ORMCommon):
     timestamp = Column(Integer)
 
     def to_json(self):
-        return {'id':self.id,
-                'name':self.name,
-                'port':self.port,
-                'protocol':self.protocol}
+        return {'id': self.id,
+                'name': self.name,
+                'port': self.port,
+                'protocol': self.protocol}
 
 
 #################################################
@@ -196,7 +194,7 @@ class Unit(ORMBase, ORMCommon):
 #################################################
 class Task(ORMBase, ORMCommon):
     __tablename__ = 'task'
-    __table_args__ = (UniqueConstraint('protocol', 'hostname', 'port', 'path', 'stage', 'attrs'),)
+    __table_args__ = (UniqueConstraint('protocol', 'hostname', 'port', 'path', 'stage'),)
 
     attributes = ['protocol', 'hostname', 'port', 'path',
                   'stage', 'state', 'done', 'total', 'description']
@@ -215,7 +213,7 @@ class Task(ORMBase, ORMCommon):
     hostname = Column(String(128), nullable=False)
     port = Column(Integer)
     path = Column(String(128), nullable=False, default='/')
-    attrs = Column(String(1024), nullable=False, default='{}')
+    #attrs = Column(String(1024), nullable=False, default='{}')
 
     # Work
     done = Column(Integer, default=0)
@@ -223,6 +221,7 @@ class Task(ORMBase, ORMCommon):
 
     logs = relationship('Log', uselist=True)
     parent = relationship('Task', remote_side=[id])
+    records = relationship('Records', uselist=True)
 
     @classmethod
     def get_conditions(cls, to_set):
