@@ -1,8 +1,8 @@
 
 from multiprocessing import Process
 
-from modules.unit import Unit
-from modules.messenger import Messenger
+from common.unit import Unit
+from common.messenger import Messenger
 
 from units.engine.orm import ORM
 from units.engine.webui import WebUI
@@ -36,8 +36,11 @@ class Engine(Unit):
         self.webui = WebUI(self)
         self.webui.start()
 
+        self.add_cmd_handler('post', self.knowledge.post)
+        self.add_cmd_handler('put', self.knowledge.put)
         self.add_cmd_handler('get', self.knowledge.get)
-        self.add_cmd_handler('set', self.knowledge.set)
+        self.add_cmd_handler('delete', self.knowledge.delete)
+
         self.add_cmd_handler('schedule', self.schedule)
 
         self._messenger.start()
@@ -49,15 +52,15 @@ class Engine(Unit):
             result = self.core.dispatch(message)
 
         # Load HTTP in the 3 layers
-        message = {'dst':'core', 'src':'engine', 'cmd':'control',
-                   'params':{'action':'load', 'unit':'http'}}
+        message = {'dst': 'core', 'src': 'engine', 'cmd': 'control',
+                   'params': {'action': 'load', 'unit': 'http'}}
         for lid in range(1, 4):
             message['layer'] = lid
             result = self.core.dispatch(message)
             response = self.get_response(result['channel'], True)
 
         # Register HTTP Unit (Just the unit knows its protocols)
-        message = {'dst':'http', 'src':'engine', 'cmd':'register', 'params':{}, 'async':False}
+        message = {'dst': 'http', 'src': 'engine', 'cmd': 'register', 'params': {}, 'async': False}
         result = self.core.dispatch(message)
         response = self.get_response(result['channel'], True)
 

@@ -1,7 +1,7 @@
 
 import requests
 
-from modules.dictionary import Dictionary
+from common.dictionary import Dictionary
 
 
 class Get:

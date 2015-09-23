@@ -6,12 +6,10 @@ import traceback
 
 import logging
 
-from modules.light_unit import LightUnit
+from common.light_unit import LightUnit
 
 from units.http import cracker
 from units.http.crawler import crawler
-
-from modules.config import config
 
 
 class HTTP(LightUnit):
@@ -39,6 +37,7 @@ class HTTP(LightUnit):
     # This method exist to prepare the context for the stage handler execution.
     def prepare(self):
 
+        '''
         auth = None
         if 'auth' in self.task['attrs']:
             auth = self.task['attrs']['auth']
@@ -54,16 +53,19 @@ class HTTP(LightUnit):
         if 'query' in self.task['attrs']:
             self.url += self.task['attrs']['query']
 
-        # If the task's port is the protocol default port, we do not add it
+        # If task and protocol ports are the same, we ignore it
         netloc = self.task['hostname']
         if self.task['port'] != self.protocols[self.task['protocol']]:
             netloc += ':{0}'.format(self.task['port'])
+        '''
 
     ''' ############################################
         Command & Stage handlers
     '''
     def http_initial_stage(self, message):
-        # print('[http] Initial Stage method')
+        print('[http] Initial Stage method')
+
+        print('[http] {0}'.format(message))
 
         # We return in 'updates' the self task values we want to change.
         self.task.update({'stage':'crawling', 'state':'ready', 'description':'Web Crawling'})

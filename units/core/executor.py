@@ -3,9 +3,9 @@ import queue
 import logging
 from multiprocessing import Process
 
-from modules.unit import Unit
-from modules.message import Message
-from modules.messenger import Messenger
+from common.unit import Unit
+from common.message import Message
+from common.messenger import Messenger
 
 
 class Executor(Unit):

@@ -3,7 +3,7 @@ import time
 import logging
 import requests
 
-from modules.dictionary import Dictionary
+from common.dictionary import Dictionary
 
 from units.http.support import Protocol
 

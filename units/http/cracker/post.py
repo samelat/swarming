@@ -3,7 +3,7 @@ import logging
 import requests
 from urllib.parse import urlencode
 
-from modules.dictionary import Dictionary
+from common.dictionary import Dictionary
 
 from units.http.support import HTML
 from units.http.support import Protocol

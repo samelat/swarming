@@ -8,8 +8,8 @@ from sqlalchemy import func
 import logging
 
 from units.engine.orm import *
-from modules.config import config
-from modules.keyspace import KeySpace
+from common.config import config
+from common.keyspace import KeySpace
 
 from units.engine.tasker.work_planner import WorkPlanner
 
@@ -17,12 +17,14 @@ from units.engine.tasker.work_planner import WorkPlanner
 class Tasker:
 
     def __init__(self, engine):
+        self.logger = logging.getLogger(__name__)
 
         self._engine = engine
+
         self._db_mgr = ORM()
         self._cycle_delay = 10
         self._units = {}
-        self.logger = logging.getLogger(__name__)
+
         self._cracking_dictionary_channels = {}
         self._ready_task_channels = {}
 
@@ -57,8 +59,8 @@ class Tasker:
         #################################################
     '''
     def _control_dictionary(self):
-        # We are going to update all entries without weight
-        # First, usernames and password
+        # We are going to update all entries without weight.
+        # First, usernames and passwords
         self._db_mgr.session_lock.acquire()
         entries = self._db_mgr.session.query(Dictionary).filter((Dictionary.type >= 3) &
                                                                 (Dictionary.type <= 5) &
@@ -68,6 +70,7 @@ class Tasker:
         for entry in entries:
             mask = entry.username + entry.password
             entry.weight = len(KeySpace(mask, json.loads(entry.charsets)))
+            # TODO: If weight is ==1, we have to change this entry type.
         self._db_mgr.session.commit()
         self._db_mgr.session_lock.release()
 
@@ -81,6 +84,7 @@ class Tasker:
         self._db_mgr.session_lock.acquire()
 
         self._engine._resp_lock.acquire()
+
         for channel in list(self._ready_task_channels.keys()):
             if channel in self._engine._responses:
                 response = self._engine._responses[channel]
@@ -89,8 +93,7 @@ class Tasker:
                 del(self._engine._responses[channel])
                 del(self._ready_task_channels[channel])
 
-                task = self._db_mgr.session.query(Task).\
-                                            filter_by(id=task_id).first()
+                task = self._db_mgr.session.query(Task).filter_by(id=task_id).first()
 
                 if response['status'] < 0:
                     task.state = 'error'
@@ -105,7 +108,6 @@ class Tasker:
         #################################################################
 
         crawling_tasks = self._db_mgr.session.query(Task).\
-        crawling_tasks = self._db_mgr.session.query(Task).\
             filter_by(state='ready').\
             filter(Task.protocol == Unit.protocol).\
             filter(Task.stage.like('crawling') | Task.stage.like('initial')).\
@@ -115,16 +117,9 @@ class Tasker:
             for task in crawling_tasks:
                 task.state = 'running'
 
-                # Load all task's related logs
-                logs = []
-                parent = task
-                while parent:
-                    logs.extend([json.loads(log) for log in parent.logs])
-                    parent = parent.parent
-
-                _task = {'task': task.to_json(), 'logs': logs}
-
-                response = self._dispatch_task(_task)
+                # Load all task's registers and dispatch the task
+                registers = [json.loads(register) for register in task.registers]
+                response = self._dispatch_task({'task': task.to_json(), 'logs': registers})
 
                 if response['status'] < 0:
                     task.state = 'stopped'
@@ -301,11 +296,11 @@ class Tasker:
             # Get units per protocol
             self._units = self._get_protocol_units()
 
-            self._control_dictionary()
+            #self._control_dictionary()
 
-            self._waiting_tasks()
+            #self._waiting_tasks()
 
             self._ready_tasks()
-            self._cracking_dictionary_tasks()
+            #self._cracking_dictionary_tasks()
 
             time.sleep(self._cycle_delay)

@@ -1,5 +1,5 @@
 
-from modules.keyspace import KeySpace
+from common.keyspace import KeySpace
 
 class Dictionary:
 

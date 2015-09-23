@@ -1,11 +1,12 @@
 
 import time
 
-from modules.unit import Unit
+from common.unit import Unit
 
 
 class LightUnit(Unit):
 
+    name = None
     light = True
 
     def __init__(self, core):
@@ -13,7 +14,7 @@ class LightUnit(Unit):
 
         self.task = None
         self.stages = {}
-        self.logs = None
+        self.records = []
         self.timestamp = 0
 
         self.add_cmd_handler('consume', self.consume)
@@ -54,10 +55,13 @@ class LightUnit(Unit):
 
         self.set_knowledge(rows)
 
+    ############################################
+    #              Unit Commands               #
+    ############################################
     def consume(self, message):
         try:
             self.task = message['params']['task']
-            self.logs = message['params']['logs']
+            self.records = message['params']['records']
 
             if not self.task['port']:
                 self.task['port'] = self.protocols[self.task['protocol']]
@@ -71,13 +75,13 @@ class LightUnit(Unit):
 
         return result
 
-    ''' ##########################################
-    '''
     def register(self, message):
 
-        support = [{'unit': {'name': self.name,
-                             'protocol': protocol,
-                             'port': port}} for protocol, port in self.protocols.items()]
-        result = self.set_knowledge(rows=support)
+        entries = [{'name': self.name, 'protocol': protocol, 'port': port} for protocol, port in self.protocols.items()]
+        message = {'src': self.name, 'dst': 'engine', 'cmd': 'post', 'params': {'entity': 'unit', 'entries': entries}}
+        result = self.core.dispatch(message)
+
+        # Wait until response arrive
+        self.get_response(result['channel'], True)
 
         return {'status': 0}

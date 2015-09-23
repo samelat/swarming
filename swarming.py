@@ -7,7 +7,7 @@ import json
 import logging
 import logging.config
 
-from modules.config import config
+from common.config import config
 from units.core.core import Core
 
 main_thread = threading.main_thread()

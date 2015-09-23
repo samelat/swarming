@@ -39,7 +39,7 @@ class ORM:
         self.session = ORM._singleton_session
         self.session_lock = ORM._singleton_session_lock
 
-        self.classes = [Unit, Task, Dictionary, Success, Record, Log]
+        self.classes = [Unit, Task, Dictionary, Success, Register, Log]
         self.entities = dict([(c.__tablename__, c) for c in self.classes])
 
     @classmethod
@@ -200,7 +200,7 @@ class Task(ORMBase, ORMCommon):
                   'stage', 'state', 'done', 'total', 'description']
 
     id = Column(Integer, primary_key=True)
-    parent_id = Column(Integer, ForeignKey('task.id'), nullable=True)
+    # parent_id = Column(Integer, ForeignKey('task.id'), nullable=True)
 
     # Task
     stage = Column(String(64), nullable=False, default='initial')  # (initial, crawling, cracking, waiting)
@@ -220,8 +220,8 @@ class Task(ORMBase, ORMCommon):
     total = Column(Integer, default=0)
 
     logs = relationship('Log', uselist=True)
-    parent = relationship('Task', remote_side=[id])
-    records = relationship('Records', uselist=True)
+    # parent = relationship('Task', remote_side=[id])
+    registers = relationship('Register', uselist=True)
 
     @classmethod
     def get_conditions(cls, to_set):
@@ -236,14 +236,14 @@ class Task(ORMBase, ORMCommon):
 
         _, to_set = super(Task, cls).get_to_set(values, mgr)
 
-        if 'attrs' in values:
-            to_set['attrs'] = json.dumps(values['attrs'])
+        #if 'attrs' in values:
+        #    to_set['attrs'] = json.dumps(values['attrs'])
 
-        if 'dependence' in values:
-            error, row = Task.from_json(values['dependence'], mgr)
-            if error < 0:
-                return (error, None)
-            to_set['dependence_id'] = row['id']
+        #if 'dependence' in values:
+        #    error, row = Task.from_json(values['dependence'], mgr)
+        #    if error < 0:
+        #        return (error, None)
+        #    to_set['dependence_id'] = row['id']
 
         return (0, to_set)
 
@@ -253,18 +253,19 @@ class Task(ORMBase, ORMCommon):
                   'hostname': self.hostname,
                   'port': self.port,
                   'path': self.path,
-                  'attrs': json.loads(self.attrs),
+                  # 'attrs': json.loads(self.attrs),
                   'stage': self.stage,
                   'state': self.state,
                   'done': self.done,
                   'total': self.total,
                   'description': self.description,
                   'timestamp': self.timestamp}
-        if self.dependence_id:
-            values['dependence'] = {'id': self.dependence.id}
 
-        if self.complement:
-            values['complement'] = self.complement.to_json()
+        #if self.dependence_id:
+        #    values['dependence'] = {'id': self.dependence.id}
+
+        #if self.complement:
+        #    values['complement'] = self.complement.to_json()
 
         return values
 
@@ -304,8 +305,8 @@ class Success(ORMBase, ORMCommon):
 #################################################
 #
 #################################################
-class Record(ORMBase, ORMCommon):
-    __tablename__ = 'record'
+class Register(ORMBase, ORMCommon):
+    __tablename__ = 'register'
 
     attributes = []
 

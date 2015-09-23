@@ -1,5 +1,5 @@
 
-from modules.light_unit import LightUnit
+from common.light_unit import LightUnit
 
 from units.ssh import hperf_ssh
 

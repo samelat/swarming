@@ -3,8 +3,8 @@ import logging
 import random
 from threading import Condition
 
-from modules.unit import Unit
-from modules.message import Message
+from common.unit import Unit
+from common.message import Message
 
 from units.ssh.ssh import SSH
 from units.http.http import HTTP
