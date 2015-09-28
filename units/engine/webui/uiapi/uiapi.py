@@ -5,30 +5,34 @@ import cherrypy
 from units.engine.orm import *
 from units.engine.webui.uiapi.csv import CSV
 
+
 class UIApi:
 
     def __init__(self):
         self.orm = ORM()
-        self.file_parsers = {'csv':CSV}
-
-
-    @cherrypy.expose
-    def halt(self):
-        cherrypy.engine.exit()
-
+        self.file_parsers = {'csv': CSV}
 
     @cherrypy.expose
-    @cherrypy.tools.json_in()
-    @cherrypy.tools.json_out()
+    def PUT(self):
+        #cherrypy.engine.exit()
+        print('[!] PUT')
+
+    @cherrypy.expose
+    # @cherrypy.tools.json_in()
+    # @cherrypy.tools.json_out()
     def get(self):
-        #print('[uiapi.get] JSON: {0}'.format(cherrypy.request.json))
+
+        print('[!] GET')
+
+        return
         queries = cherrypy.request.json
 
         for query in queries:
             try:
                 self.orm.entities[query['entity']]
             except KeyError:
-                return {'status':-1, 'msg':'Entity does not exist', 'entity':query['entity']}
+                pass
+                #return {'status':-1, 'msg':'Entity does not exist', 'entity':query['entity']}
 
         self.orm.session_lock.acquire()
 
@@ -63,12 +67,11 @@ class UIApi:
                 results.append({'rows':json_rows})
 
         timestamp = self.orm.timestamp()
-        
+
         self.orm.session_lock.release()
 
         return {'status':0, 'results':results, 'timestamp':timestamp}
 
-    
     @cherrypy.expose
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()

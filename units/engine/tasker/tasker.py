@@ -119,7 +119,7 @@ class Tasker:
 
                 # Load all task's registers and dispatch the task
                 registers = [json.loads(register) for register in task.registers]
-                response = self._dispatch_task({'task': task.to_json(), 'logs': registers})
+                response = self._dispatch_task({'task': task.to_json(), 'registers': registers})
 
                 if response['status'] < 0:
                     task.state = 'stopped'

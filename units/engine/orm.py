@@ -213,7 +213,7 @@ class Task(ORMBase, ORMCommon):
     hostname = Column(String(128), nullable=False)
     port = Column(Integer)
     path = Column(String(128), nullable=False, default='/')
-    #attrs = Column(String(1024), nullable=False, default='{}')
+    # attrs = Column(String(1024), nullable=False, default='{}')
 
     # Work
     done = Column(Integer, default=0)

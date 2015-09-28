@@ -32,7 +32,6 @@ class Unit:
         pass
         #print('[{0}.start] Starting ...'.format(self.name))
 
-
     def add_cmd_handler(self, command, handler):
         self._commands[command] = handler
 
@@ -42,7 +41,7 @@ class Unit:
 
         if (channel not in self._responses) and (not block):
             self._resp_lock.release()
-            return {'status':-1}
+            return {'status': -1}
 
         #print('[{0}] waiting for response'.format(self.name))
         while channel not in self._responses:
@@ -64,7 +63,6 @@ class Unit:
         return {'status': 0}
 
     def response(self, message):
-        #print('[{0}.response] message: {1}'.format(self.name, tools.msg_to_str(message)))
         channel = message['channel']
 
         self._resp_lock.acquire()
@@ -72,16 +70,14 @@ class Unit:
         self._resp_lock.notify_all()
         self._resp_lock.release()
 
-        return {'status':0}
+        return {'status': 0}
 
     ''' ############################################
     '''
     def forward(self, message):
         return self.core.dispatch(message)
 
-
     def digest(self, message):
-        #print('[{0}.digest] {1}'.format(self.name, tools.msg_to_str(message)))
         command = message['cmd']
         if command in self._commands:
             result = self._commands[command](message)
@@ -89,9 +85,7 @@ class Unit:
 
         return {'status':-1, 'error':'command not found'}
 
-
     def dispatch(self, message):
-        #print('[{0}.dispatch] {1}'.format(self.name, Message(message)))
         if message['dst'] == self.name:
             return self.digest(message)
         else:

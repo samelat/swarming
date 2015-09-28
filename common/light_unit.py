@@ -65,6 +65,9 @@ class LightUnit(Unit):
 
             if not self.task['port']:
                 self.task['port'] = self.protocols[self.task['protocol']]
+                message = {'src': self.name, 'dst': 'engine', 'cmd': 'put',
+                           'params': {'entity': 'task', 'entries': {'id': self.task['id'], 'port': self.task['port']}}}
+                self.core.dispatch(message)
 
             self.prepare()
 
