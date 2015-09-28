@@ -4,7 +4,8 @@ import cherrypy
 from cherrypy.process import servers
 from threading import Thread
 
-from units.engine.webui.uiapi import UIApi
+from units.engine.webui.api import JsonAPI
+from units.engine.webui.api import FilesAPI
 
 
 class WebUI:
@@ -36,7 +37,7 @@ class WebUI:
         cherrypy.config.update(global_conf)
 
         static_conf = {
-            '/ui':{
+            '/ui': {
                 'tools.staticdir.root': os.path.abspath(os.getcwd()),
                 'tools.staticdir.on': True,
                 'tools.staticdir.dir': 'units/engine/webui/html'
@@ -45,21 +46,22 @@ class WebUI:
 
         api_conf = {
             '/': {
-                'log.error_file': 'log/webui.api.error.log',
-                'log.access_file': 'log/webui.api.access.log',
+                # 'log.error_file': 'log/webui.api.error.log',
+                # 'log.access_file': 'log/webui.api.access.log',
                 'request.dispatch': cherrypy.dispatch.MethodDispatcher()
             }
         }
         
         cherrypy.tree.mount(self, '/', config=static_conf)
-        cherrypy.tree.mount(UIApi(), '/api/test', config=api_conf)
+        cherrypy.tree.mount(JsonAPI(), '/api/json', config=api_conf)
+        cherrypy.tree.mount(FilesAPI(), '/api/files', config=api_conf)
+        # cherrypy.tree.mount()
 
         cherrypy.engine.start()
         cherrypy.engine.block()
 
-
-    ''' ############################################
-    '''
+    #############################################
+    #############################################
     @cherrypy.expose
     def default(self, *args, **kwargs):
         raise cherrypy.HTTPRedirect("/ui/index.html")

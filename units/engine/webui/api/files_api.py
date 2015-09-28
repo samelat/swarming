@@ -3,28 +3,28 @@ import json
 import cherrypy
 
 from units.engine.orm import *
-from units.engine.webui.uiapi.csv import CSV
+#from units.engine.webui.uiapi.csv import CSV
 
 
-class UIApi:
+class FilesAPI:
+
+    exposed = True
 
     def __init__(self):
         self.orm = ORM()
-        self.file_parsers = {'csv': CSV}
+        #self.file_parsers = {'csv': CSV}
 
-    @cherrypy.expose
+    @cherrypy.tools.json_in()
     def PUT(self):
         #cherrypy.engine.exit()
-        print('[!] PUT')
+        print('[!] PUT: {0}'.format(cherrypy.request.json))
 
-    @cherrypy.expose
     # @cherrypy.tools.json_in()
     # @cherrypy.tools.json_out()
-    def get(self):
+    def GET(self):
 
-        print('[!] GET')
+        print('[!] GET: {0}'.format(cherrypy.request.json))
 
-        return
         queries = cherrypy.request.json
 
         for query in queries:
@@ -72,7 +72,6 @@ class UIApi:
 
         return {'status':0, 'results':results, 'timestamp':timestamp}
 
-    @cherrypy.expose
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     def set(self):
