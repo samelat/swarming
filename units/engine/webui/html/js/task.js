@@ -1,9 +1,9 @@
 
 function Task () {
 
-    this.name = 'task';
-    this.limit = 10;
-    this.index = 0;
+    var this.name = 'task';
+    var this.limit = 10;
+    var this.index = 0;
 
     this.start = function() {
         this.update();
@@ -17,125 +17,135 @@ function Task () {
     };
 
     this.update = function() {
-
-        data = [{'entity':'task', 'aggregate':'count'},
-                {'entity':'task', 'limit':this.limit, 'offset':(this.index * this.limit)}];
-
         $.ajax({
-            type: 'POST',
-            url: '/api/get',
-            data: JSON.stringify(data),
-            contentType: 'application/json',
-            dataType: 'json',
+            type: 'GET',
+            url: '/api/json/task',
+            data: {'count': 1},
 
             error: function() {
                 console.log('[task.update] request error');
             },
 
             success: function(response) {
+                var count = response.result.count;
+                $.ajax({
+                    type: 'GET',
+                    url: '/api/json/task',
+                    data: {'limit':module.limit, 'offset':(module.index * module.limit)},
+                    dataType: 'json',
 
-                var count = response.results[0].count;
-                var rows  = response.results[1].rows;
+                    error: function() {
+                        console.log('[task.update_table] request error');
+                    },
 
-                var table = $('#task-table tbody');
-                
-                var table_html = '';
+                    success: function(response) {
 
-                $.each(rows, function(index, row){
+                        var rows  = response.rows;
+                        var table = $('#task-table tbody');
+                        var table_html = '';
 
-                    if(row.state != 'complete') {
-                        row.striped = 'progress-bar-striped';
-                        if(row.state == 'running')
-                            row.striped += ' active';
-                    }
+                        $.each(rows, function(index, row){
 
-                    if(row.state == 'error')
-                        row.progress_name = 'error';
-                    else {
-                        row.progress_name = row.stage.split('.')[0];
-                        if(row.progress_name == 'cracking')
-                            if('complement' in row)
-                                row.lock = 'unlock';
+                            if(row.state != 'complete') {
+                                row.striped = 'progress-bar-striped';
+                                if(row.state == 'running')
+                                    row.striped += ' active';
+                            }
+
+                            if(row.state == 'error')
+                                row.progress_name = 'error';
+                            else {
+                                row.progress_name = row.stage.split('.')[0];
+                                if(row.progress_name == 'cracking')
+                                    if('complement' in row)
+                                        row.lock = 'unlock';
+                                    else
+                                        row.lock = 'lock';
+                            }
+
+                            row.percentage = 0;
+                            if(row.total > 0)
+                                row.percentage = Math.round((row.done/row.total)*100);
+
+                            if(row.state != 'complete') {
+                                var cbox = $('#task_checkbox_' + row.id)[0];
+                                if(cbox && cbox.checked)
+                                    row.checked = 'checked="checked"';
+                            } else
+                                row.checked = 'disabled';
+
+                            template = '<tr>' +
+                                       '    <td><input id="task_checkbox_{{id}}" type="checkbox" {{checked}}></td>' +
+                                       '    <td>{{id}}</td>' +
+                                       '    <td>{{protocol}}://{{hostname}}:{{port}}{{path}}</td>' +
+                                       '    <td>' +
+                                       '        <div class="progress {{progress_name}}">' +
+                                       '            <div class="progress-bar {{progress_name}} {{striped}}" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: {{percentage}}%">' +
+                                       '                <span>{{percentage}}%</span>' +
+                                       '            </div>' +
+                                       '        </div>' +
+                                       '    </td>' +
+                                       '    <td>{{description}}</td>' +
+                                       '    <td>{{stage}}</td>' +
+                                       '    <td>{{state}}</td>' +
+                                       '    <td>' +
+                                       '    {{#dependence}}' +
+                                       '        <i class="fa fa-link fa-fw" title="Task #{{dependence.id}}"></i>' +
+                                       '    {{/dependence}}' +
+                                       '    {{#lock}}' +
+                                       '        <i class="fa fa-{{lock}} fa-fw"></i>' +
+                                       '    {{/lock}}' +
+                                       '    </td>' +
+                                       '</tr>';
+
+                            table_html += Mustache.to_html(template, row);
+                        });
+
+                        table.html(table_html);
+
+                        pages = Math.ceil(count / module.limit);
+
+                        if(count > module.limit) {
+
+                            template = '<ul class="pagination no-padding">' +
+                                       '    <li{{{left_class}}}><a onclick="module.page({{bottom}})">&laquo;</a></li>';
+
+                            for(page=0; page < pages; page++) {
+                                v = {'page':page};
+                                if(page == module.index)
+                                    v.state = ' class="active"';
+
+                                template += Mustache.to_html('    <li{{{state}}}><a onclick="module.page({{page}})">{{page}}</a></li>', v);
+                            }
+
+                            template += '    <li{{{right_class}}}><a onclick="module.page({{top}})">&raquo;</a></li>' +
+                                        '</ul>';
+
+                            v = {'bottom':0, 'top':(pages - 1)};
+                            if(module.index == 0)
+                                v.left_class = ' class="disabled"';
                             else
-                                row.lock = 'lock';
+                                v.bottom = module.index - 1;
+
+                            if(module.index >= (pages - 1))
+                                v.right_class = ' class="disabled"';
+                            else
+                                v.top = module.index + 1;
+
+                            var html = Mustache.to_html(template, v);
+
+                            $('#pagination_bar').html(html);
+                        } else
+                            $('#pagination_bar').html('');
                     }
-                    
-                    row.percentage = 0;
-                    if(row.total > 0)
-                        row.percentage = Math.round((row.done/row.total)*100);
-
-                    if(row.state != 'complete') {
-                        var cbox = $('#task_checkbox_' + row.id)[0];
-                        if(cbox && cbox.checked)
-                            row.checked = 'checked="checked"';
-                    } else
-                        row.checked = 'disabled';
-
-                    template = '<tr>' +
-                               '    <td><input id="task_checkbox_{{id}}" type="checkbox" {{checked}}></td>' +
-                               '    <td>{{id}}</td>' +
-                               '    <td>{{protocol}}://{{hostname}}:{{port}}{{path}}</td>' +
-                               '    <td>' +
-                               '        <div class="progress {{progress_name}}">' +
-                               '            <div class="progress-bar {{progress_name}} {{striped}}" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: {{percentage}}%">' +
-                               '                <span>{{percentage}}%</span>' +
-                               '            </div>' +
-                               '        </div>' +
-                               '    </td>' +
-                               '    <td>{{description}}</td>' +
-                               '    <td>{{stage}}</td>' +
-                               '    <td>{{state}}</td>' +
-                               '    <td>' +
-                               '    {{#dependence}}' +
-                               '        <i class="fa fa-link fa-fw" title="Task #{{dependence.id}}"></i>' +
-                               '    {{/dependence}}' +
-                               '    {{#lock}}' +
-                               '        <i class="fa fa-{{lock}} fa-fw"></i>' +
-                               '    {{/lock}}' +
-                               '    </td>' +
-                               '</tr>';
-
-                    table_html += Mustache.to_html(template, row);
                 });
-
-                table.html(table_html);
-
-                pages = Math.ceil(count / module.limit);
-
-                if(count > module.limit) {
-
-                    template = '<ul class="pagination no-padding">' +
-                               '    <li{{{left_class}}}><a onclick="module.page({{bottom}})">&laquo;</a></li>';
-
-                    for(page=0; page < pages; page++) {
-                        v = {'page':page};
-                        if(page == module.index)
-                            v.state = ' class="active"';
-
-                        template += Mustache.to_html('    <li{{{state}}}><a onclick="module.page({{page}})">{{page}}</a></li>', v);
-                    }
-
-                    template += '    <li{{{right_class}}}><a onclick="module.page({{top}})">&raquo;</a></li>' +
-                                '</ul>';
-
-                    v = {'bottom':0, 'top':(pages - 1)};
-                    if(module.index == 0)
-                        v.left_class = ' class="disabled"';
-                    else
-                        v.bottom = module.index - 1;
-
-                    if(module.index >= (pages - 1))
-                        v.right_class = ' class="disabled"';
-                    else
-                        v.top = module.index + 1;
-
-                    var html = Mustache.to_html(template, v);
-
-                    $('#pagination_bar').html(html);
-                } else
-                    $('#pagination_bar').html('');
             }
         });
+    };
+
+    this.update_table = function() {
+
+
     };
 
     this.add_task = function() {

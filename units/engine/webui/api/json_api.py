@@ -40,13 +40,12 @@ class JsonAPI:
 
     @cherrypy.tools.json_out()
     def GET(self, entity_name, eid=0, limit=20, offset=0, count=False):
-
         try:
             entity = self.orm.entities[entity_name]
         except KeyError:
             return {'status': -1, 'error': 'Unknown entity "{0}"'.format(entity_name)}
 
-        results = []
+        response = {'status': 0, 'result': [], 'timestamp': 0}
 
         self.orm.session_lock.acquire()
 
@@ -70,35 +69,34 @@ class JsonAPI:
 
         if count:
             count = orm_query.count()
-            results.append({'count': count})
+            response['result'] = {'count': count}
 
         else:
             rows = orm_query.all()
-            json_rows = [row.to_json() for row in rows]
+            response['result'] = [row.to_json() for row in rows]
 
-            results.append({'rows': json_rows})
-
-        timestamp = self.orm.timestamp()
+        response['timestamp'] = self.orm.timestamp()
 
         self.orm.session_lock.release()
 
-        return {'status': 0, 'results': results, 'timestamp': timestamp}
+        return response
 
-    @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
-    def DELETE(self, file, json_params):
-
-        params = json.loads(json_params)
-
+    def DELETE(self, entity_name, entity_id):
         try:
-            parser = self.file_parsers[params['format']](self.orm)
-            result = parser.digest(file, params)
+            entity = self.orm.entities[entity_name]
+        except KeyError:
+            return {'status': -1, 'error': 'Unknown entity "{0}"'.format(entity_name)}
 
-        except IndexError:
-            #print('[upload] KeyError')
-            return {'status': -1}
+        self.orm.session_lock.acquire()
 
-        return result
+        deleted = self.orm.session.query(entity).filter(entity.id == int(entity_id)).delete()
+        if deleted:
+            self.orm.session.commit()
+
+        self.orm.session_lock.release()
+
+        return {'status': 0, 'deleted': deleted}
 
 
 
