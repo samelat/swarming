@@ -14,21 +14,18 @@ class Knowledge:
     #
     ############################################
     def post(self, message):
-        result = {'status': 0, 'results': []}
-
-        self._db_mgr.session_lock.acquire()
         try:
-            table = message['params']['entity']
+            entity = message['params']['entity']
             entries = message['params']['entries']
             entries = entries if isinstance(entries, list) else [entries]
 
-            result['result'] = self._db_mgr.post(table, entries)
-
-            self._db_mgr.session.commit()
-            self._db_mgr.session_lock.release()
-
         except KeyError:
-            result = {'status': -1}
+            return {'status': -1}
+
+        self._db_mgr.session_lock.acquire()
+        result = self._db_mgr.post(entity, entries)
+        self._db_mgr.session.commit()
+        self._db_mgr.session_lock.release()
 
         return result
 
@@ -39,6 +36,7 @@ class Knowledge:
         result = {'status': 0, 'results': []}
 
         self._db_mgr.session_lock.acquire()
+
         try:
             table = message['params']['entity']
             entries = message['params']['entries']
@@ -48,10 +46,11 @@ class Knowledge:
             result['result'] = self._db_mgr.put(table, entries)
 
             self._db_mgr.session.commit()
-            self._db_mgr.session_lock.release()
 
         except KeyError:
             result = {'status': -1}
+
+        self._db_mgr.session_lock.release()
 
         return result
 
@@ -62,6 +61,7 @@ class Knowledge:
         result = {'status': 0, 'results': []}
 
         self._db_mgr.session_lock.acquire()
+
         try:
             table = message['params']['entity']
             conditions = message['params']['conditions']
@@ -72,10 +72,11 @@ class Knowledge:
                 result = {'status': -2, 'error': 'Bad "conditions" object.'}
 
             self._db_mgr.session.commit()
-            self._db_mgr.session_lock.release()
 
         except KeyError:
             result = {'status': -1}
+
+        self._db_mgr.session_lock.release()
 
         return result
 

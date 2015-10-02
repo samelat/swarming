@@ -1,9 +1,9 @@
 
 function Task () {
 
-    var this.name = 'task';
-    var this.limit = 10;
-    var this.index = 0;
+    this.name = 'task';
+    this.limit = 10;
+    this.index = 0;
 
     this.start = function() {
         this.update();
@@ -40,7 +40,7 @@ function Task () {
 
                     success: function(response) {
 
-                        var rows  = response.rows;
+                        var rows  = response.result;
                         var table = $('#task-table tbody');
                         var table_html = '';
 
@@ -143,11 +143,6 @@ function Task () {
         });
     };
 
-    this.update_table = function() {
-
-
-    };
-
     this.add_task = function() {
 
         var uri = $('.row input[name="uri"]').val();
@@ -165,15 +160,16 @@ function Task () {
         if(split[4] != undefined)
             values['path'] = split[4];
 
-        if(split[5] != undefined)
-            attrs['query'] = split[5];
+        // I have to decide how to handle this.
+        // if(split[5] != undefined)
+        //     values['query'] = split[5];
 
         values['state'] = state;
 
         $.ajax({
             type: 'POST',
-            url: '/api/set',
-            data: JSON.stringify([{'task':values}]),
+            url: '/api/json/task',
+            data: JSON.stringify(values),
             contentType: 'application/json',
             dataType: 'json',
             success: function(response) {

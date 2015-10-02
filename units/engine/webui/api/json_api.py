@@ -14,29 +14,26 @@ class JsonAPI:
 
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
-    def PUT(self):
+    def PUT(self, entity_name, eid=0):
         # cherrypy.engine.exit()
         print('[!] PUT: {0}'.format(cherrypy.request.json))
 
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
-    def POST(self):
-        # print('[uiapi.set] JSON: {0}'.format(cherrypy.request.json))
+    def POST(self, entity_name):
+        try:
+            entries = cherrypy.request.json if isinstance(cherrypy.request.json, list) else [cherrypy.request.json]
 
-        results_list = []
-        self.orm.session_lock.acquire()
-        for rows in cherrypy.request.json:
-            results = {}
-            for table, row in rows.items():
-                result = self.orm.set(table, row)
-                results[table] = result
-            results_list.append(results)
-        self.orm.session.commit()
+            self.orm.session_lock.acquire()
+
+            result = self.orm.post(entity_name, entries)
+
+        except KeyError:
+            result = {'status': -1}
+
         self.orm.session_lock.release()
 
-        # print('[knowledge] saliendo de "set" - {1} - {0}'.format(results_list, errors))
-
-        return {'status': 0, 'results': results_list}
+        return result
 
     @cherrypy.tools.json_out()
     def GET(self, entity_name, eid=0, limit=20, offset=0, count=False):
@@ -82,7 +79,7 @@ class JsonAPI:
         return response
 
     @cherrypy.tools.json_out()
-    def DELETE(self, entity_name, entity_id):
+    def DELETE(self, entity_name, eid=0):
         try:
             entity = self.orm.entities[entity_name]
         except KeyError:
