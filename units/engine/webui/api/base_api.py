@@ -1,32 +1,32 @@
 
 import cherrypy
 
-from units.engine.orm import *
-# from units.engine.webui.uiapi.csv import CSV
+from units.engine.orm import ORM
 
 
-class JsonAPI:
+class BaseAPI:
 
     exposed = True
 
-    def __init__(self):
+    def __init__(self, entity_name):
         self.orm = ORM()
+        self.entity = entity_name
 
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
-    def PUT(self, entity_name, eid=0):
-        # cherrypy.engine.exit()
+    def PUT(self, eid=0):
         print('[!] PUT: {0}'.format(cherrypy.request.json))
+        return {'status': 0}
 
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
-    def POST(self, entity_name):
+    def POST(self):
         try:
             entries = cherrypy.request.json if isinstance(cherrypy.request.json, list) else [cherrypy.request.json]
 
             self.orm.session_lock.acquire()
 
-            result = self.orm.post(entity_name, entries)
+            result = self.orm.post(self.entity, entries)
 
         except KeyError:
             result = {'status': -1}
@@ -36,11 +36,7 @@ class JsonAPI:
         return result
 
     @cherrypy.tools.json_out()
-    def GET(self, entity_name, eid=0, limit=20, offset=0, count=False):
-        try:
-            entity = self.orm.entities[entity_name]
-        except KeyError:
-            return {'status': -1, 'error': 'Unknown entity "{0}"'.format(entity_name)}
+    def GET(self, eid=0, limit=20, offset=0, count=False):
 
         response = {'status': 0, 'result': [], 'timestamp': 0}
 
@@ -79,21 +75,17 @@ class JsonAPI:
         return response
 
     @cherrypy.tools.json_out()
-    def DELETE(self, entity_name, eid=0):
-        try:
-            entity = self.orm.entities[entity_name]
-        except KeyError:
-            return {'status': -1, 'error': 'Unknown entity "{0}"'.format(entity_name)}
+    def DELETE(self, eid):
 
         self.orm.session_lock.acquire()
 
-        deleted = self.orm.session.query(entity).filter(entity.id == int(entity_id)).delete()
+        self.orm.session.query(entity).filter(entity.id == int(eid)).delete()
         if deleted:
             self.orm.session.commit()
 
         self.orm.session_lock.release()
 
-        return {'status': 0, 'deleted': deleted}
+        return {'status': 0}
 
 
 

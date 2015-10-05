@@ -19,7 +19,7 @@ function Task () {
     this.update = function() {
         $.ajax({
             type: 'GET',
-            url: '/api/json/task',
+            url: '/api/tasks',
             data: {'count': 1},
 
             error: function() {
@@ -30,7 +30,7 @@ function Task () {
                 var count = response.result.count;
                 $.ajax({
                     type: 'GET',
-                    url: '/api/json/task',
+                    url: '/api/tasks',
                     data: {'limit':module.limit, 'offset':(module.index * module.limit)},
                     dataType: 'json',
 
@@ -168,7 +168,7 @@ function Task () {
 
         $.ajax({
             type: 'POST',
-            url: '/api/json/task',
+            url: '/api/resources/task',
             data: JSON.stringify(values),
             contentType: 'application/json',
             dataType: 'json',
@@ -194,8 +194,8 @@ function Task () {
 
         if(changes.length)
             $.ajax({
-                type: 'POST',
-                url: '/api/set',
+                type: 'PUT',
+                url: '/api/resources/task',
                 data: JSON.stringify(changes),
                 contentType: 'application/json',
                 dataType: 'json',

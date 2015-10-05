@@ -88,9 +88,12 @@ class ORM:
     def delete(self, entity, entries):
         cls = self.entities[entity]
 
+        deleted = 0
         for entry in entries:
             obj = self.session.query(cls).filter(cls.id == entry['id']).first()
-            obj.delete()
+            deleted += obj.delete()
+
+        return deleted
 
     def halt(self):
         self.session.commit()
