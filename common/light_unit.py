@@ -14,7 +14,7 @@ class LightUnit(Unit):
 
         self.task = None
         self.stages = {}
-        self.records = []
+        self.registers = []
         self.timestamp = 0
 
         self.add_cmd_handler('consume', self.consume)
@@ -61,7 +61,7 @@ class LightUnit(Unit):
     def consume(self, message):
         try:
             self.task = message['params']['task']
-            self.records = message['params']['records']
+            self.registers = message['params']['registers']
 
             if not self.task['port']:
                 self.task['port'] = self.protocols[self.task['protocol']]
@@ -73,7 +73,8 @@ class LightUnit(Unit):
 
             result = self.stages[self.task['stage']](message)
 
-        except KeyError:
+        except KeyError as e:
+            print(e)
             return {'status': -1, 'error': 'Unknown stage'}
 
         return result

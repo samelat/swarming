@@ -4,18 +4,21 @@ import cherrypy
 from units.engine.orm import ORM
 
 
-class BaseAPI:
+class JsonAPI:
 
     exposed = True
 
-    def __init__(self, entity_name):
+    def __init__(self, entity):
         self.orm = ORM()
-        self.entity = entity_name
+        self.entity = entity
 
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     def PUT(self, eid=0):
         print('[!] PUT: {0}'.format(cherrypy.request.json))
+
+        entity = self.orm.entities[self.entity]
+
         return {'status': 0}
 
     @cherrypy.tools.json_in()
@@ -38,6 +41,7 @@ class BaseAPI:
     @cherrypy.tools.json_out()
     def GET(self, eid=0, limit=20, offset=0, count=False):
 
+        entity = self.orm.entities[self.entity]
         response = {'status': 0, 'result': [], 'timestamp': 0}
 
         self.orm.session_lock.acquire()
@@ -76,6 +80,8 @@ class BaseAPI:
 
     @cherrypy.tools.json_out()
     def DELETE(self, eid):
+
+        entity = self.orm.entities[self.entity]
 
         self.orm.session_lock.acquire()
 

@@ -4,10 +4,8 @@ import cherrypy
 from cherrypy.process import servers
 from threading import Thread
 
+from units.engine.webui.api import JsonAPI
 from units.engine.webui.api import FilesAPI
-from units.engine.webui.api import TasksAPI
-from units.engine.webui.api import UnitsAPI
-from units.engine.webui.api import DictionariesAPI
 
 
 class WebUI:
@@ -56,9 +54,9 @@ class WebUI:
         
         cherrypy.tree.mount(self, '/', config=static_conf)
         cherrypy.tree.mount(FilesAPI(), '/api/files', config=api_conf)
-        cherrypy.tree.mount(TasksAPI(), '/api/tasks', config=api_conf)
-        cherrypy.tree.mount(UnitsAPI(), '/api/units', config=api_conf)
-        cherrypy.tree.mount(DictionariesAPI(), '/api/dictionaries', config=api_conf)
+        cherrypy.tree.mount(JsonAPI('task'), '/api/tasks', config=api_conf)
+        cherrypy.tree.mount(JsonAPI('unit'), '/api/units', config=api_conf)
+        cherrypy.tree.mount(JsonAPI('dictionary'), '/api/dictionaries', config=api_conf)
         # cherrypy.tree.mount()
 
         cherrypy.engine.start()

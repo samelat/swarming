@@ -41,6 +41,7 @@ class Knowledge:
             table = message['params']['entity']
             entries = message['params']['entries']
             entries = entries if isinstance(entries, list) else [entries]
+            # Each entry has to have the ID attribute
             entries = [entry for entry in entries if 'id' in entry]
 
             result['result'] = self._db_mgr.put(table, entries)

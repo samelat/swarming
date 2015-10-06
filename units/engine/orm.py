@@ -68,10 +68,12 @@ class ORM:
     def put(self, entity, entries):
         cls = self.entities[entity]
 
-        error, values = cls.from_json(entries, self)
-        # self.session.commit()
+        for entry in entries:
+            obj = self.session.query(cls).filter(cls.id == entry['id']).first()
 
-        return {'status': error, 'values': values}
+            self.session.commit()
+
+        return {'status': 0}
 
     def get(self, entity, conditions):
         cls = self.entities[entity]

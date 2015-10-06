@@ -168,7 +168,7 @@ function Task () {
 
         $.ajax({
             type: 'POST',
-            url: '/api/resources/task',
+            url: '/api/tasks',
             data: JSON.stringify(values),
             contentType: 'application/json',
             dataType: 'json',
