@@ -68,10 +68,15 @@ class ORM:
     def put(self, entity, entries):
         cls = self.entities[entity]
 
-        for entry in entries:
-            obj = self.session.query(cls).filter(cls.id == entry['id']).first()
-
+        try:
+            for entry in entries:
+                obj = self.session.query(cls).filter(cls.id == entry['id']).first()
+                for key, value in [(key, value) for key, value in entry.items() if key in obj.attributes]:
+                    setattr(obj, key, value)
             self.session.commit()
+
+        except sqlalchemy.exc.IntegrityError:
+            pass
 
         return {'status': 0}
 

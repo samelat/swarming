@@ -1,5 +1,6 @@
 
 import time
+import traceback
 
 from common.unit import Unit
 
@@ -73,8 +74,7 @@ class LightUnit(Unit):
 
             result = self.stages[self.task['stage']](message)
 
-        except KeyError as e:
-            print(e)
+        except KeyError:
             return {'status': -1, 'error': 'Unknown stage'}
 
         return result

@@ -35,8 +35,6 @@ class HTTP(LightUnit):
     # This method exist to prepare the context for the stage handler execution.
     def prepare(self):
 
-        self.registers = self.task['registers']
-
         port = ':{0}'.format(self.task['port']) if self.task['port'] not in self.protocols.values() else ''
         self.url = '{protocol}://{hostname}{0}{path}'.format(port, **self.task)
 

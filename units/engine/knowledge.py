@@ -33,6 +33,7 @@ class Knowledge:
     #
     ############################################
     def put(self, message):
+        print('[put] {0}'.format(message))
         result = {'status': 0, 'results': []}
 
         self._db_mgr.session_lock.acquire()
@@ -48,7 +49,8 @@ class Knowledge:
 
             self._db_mgr.session.commit()
 
-        except KeyError:
+        except KeyError as e:
+            print('[!] Exception: {0}'.format(e))
             result = {'status': -1}
 
         self._db_mgr.session_lock.release()
