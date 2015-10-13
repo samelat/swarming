@@ -118,8 +118,12 @@ class Tasker:
                 task.state = 'running'
 
                 # Load all task's registers and dispatch the task
-                registers = [json.loads(register) for register in task.registers]
-                response = self._dispatch_task({'task': task.to_json(), 'registers': registers})
+                grouped_registers = {}
+                for json_register in [register.to_json() for register in task.registers]:
+                    if json_register['type'] not in grouped_registers:
+                        grouped_registers[json_register['type']] = []
+                    grouped_registers[json_register['type']].append(rejson_register)
+                response = self._dispatch_task({'task': task.to_json(), 'registers': grouped_registers})
 
                 if response['status'] < 0:
                     task.state = 'stopped'
@@ -130,9 +134,8 @@ class Tasker:
 
         self._db_mgr.session_lock.release()
 
-    ''' #################################################
-        #################################################
-    '''
+    #################################################################
+    #################################################################
     def _cracking_dictionary_tasks(self):
 
         self._db_mgr.session_lock.acquire()

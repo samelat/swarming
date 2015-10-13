@@ -10,7 +10,6 @@ from units.http.crawler.container import Container
 from units.http.crawler import spiders
 
 from units.http.support import HTML
-from units.http.support import Delimiter
 from units.http.support import Protocol
 
 
@@ -21,9 +20,6 @@ class Crawler(Protocol):
         self.unit = unit
         self.logger = logging.getLogger(__name__)
 
-        # The list of domains in which crawler are interested
-        self.suggested_targets = set()
-        self.delimiter = Delimiter(parse.urlparse(self.unit.url).hostname)
         # This list of Spiders has been ordered. Don't change its order.
         self.spiders = {'app': spiders.AppSpider(unit),
                         'error': spiders.ErrorSpider(unit),
@@ -39,10 +35,9 @@ class Crawler(Protocol):
         self.mimetypes = mimetypes.MimeTypes()
         self.mimetypes.read('data/mime.types')
 
-    ''' Each unit is responsible of the 'done' and 'total'
-        values update. That is what this method do.
-    '''
-    def sync(self, component, force=False):
+    # Each unit is responsible for the 'done' and 'total'
+    # values update. That is what this method does.
+    def sync(self, force=False):
         timestamp = time.time()
         if force or (timestamp > (self.timestamp + 4.0)):
             self.timestamp = timestamp
@@ -50,9 +45,8 @@ class Crawler(Protocol):
             done = self.container.done()
             total = self.container.total()
 
-            self.unit.set_knowledge({'task':{'id':self.unit.task['id'],
-                                             'done':done,
-                                             'total':total}})
+            self.unit.engine('put', {'entity': 'task', 'entries': {'id': self.unit.task['id'],
+                                                                   'done': done, 'total': total}})
 
     def get_content(self, request, response):
 
@@ -76,8 +70,7 @@ class Crawler(Protocol):
 
         return content
 
-    ''' TODO:
-    '''
+    ###################################################
     def add_request(self, request):
 
         match = re.match('^https?://[^?#]+', request['url'])
@@ -88,13 +81,17 @@ class Crawler(Protocol):
         if url.scheme not in ['http', 'https']:
             return
 
-        if (url.scheme, url.hostname, url.port) in self.suggested_targets:
-            return
+        # if (url.scheme, url.hostname, url.port) in self.suggested_targets:
+        #    return
 
+        zone = '.'.join(url.hostname.split('.')[1:])
+
+        # If the request is in the same domain (zone).
         if not self.delimiter.in_dns_zone(url.hostname):
             return
 
-        if not self.delimiter.in_host(url.hostname):
+        # If it is requesting something existing in the same site.
+        if not self.delimiter.in_site(url.hostname):
             self.suggested_targets.add((url.scheme, url.hostname, url.port))
             crawl_task = self.unit.task.copy()
             del(crawl_task['id'])
@@ -102,11 +99,7 @@ class Crawler(Protocol):
                                'stage': 'crawling', 'state': 'stopped'})
             if url.port:
                 crawl_task['port'] = url.port
-            self.unit.set_knowledge({'task': crawl_task}, block=False)
-            return
-
-        if not self.delimiter.in_site(url.hostname):
-            return
+            self.unit.engine('post', {'entity': 'task', 'entries': crawl_task}, False)
 
         self.container.add_request(request)
 
@@ -122,7 +115,6 @@ class Crawler(Protocol):
 
             request['timeout'] = 16
             request['allow_redirects'] = False
-            request.update(self.unit.complements)
             
             # Take the content-type to check if It is interesting for any spider
             response = None
@@ -182,11 +174,11 @@ class Crawler(Protocol):
                         # print('[http.crawler] new dictionary: {0}'.format(dictionary))
 
             # Synchronize the total and done work
-            self.sync(self)
+            self.sync()
 
         print('[!] Crawl result {0}'.format(crawl_result))
 
         self.session = None
-        self.sync(self, True)
+        self.sync(True)
 
         return crawl_result

@@ -80,7 +80,7 @@ class Post(Protocol):
                 break
 
             if response.status_code not in self.status_codes:
-                result = {'status':-4, 'error':'Bad Status Code {0}'.format(response.status_code)}
+                result = {'status': -4, 'error': 'Bad Status Code {0}'.format(response.status_code)}
                 break
 
 

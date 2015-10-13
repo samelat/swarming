@@ -34,7 +34,6 @@ class HTTP(LightUnit):
 
     # This method exist to prepare the context for the stage handler execution.
     def prepare(self):
-
         port = ':{0}'.format(self.task['port']) if self.task['port'] not in self.protocols.values() else ''
         self.url = '{protocol}://{hostname}{0}{path}'.format(port, **self.task)
 
@@ -45,8 +44,8 @@ class HTTP(LightUnit):
         print('[http] Initial Stage method')
         print('[http] {0}'.format(message))
 
-        # We return in 'updates' the self task values we want to change.
-        self.task.update({'stage': 'crawling', 'state': 'ready', 'description': 'Web Crawling'})
+        self.engine('put', {'entity': 'task', 'entries': {'id': self.task['id'], 'stage': 'crawling',
+                                                          'state': 'ready', 'description': 'Web Crawling'}})
 
         try:
             requests.request(method='head', url=self.url, verify=False)

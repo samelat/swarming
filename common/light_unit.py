@@ -31,22 +31,20 @@ class LightUnit(Unit):
     def prepare(self):
         pass
 
-    def sync(self, component, force=False):
-        timestamp = time.time()
-        if force or (timestamp > (self.timestamp + 4.0)):
-            self.timestamp = timestamp
+    # This method execute "command" over engine using the specified parameters.
+    def engine(self, command, params, block=False):
+        message = {'src': self.name, 'dst': 'engine', 'cmd': command, 'params': params}
+        result = self.core.dispatch(message)
 
-            done = component.get_done_work()
-            total = component.get_total_work()
+        if block:
+            result = self.get_response(result['channel'], True)
 
-            self.set_knowledge({'task': {'id': self.task['id'],
-                                         'done': done,
-                                         'total': total}})
+        return result
 
     def success(self, credentials, complement=None):
         print('[!!!] Success: {0} - Logs: {1}'.format(credentials, complement))
-        return
 
+        '''
         rows = {'success': {'credentials': credentials, 'task': {'id': self.task['id']}}}
         if 'complement' not in self.task:
             if complement:
@@ -54,7 +52,10 @@ class LightUnit(Unit):
 
             rows['complement'] = {'values': complement, 'task': {'id': self.task['id']}}
 
-        self.set_knowledge(rows)
+        self.knowledge()
+        '''
+
+        return {'status': 0}
 
     ############################################
     #              Unit Commands               #
@@ -66,9 +67,7 @@ class LightUnit(Unit):
 
             if not self.task['port']:
                 self.task['port'] = self.protocols[self.task['protocol']]
-                message = {'src': self.name, 'dst': 'engine', 'cmd': 'put',
-                           'params': {'entity': 'task', 'entries': {'id': self.task['id'], 'port': self.task['port']}}}
-                self.core.dispatch(message)
+                self.engine('put', {'entity': 'task', 'entries': {'id': self.task['id'], 'port': self.task['port']}})
 
             self.prepare()
 
@@ -82,10 +81,6 @@ class LightUnit(Unit):
     def register(self, message):
 
         entries = [{'name': self.name, 'protocol': protocol, 'port': port} for protocol, port in self.protocols.items()]
-        message = {'src': self.name, 'dst': 'engine', 'cmd': 'post', 'params': {'entity': 'unit', 'entries': entries}}
-        result = self.core.dispatch(message)
-
-        # Wait until response arrive
-        self.get_response(result['channel'], True)
+        self.engine('post', {'entity': 'unit', 'entries': entries}, True)
 
         return {'status': 0}

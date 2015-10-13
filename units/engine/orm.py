@@ -338,8 +338,7 @@ class Register(ORMBase, ORMCommon):
     def to_json(self):
         return {'id': self.id,
                 'type': self.type,
-                'content': json.loads(self.values),
-                'task': {'id': self.task_id}}
+                'content': json.loads(self.values)}
 
 
 #################################################
