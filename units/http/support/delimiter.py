@@ -1,20 +1,30 @@
 
+import re
+import dns.resolver
+
 
 class Delimiter:
 
     def __init__(self, domain):
-        self.zone = self.get_zone(domain)
+        self.zone = None
+        labels = domain.split('.')
+        while not self.zone:
+            try:
+                answer = dns.resolver.query('.'.join(labels), 'soa').response.answer
+                soa_records = [record for record in answer if record.rdtype == 6]
+                self.zone = soa_records[0].name
 
-    @staticmethod
-    def get_zone(domain):
-        return '.'.join(domain.split('.')[1:])
+            except dns.resolver.NoAnswer:
+                labels.pop(0)
+
+    def in_dns_zone(self, domain):
+        return dns.name.from_text(domain).is_subdomain(self.zone)
 
     def in_site(self, domain):
         return True
 
-    def in_host(self, domain):
-        return True
+if __name__ == "__main__":
 
-    def in_dns_zone(self, domain):
-        return True
-
+    import sys
+    delimiter = Delimiter(sys.argv[1])
+    print('[!] {0}'.format(delimiter.zone))
