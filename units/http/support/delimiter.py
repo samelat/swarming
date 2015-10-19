@@ -1,11 +1,12 @@
 
-import re
+import requests
 import dns.resolver
 
 
 class Delimiter:
 
-    def __init__(self, domain):
+    def __init__(self, url):
+        # Get DNS Zone
         self.zone = None
         labels = domain.split('.')
         while not self.zone:
@@ -16,6 +17,10 @@ class Delimiter:
 
             except dns.resolver.NoAnswer:
                 labels.pop(0)
+
+        # Make a sign using the HTTP response headers
+        requests.head()
+        self.sign = {}
 
     def in_dns_zone(self, domain):
         return dns.name.from_text(domain).is_subdomain(self.zone)
