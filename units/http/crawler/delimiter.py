@@ -1,14 +1,16 @@
 
 import requests
 import dns.resolver
-
+from urllib import parse
 
 class Delimiter:
 
-    def __init__(self, url):
+    def __init__(self, site):
+        components = parse.urlparse(site)
+
         # Get DNS Zone
         self.zone = None
-        labels = domain.split('.')
+        labels = components.domain.split('.')
         while not self.zone:
             try:
                 answer = dns.resolver.query('.'.join(labels), 'soa').response.answer
@@ -19,13 +21,16 @@ class Delimiter:
                 labels.pop(0)
 
         # Make a sign using the HTTP response headers
-        requests.head()
+        requests.get(site)
         self.sign = {}
+
+    def url_site(self, url):
+        components = parse.urlparse(url)
 
     def in_dns_zone(self, domain):
         return dns.name.from_text(domain).is_subdomain(self.zone)
 
-    def in_site(self, domain):
+    def in_site(self, url):
         return True
 
 if __name__ == "__main__":

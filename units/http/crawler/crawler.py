@@ -1,14 +1,13 @@
-
-import re
 import time
 import logging
-import requests
 import mimetypes
 from urllib import parse
 
+import requests
+
+from units.http.crawler.delimiter import Delimiter
 from units.http.crawler.container import Container
 from units.http.crawler import spiders
-
 from units.http.support import HTML
 from units.http.support import Protocol
 
@@ -26,6 +25,7 @@ class Crawler(Protocol):
                         'default': spiders.DefaultSpider(unit)}
         self.session = None
         self.container = None
+        self.delimiter = None
         self.timestamp = time.time()
 
         # This flag exist because some servers do not respond with the
@@ -50,7 +50,7 @@ class Crawler(Protocol):
 
     def get_content(self, request, response):
 
-        content = {'content-type':'text/html', 'status-code':200}
+        content = {'content-type': 'text/html', 'status-code': 200}
 
         # I don't know why "requests" developers thought that an Error
         # response (404, ...) should be taken as False during bool(response) :S.
@@ -73,10 +73,7 @@ class Crawler(Protocol):
     ###################################################
     def add_request(self, request):
 
-        match = re.match('^https?://[^?#]+', request['url'])
-        if not match:
-            return
-        url = parse.urlparse(match.group())
+        url = parse.urlparse(request['url'])
 
         if url.scheme not in ['http', 'https']:
             return
@@ -84,9 +81,7 @@ class Crawler(Protocol):
         # if (url.scheme, url.hostname, url.port) in self.suggested_targets:
         #    return
 
-        zone = '.'.join(url.hostname.split('.')[1:])
-
-        # If the request is in the same domain (zone).
+        # If the request is not in the same domain (zone).
         if not self.delimiter.in_dns_zone(url.hostname):
             return
 
@@ -108,6 +103,7 @@ class Crawler(Protocol):
     def crawl(self):
         crawl_result = {'status': 0}
 
+        self.delimiter = Delimiter(self.unit.url)
         self.container = Container({'method': 'get', 'url': self.unit.url})
         self.session = requests.Session()
         
